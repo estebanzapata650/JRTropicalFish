@@ -24,6 +24,7 @@ public static class ResultadoHttp
                 TipoError.NoEncontrado => StatusCodes.Status404NotFound,
                 TipoError.Conflicto => StatusCodes.Status409Conflict,
                 TipoError.Prohibido => StatusCodes.Status403Forbidden,
+                TipoError.NoAutenticado => StatusCodes.Status401Unauthorized,
                 _ => StatusCodes.Status400BadRequest,
             },
         };

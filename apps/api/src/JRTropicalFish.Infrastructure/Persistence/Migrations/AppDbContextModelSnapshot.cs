@@ -159,6 +159,10 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("actualizado_en");
 
+                    b.Property<DateTime?>("BloqueadoHasta")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("bloqueado_hasta");
+
                     b.Property<DateTime>("CreadoEn")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("creado_en");
@@ -168,6 +172,12 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("character varying(320)")
                         .HasColumnName("email");
+
+                    b.Property<int>("IntentosFallidos")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("intentos_fallidos");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -183,6 +193,14 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("PerfilId")
                         .HasColumnType("uuid")
                         .HasColumnName("perfil_id");
+
+                    b.Property<DateTime?>("SesionInvalidaAntes")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sesion_invalida_antes");
+
+                    b.Property<DateTime?>("UltimoAccesoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ultimo_acceso_en");
 
                     b.HasKey("Id")
                         .HasName("pk_usuarios");

@@ -9,11 +9,13 @@ import {
   ChevronRight,
   Fish,
   LayoutDashboard,
+  LogOut,
   Menu,
   PackageCheck,
   PlaneLanding,
   PlaneTakeoff,
   ShieldCheck,
+  UserRound,
   X,
 } from "lucide-react";
 import type { IconoNavegacion, ItemNavegacion } from "@/lib/navegacion";
@@ -113,14 +115,26 @@ export function AppShell({
           <p className="truncate text-xs text-texto-suave">{usuario.perfil}</p>
         </div>
       ) : null}
+      <Link
+        href="/cuenta"
+        title={mostrarEtiquetas ? undefined : "Mi cuenta"}
+        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-acento-suave hover:text-texto ${
+          pathname === "/cuenta" ? "font-medium text-texto" : "text-texto-suave"
+        }`}
+      >
+        <UserRound className="size-5 shrink-0" aria-hidden />
+        {mostrarEtiquetas ? "Mi cuenta" : <span className="sr-only">Mi cuenta</span>}
+      </Link>
       <BotonTema mostrarEtiqueta={mostrarEtiquetas} />
       {/* POST clásico (navegación completa), no Server Action: ver app/logout/route.ts. */}
       <form method="post" action="/logout">
         <button
           type="submit"
-          className="w-full rounded-md px-3 py-2 text-left text-sm text-texto-suave hover:bg-acento-suave hover:text-texto"
+          title={mostrarEtiquetas ? undefined : "Cerrar sesión"}
+          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-texto-suave hover:bg-acento-suave hover:text-texto"
         >
-          {mostrarEtiquetas ? "Cerrar sesión" : "Salir"}
+          <LogOut className="size-5 shrink-0" aria-hidden />
+          {mostrarEtiquetas ? "Cerrar sesión" : <span className="sr-only">Cerrar sesión</span>}
         </button>
       </form>
     </div>

@@ -1,8 +1,10 @@
 using Amazon.Runtime;
 using Amazon.S3;
 using JRTropicalFish.Application.Abstractions;
+using JRTropicalFish.Application.Auditoria;
 using JRTropicalFish.Application.Auth;
 using JRTropicalFish.Application.Informes;
+using JRTropicalFish.Application.Seguridad;
 using JRTropicalFish.Infrastructure.Almacenamiento;
 using JRTropicalFish.Infrastructure.Auth;
 using JRTropicalFish.Infrastructure.Comun;
@@ -54,10 +56,14 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IUsuarioActual, UsuarioActual>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<IPerfilRepository, PerfilRepository>();
+        services.AddScoped<IPermisoRepository, PermisoRepository>();
         services.AddScoped<AuthService>();
+        services.AddScoped<UsuarioService>();
+        services.AddScoped<PerfilService>();
 
         // Transversales
         services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
+        services.AddScoped<ServicioAuditoria>();
         services.AddSingleton<IGeneradorInformePdf, GeneradorInformePdfQuestPdf>();
         RegistrarAlmacenArchivos(services, configuration);
         RegistrarCorreo(services, configuration);

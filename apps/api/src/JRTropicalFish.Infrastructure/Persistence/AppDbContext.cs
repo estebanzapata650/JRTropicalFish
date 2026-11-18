@@ -54,6 +54,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Email).HasMaxLength(320).IsRequired();
             entity.HasIndex(e => e.Email).IsUnique();
             entity.Property(e => e.PasswordHash).IsRequired();
+            entity.Property(e => e.IntentosFallidos).HasDefaultValue(0);
             // Restrict, no Cascade (el default de EF Core para FK requeridas): eliminar un perfil
             // jamás debe arrastrar a sus usuarios.
             entity.HasOne<Perfil>().WithMany().HasForeignKey(e => e.PerfilId).OnDelete(DeleteBehavior.Restrict);

@@ -22,8 +22,10 @@ export async function loginAction(_prev: LoginActionState, formData: FormData): 
       body: { email, password },
     });
   } catch (err) {
-    if (err instanceof ApiError && (err.status === 401 || err.status === 400)) {
-      return { error: "Correo o contraseña incorrectos." };
+    // 401: credenciales inválidas. 403: cuenta bloqueada por intentos o usuario inactivo. En ambos
+    // casos el mensaje de la API es el que hay que mostrar.
+    if (err instanceof ApiError && (err.status === 401 || err.status === 403 || err.status === 400)) {
+      return { error: err.message };
     }
     return { error: "No se pudo iniciar sesión. Intenta de nuevo." };
   }

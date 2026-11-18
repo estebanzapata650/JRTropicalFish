@@ -32,7 +32,7 @@ public static class Permisos
         [UsuariosLeer] = "Consultar usuarios",
         [UsuariosCrear] = "Crear usuarios",
         [UsuariosEditar] = "Editar usuarios",
-        [UsuariosEliminar] = "Desactivar usuarios",
+        [UsuariosEliminar] = "Desactivar y reactivar usuarios",
         [PerfilesLeer] = "Consultar perfiles",
         [PerfilesCrear] = "Crear perfiles",
         [PerfilesEditar] = "Editar perfiles",

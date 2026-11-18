@@ -14,6 +14,9 @@ public enum TipoError
 
     /// <summary>403: el usuario no puede hacer esto aunque tenga sesión.</summary>
     Prohibido,
+
+    /// <summary>401: credenciales inválidas o sesión no reconocida.</summary>
+    NoAutenticado,
 }
 
 public sealed record Error(TipoError Tipo, string Mensaje)
@@ -22,6 +25,7 @@ public sealed record Error(TipoError Tipo, string Mensaje)
     public static Error NoEncontrado(string mensaje) => new(TipoError.NoEncontrado, mensaje);
     public static Error Conflicto(string mensaje) => new(TipoError.Conflicto, mensaje);
     public static Error Prohibido(string mensaje) => new(TipoError.Prohibido, mensaje);
+    public static Error NoAutenticado(string mensaje) => new(TipoError.NoAutenticado, mensaje);
 }
 
 /// <summary>

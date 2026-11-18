@@ -51,21 +51,51 @@ Controller ──► Service (Application) ──► IRepository ──► Repos
 
 - JWT HMAC-SHA256 emitido por la propia API (`JwtTokenService`); sin ASP.NET Identity (solo su
   `PasswordHasher<T>`, envuelto en `PasswordHasherAdapter`).
-- Claims: `sub`, nombre, email, `perfil` y **un claim `permiso` por cada permiso** (`modulo:accion`).
-  Un cambio de perfil aplica en el siguiente inicio de sesión. Expiración: `Jwt:ExpiracionMinutos` (480).
+- Claims: `sub`, `iat` (emisión), nombre, email, `perfil` y **un claim `permiso` por cada permiso**
+  (`modulo:accion`). Expiración: `Jwt:ExpiracionMinutos` (480).
 - **Seguro por defecto**: `FallbackPolicy` exige usuario autenticado en todo endpoint; lo público se marca
   `[AllowAnonymous]` (login, health).
 - Autorización fina: `[RequierePermiso(Permisos.InventarioAjustar)]` en controlador o acción.
   `PermisoPolicyProvider` crea la política al vuelo.
-- Perfiles plantilla sembrados: **Administrador** (todo), **Operativo**, **Consulta**. Editables, no
-  eliminables.
+- Perfiles plantilla sembrados: **Administrador** (todo), **Operativo**, **Consulta**. Editables (salvo el
+  nombre), no eliminables.
+
+### Políticas de acceso
+
+| Política | Regla | Dónde |
+|---|---|---|
+| Contraseña | Mínimo 8 caracteres, letras y números, máximo 128 | `Application/Seguridad/ReglasPassword.cs` |
+| Bloqueo | 5 intentos fallidos seguidos → cuenta bloqueada 15 min; un administrador puede desbloquear | `ReglasBloqueo`, `AuthService.LoginAsync` |
+| Mensajes de login | Email inexistente y clave incorrecta dan el mismo mensaje (401). Bloqueo e inactividad: 403 | `AuthService` |
+| Revocación | Token emitido antes de `usuarios.sesion_invalida_antes` → 401 en la siguiente petición | `Api/Auth/ValidacionSesion.cs` |
+| Último administrador | Nunca queda el sistema sin un usuario activo con `usuarios:editar` en un perfil activo | `UsuarioService`, `PerfilService`, `fn_administradores_contar` |
+| Autodesactivación | Nadie puede desactivar su propio usuario | `UsuarioService.CambiarEstadoAsync` |
+
+**Qué revoca sesiones** (mueve `sesion_invalida_antes`): desactivar al usuario, cambiar su contraseña (la
+propia o un restablecimiento), cambiarle el perfil, y cambiar los permisos o el estado de su perfil. Al
+cambiar la propia contraseña, la API devuelve un token nuevo y el web lo guarda: el usuario sigue en la
+sesión actual y las demás se cierran. Editar nombre, email o la descripción de un perfil **no** revoca.
+
+### Endpoints de seguridad
+
+| Método y ruta | Permiso |
+|---|---|
+| `POST /api/v1/auth/login` | Anónimo |
+| `GET /api/v1/auth/yo` · `POST /api/v1/auth/cambiar-password` | Sesión |
+| `GET /api/v1/seguridad/usuarios[/{id}[/historial]]` | `usuarios:leer` |
+| `POST /api/v1/seguridad/usuarios` | `usuarios:crear` |
+| `PUT /api/v1/seguridad/usuarios/{id}` · `POST .../{id}/desbloquear` | `usuarios:editar` |
+| `PUT /api/v1/seguridad/usuarios/{id}/estado` | `usuarios:eliminar` (desactivar/reactivar) |
+| `GET /api/v1/seguridad/perfiles[/{id}[/historial]]` · `GET .../permisos` | `perfiles:leer` |
+| `POST` · `PUT /{id}` · `DELETE /{id}` en `/api/v1/seguridad/perfiles` | `perfiles:crear` · `editar` · `eliminar` |
 
 ## Transversales disponibles
 
 | Pieza | Para qué | Dónde |
 |---|---|---|
 | `ComparadorAuditoria` / `ComparadorColecciones` | Diff campo a campo para el historial | `Application/Auditoria` |
-| `IAuditoriaRepository` | Guardar y listar el historial (`auditoria`, jsonb) | `Infrastructure/Repositories` |
+| `ServicioAuditoria` | Escribir el historial (usuario y hora actuales) y leerlo; usar este, no el repositorio | `Application/Auditoria` |
+| `IAuditoriaRepository` | Persistencia del historial (`auditoria`, jsonb) | `Infrastructure/Repositories` |
 | `IAlmacenArchivos` + `ClaveArchivo` + `DetectorTipoArchivo` | Subir/descargar documentos; clave sin datos del usuario; tipo real por magic bytes | `Application/Archivos`, `Infrastructure/Almacenamiento` |
 | `IGeneradorInformePdf` + `InformeModelo` | PDF (proforma, packing list, acta…) sin tocar QuestPDF | `Application/Informes`, `Infrastructure/Informes` |
 | `IServicioCorreo` (+ `CorreoModoPruebas`) | Enviar correo con adjuntos; redirigir todo en staging | `Infrastructure/Correo` |

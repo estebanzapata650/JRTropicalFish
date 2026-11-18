@@ -9,16 +9,19 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
 
 - Monorepo con API .NET 10 (4 capas + tests) y web Next.js 16. `npm run dev` levanta todo.
 - Login con JWT en cookie httpOnly, `/auth/yo`, menú filtrado por permisos, cierre de sesión.
-- Seguridad: tablas `usuarios`, `perfiles`, `permisos`, `perfil_permisos`; perfiles plantilla
-  Administrador / Operativo / Consulta; `[RequierePermiso]`; política por defecto = autenticado.
+- **Módulo de Seguridad completo** (2026-11-18): pantallas de **Usuarios** (crear, editar, restablecer
+  contraseña, activar/desactivar, desbloquear, historial) y **Perfiles** (crear, editar permisos por
+  módulo, eliminar, historial), y **Mi cuenta** (cambiar la propia contraseña). Bloqueo tras 5 intentos
+  fallidos (15 min), revocación inmediata de sesiones, auditoría de todo cambio y salvaguarda de "último
+  administrador". Detalle en `docs/arquitectura/02-backend.md#autenticación-y-autorización`.
 - Transversales listos para usar: auditoría (`auditoria` + `ComparadorAuditoria`), archivos S3
   (`IAlmacenArchivos`, `ClaveArchivo`, `DetectorTipoArchivo`), PDF (`IGeneradorInformePdf`), correo
   (`IServicioCorreo`, proveedores `Disco` / `SendGrid`, modo pruebas), `Resultado<T>`, `IReloj`.
-- Health check con Postgres en `/api/v1/health`. 21 pruebas unitarias en verde.
+- Health check con Postgres en `/api/v1/health`. 50 pruebas unitarias en verde.
 - Producción: `docker-compose.prod.yml` (Caddy, web, api, postgres, backup), Dockerfiles, `.env.prod.example`.
 
-**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: pantallas de usuarios y perfiles, Catálogos,
-Inventario, Importaciones, Exportaciones, Reportes. CI/CD (fase 2).
+**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: Catálogos, Inventario, Importaciones,
+Exportaciones, Reportes. Recuperación de contraseña por correo. CI/CD (fase 2).
 
 ## Descripción del proyecto
 
@@ -182,6 +185,19 @@ Separar "registrar" de "aprobar/cerrar" cuando las responsabilidades difieren (e
 
 - Errores de negocio con `Resultado<T>` + `ResultadoHttp.ARespuesta()`; siempre `{ error }`.
 - Todo endpoint exige sesión por defecto; lo público lleva `[AllowAnonymous]` explícito.
+- **Revocación de sesiones**: cada petición valida el token contra `usuarios.sesion_invalida_antes`
+  (`Api/Auth/ValidacionSesion.cs` → `fn_usuario_sesion_valida`). Cualquier operación que cambie lo que un
+  usuario puede hacer (desactivarlo, cambiar su contraseña, cambiarle el perfil, cambiar permisos o estado
+  de su perfil) **debe mover esa marca**; si no, el usuario conserva los permisos viejos hasta que el
+  token expire (8 h). Al agregar una operación así, seguir el patrón de `sp_usuario_actualizar` /
+  `sp_perfil_actualizar`.
+- La auditoría se escribe con `ServicioAuditoria` (`CreacionAsync`, `CambiosAsync`, `EliminacionAsync`).
+  Se audita una proyección legible (`UsuarioAuditable` con el *nombre* del perfil, no su id) y nunca
+  contraseñas ni hashes: solo "Contraseña: cambiada".
+- Regla del "último administrador": ninguna operación puede dejar el sistema sin un usuario activo con
+  `usuarios:editar` en un perfil activo (`fn_administradores_contar`).
+- Los perfiles base (`es_plantilla`) no se renombran ni se eliminan: el sembrado de migraciones y el
+  seeder los ubican por nombre.
 - Usar `IReloj` en vez de `DateTime.Now` en reglas.
 - `TreatWarningsAsErrors` está activo: un warning rompe el build.
 

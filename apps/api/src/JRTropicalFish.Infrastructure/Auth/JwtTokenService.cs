@@ -14,16 +14,19 @@ public class JwtTokenService(IOptions<JwtOptions> options, IReloj reloj) : IJwtT
 
     public AuthResult GenerarToken(UsuarioSesion usuario)
     {
+        var ahora = reloj.AhoraUtc;
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
+            // Fecha de emisión: se compara contra usuarios.sesion_invalida_antes para revocar el token.
+            new(JwtRegisteredClaimNames.Iat, new DateTimeOffset(ahora).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
             new(ClaimTypes.Name, usuario.Nombre),
             new(ClaimTypes.Email, usuario.Email),
             new(JwtClaimTypes.Perfil, usuario.Perfil),
         };
         claims.AddRange(usuario.Permisos.Select(p => new Claim(JwtClaimTypes.Permiso, p)));
 
-        var expiraEn = reloj.AhoraUtc.AddMinutes(_options.ExpiracionMinutos);
+        var expiraEn = ahora.AddMinutes(_options.ExpiracionMinutos);
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
@@ -32,7 +35,7 @@ public class JwtTokenService(IOptions<JwtOptions> options, IReloj reloj) : IJwtT
             issuer: _options.Issuer,
             audience: _options.Audience,
             claims: claims,
-            notBefore: reloj.AhoraUtc,
+            notBefore: ahora,
             expires: expiraEn,
             signingCredentials: credentials);
 

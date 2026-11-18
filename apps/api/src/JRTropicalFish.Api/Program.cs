@@ -49,6 +49,10 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
             NameClaimType = System.Security.Claims.ClaimTypes.Name,
         };
+        // Un token bien firmado puede estar revocado: usuario desactivado, contraseña cambiada o
+        // permisos modificados después de emitirlo. Se consulta en cada petición (una lectura por
+        // llave primaria) para que esos cambios apliquen de inmediato.
+        options.Events = new JwtBearerEvents { OnTokenValidated = ValidacionSesion.ValidarAsync };
     });
 
 builder.Services.AddAuthorization(options =>

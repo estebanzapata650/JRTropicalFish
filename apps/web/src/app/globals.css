@@ -19,6 +19,7 @@
   --acento-texto: #ffffff;
   --acento-suave: #e6f4f7;
   --peligro: #dc2626;
+  --peligro-texto: #ffffff;
   --exito-fondo: #dcfce7;
   --exito-texto: #166534;
   --advertencia-fondo: #fef3c7;
@@ -40,6 +41,7 @@
   --acento-texto: #04141a;
   --acento-suave: #12313c;
   --peligro: #f87171;
+  --peligro-texto: #1f0707;
   --exito-fondo: #14532d;
   --exito-texto: #bbf7d0;
   --advertencia-fondo: #451a03;
@@ -61,6 +63,7 @@
   --color-acento-texto: var(--acento-texto);
   --color-acento-suave: var(--acento-suave);
   --color-peligro: var(--peligro);
+  --color-peligro-texto: var(--peligro-texto);
   --color-exito-fondo: var(--exito-fondo);
   --color-exito-texto: var(--exito-texto);
   --color-advertencia-fondo: var(--advertencia-fondo);

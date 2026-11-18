@@ -25,11 +25,14 @@ Documentos relacionados:
 
 ## Módulos
 
-### 1. Seguridad y auditoría (existe)
+### 1. Seguridad y auditoría (implementado)
 
 - **Propósito**: autenticación, usuarios, perfiles con permisos, registro de auditoría y servicios
   transversales (archivos S3, PDF, correo).
 - **Entidades principales**: Usuario, Perfil, Permiso, RegistroAuditoria, Archivo.
+- **Estado**: implementado el 2026-11-18. Pantallas de Usuarios, Perfiles y Mi cuenta; bloqueo por
+  intentos fallidos, revocación inmediata de sesiones e historial de cambios. Reglas en
+  [`../arquitectura/02-backend.md`](../arquitectura/02-backend.md#políticas-de-acceso).
 - **Permisos**:
 
 | Código | Descripción | Estado |
@@ -37,7 +40,7 @@ Documentos relacionados:
 | `usuarios:leer` | Consultar usuarios | Existe |
 | `usuarios:crear` | Crear usuarios | Existe |
 | `usuarios:editar` | Editar usuarios | Existe |
-| `usuarios:eliminar` | Desactivar usuarios | Existe |
+| `usuarios:eliminar` | Desactivar y reactivar usuarios | Existe |
 | `perfiles:leer` | Consultar perfiles | Existe |
 | `perfiles:crear` | Crear perfiles | Existe |
 | `perfiles:editar` | Editar perfiles | Existe |
