@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/JRTropicalFish.Api/JRTropicalFish.Api.csproj" />
+    <Project Path="src/JRTropicalFish.Application/JRTropicalFish.Application.csproj" />
+    <Project Path="src/JRTropicalFish.Domain/JRTropicalFish.Domain.csproj" />
+    <Project Path="src/JRTropicalFish.Infrastructure/JRTropicalFish.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/JRTropicalFish.Tests/JRTropicalFish.Tests.csproj" />
+  </Folder>
+</Solution>

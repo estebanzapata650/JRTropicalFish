@@ -1,0 +1,15 @@
+@api = http://localhost:5377
+
+### Salud
+GET {{api}}/api/v1/health
+
+### Login (usuario sembrado en desarrollo)
+# @name login
+POST {{api}}/api/v1/auth/login
+Content-Type: application/json
+
+{ "email": "admin@jrtropicalfish.local", "password": "Admin123!" }
+
+### Sesión actual
+GET {{api}}/api/v1/auth/yo
+Authorization: Bearer {{login.response.body.token}}

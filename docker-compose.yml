@@ -1,0 +1,45 @@
+# Infraestructura de DESARROLLO. La API y el web corren fuera de Docker (`npm run dev`).
+# Producción: ver docker-compose.prod.yml y docs/arquitectura/05-despliegue-vps.md
+name: jrtropicalfish
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: jrtropicalfish-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jrtropicalfish}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jrtropicalfish}
+      POSTGRES_DB: ${POSTGRES_DB:-jrtropicalfish}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jrtropicalfish} -d ${POSTGRES_DB:-jrtropicalfish}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Almacén de objetos compatible con S3: documentos de importación/exportación, fotos de especies.
+  garage:
+    image: dxflrs/garage:v2.1.0
+    container_name: jrtropicalfish-garage
+    restart: unless-stopped
+    ports:
+      - "${S3_PORT:-3910}:3900"
+      - "${S3_ADMIN_PORT:-3913}:3903"
+    volumes:
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  postgres-data:
+  garage-meta:
+  garage-data:

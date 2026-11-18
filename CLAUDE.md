@@ -1,0 +1,220 @@
+# CLAUDE.md
+
+Guía principal para trabajar en este repositorio. Léela completa antes de cambiar código. El detalle de
+cada tema está en `docs/`; aquí va lo necesario para no romper nada.
+
+## Estado del proyecto
+
+**Esqueleto de infraestructura listo y verificado de punta a punta** (2026-11-18):
+
+- Monorepo con API .NET 10 (4 capas + tests) y web Next.js 16. `npm run dev` levanta todo.
+- Login con JWT en cookie httpOnly, `/auth/yo`, menú filtrado por permisos, cierre de sesión.
+- Seguridad: tablas `usuarios`, `perfiles`, `permisos`, `perfil_permisos`; perfiles plantilla
+  Administrador / Operativo / Consulta; `[RequierePermiso]`; política por defecto = autenticado.
+- Transversales listos para usar: auditoría (`auditoria` + `ComparadorAuditoria`), archivos S3
+  (`IAlmacenArchivos`, `ClaveArchivo`, `DetectorTipoArchivo`), PDF (`IGeneradorInformePdf`), correo
+  (`IServicioCorreo`, proveedores `Disco` / `SendGrid`, modo pruebas), `Resultado<T>`, `IReloj`.
+- Health check con Postgres en `/api/v1/health`. 21 pruebas unitarias en verde.
+- Producción: `docker-compose.prod.yml` (Caddy, web, api, postgres, backup), Dockerfiles, `.env.prod.example`.
+
+**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: pantallas de usuarios y perfiles, Catálogos,
+Inventario, Importaciones, Exportaciones, Reportes. CI/CD (fase 2).
+
+## Descripción del proyecto
+
+JR Tropical Fish compra, mantiene y vende peces tropicales vivos. El sistema cubre:
+
+- **Inventario**: stock vivo por especie, talla, lote y tanque/ubicación; movimientos (entradas, salidas,
+  traslados, ajustes, mortalidad); cuarentena.
+- **Importaciones**: compras a proveedores del exterior, documentos (factura, certificados, CITES, guía
+  aérea), recepción con conteo de DOA, cuarentena, costos de nacionalización.
+- **Exportaciones**: pedidos de clientes del exterior, proformas, reserva de stock, packing list, factura
+  comercial, documentos sanitarios, despacho y reclamos.
+
+Es **una sola empresa** (sin multi-tenant). Glosario en `docs/dominio/glosario.md`.
+
+## Arquitectura
+
+Resumen; detalle en `docs/arquitectura/`.
+
+- **Backend**: ASP.NET Core .NET 10, Clean Architecture: `Domain` ← `Application` ← `Infrastructure` ← `Api`.
+  Servicios concretos scoped inyectados en controladores; sin MediatR/AutoMapper.
+- **Datos**: PostgreSQL 16, una base `jrtropicalfish`. **EF Core solo para migraciones**; en ejecución
+  **Dapper** contra funciones `fn_*` y procedimientos `sp_*` PL/pgSQL creados en migraciones.
+- **Frontend**: Next.js 16 como **BFF**. El navegador nunca llama a la API: Server Components / Server
+  Actions usan `apiFetch`; componentes de cliente usan el proxy `app/api/[...path]`; binarios por route
+  handlers con streaming.
+- **Auth**: JWT HMAC-SHA256 propio; claims `perfil` y un `permiso` por permiso (`modulo:accion`).
+- **Archivos**: S3 (`ForcePathStyle`), Garage en desarrollo, R2/S3 en producción.
+- **PDF**: QuestPDF (licencia Community) detrás de `IGeneradorInformePdf`.
+- **Correo**: `Disco` por defecto (no envía), `SendGrid` por configuración.
+- **IDs**: UUID v7 (`Guid.CreateVersion7()`). **Hora**: UTC en base; "hoy" de negocio en `America/Bogota`.
+- **Producción**: VPS + Docker Compose + Caddy. Migraciones como paso explícito (`--migrar`).
+
+Decisiones registradas en `docs/arquitectura/adr/`.
+
+## Reglas de diseño (web)
+
+Obligatorias:
+
+- **Ninguna pantalla se da por terminada sin verla a ~390 px** con viewport móvil real.
+- `min-w-0` en la columna de contenido (ya en `AppShell`); contenido hasta `max-w-7xl`.
+- Formularios con `RejillaCampos` (1/2/3 columnas), `CampoAncho`, `Seccion` (plegable solo en móvil, por CSS).
+- Espaciado: `gap-1.5` etiqueta→campo, `gap-4` entre campos, `gap-6` entre secciones.
+- Tablas reales (`TablaResponsive`), columnas secundarias `hidden md:table-cell`; acciones de fila con
+  `BotonIcono` y `aria-label` que incluya el nombre del registro.
+- **Todo color sale de un token** de `globals.css` (`bg-superficie`, `text-texto-suave`, `bg-acento`…);
+  nunca paleta fija de Tailwind. Tema con clase `dark` en `<html>`; `BotonTema` sin estado de React.
+- Overlays de diálogo/drawer con `aria-hidden` y `tabIndex={-1}`.
+
+## Estructura del repositorio
+
+```
+JRTropicalFish/
+├── CLAUDE.md · README.md
+├── package.json              # orquestador: dev, stop, build, test, migraciones, prod:*
+├── docker-compose.yml        # DESARROLLO: postgres (5433), garage (3910/3913)
+├── docker-compose.prod.yml   # PRODUCCIÓN: caddy, web, api, postgres, backup
+├── .env.example · .env.prod.example · .editorconfig · .dockerignore · .gitignore
+├── apps/
+│   ├── api/
+│   │   ├── JRTropicalFish.slnx · Directory.Build.props (net10.0, warnings = errores) · global.json
+│   │   ├── src/JRTropicalFish.Domain/
+│   │   │   ├── Comun/            EntidadBase, CatalogoSimple
+│   │   │   ├── Seguridad/        Usuario, Perfil, Permiso, Permisos (catálogo + PerfilesPlantilla)
+│   │   │   └── Auditoria/        RegistroAuditoria
+│   │   ├── src/JRTropicalFish.Application/
+│   │   │   ├── Abstractions/     interfaces: repositorios, IReloj, IAlmacenArchivos, IServicioCorreo…
+│   │   │   ├── Comun/            Resultado<T>, Error, TipoError
+│   │   │   ├── Auth/             AuthService, IJwtTokenService
+│   │   │   ├── Archivos/         ClaveArchivo, DetectorTipoArchivo
+│   │   │   ├── Auditoria/        ComparadorAuditoria, ComparadorColecciones
+│   │   │   └── Informes/         InformeModelo, IGeneradorInformePdf
+│   │   ├── src/JRTropicalFish.Infrastructure/
+│   │   │   ├── InfrastructureServiceCollectionExtensions.cs   ← registro único de DI
+│   │   │   ├── Persistence/      AppDbContext, factory, MigradorBaseDatos, Migrations/, Sembrado/
+│   │   │   ├── Repositories/     Dapper
+│   │   │   ├── Auth/ · Almacenamiento/ · Correo/ · Informes/ · Comun/
+│   │   ├── src/JRTropicalFish.Api/
+│   │   │   ├── Program.cs · Controllers/ · Auth/ (RequierePermiso) · Comun/ (ResultadoHttp) · Startup/
+│   │   └── tests/JRTropicalFish.Tests/
+│   └── web/
+│       └── src/
+│           ├── proxy.ts          # redirige a /login sin cookie (Next 16: antes middleware.ts)
+│           ├── app/              # login, logout, api/[...path], (dashboard)/...
+│           ├── components/       # AppShell, PageHeader, LoginForm, campos, TemaProvider
+│           └── lib/              # api, session, permisos, navegacion, estilos
+├── infra/  docker/ · caddy/ · garage/ · backup/
+├── scripts/  stop.mjs · s3-init.mjs
+└── docs/  arquitectura/ (+ adr/) · dominio/ · design-thinking/ · temp/ (ignorado)
+```
+
+## Comandos
+
+```bash
+cp .env.example .env               # una vez
+npm install && npm install --prefix apps/web
+npm run dev                        # todo el stack; API aplica migraciones y siembra admin
+npm run stop
+
+npm test                           # dotnet test
+npm run lint                       # eslint web
+npm run build                      # API + web
+
+# Migraciones (solo DDL; ver "Acceso a datos")
+npm run migracion:nueva -- NombreDeLaMigracion
+dotnet ef migrations remove --project apps/api/src/JRTropicalFish.Infrastructure --startup-project apps/api/src/JRTropicalFish.Api
+
+# Producción (en el VPS)
+npm run prod:build && npm run prod:migrar && npm run prod:up
+```
+
+### Desarrollo local
+
+| Qué | Valor |
+|---|---|
+| Web | http://localhost:3100 |
+| API / Scalar | http://localhost:5377 · http://localhost:5377/scalar/v1 |
+| Postgres | `localhost:5433`, base/usuario/clave `jrtropicalfish` |
+| Garage S3 | `http://localhost:3910`, bucket `jr-documentos` (credenciales en `.env.example`) |
+| Usuario sembrado | `admin@jrtropicalfish.local` / `Admin123!` (solo Development) |
+| Correos | `apps/api/src/JRTropicalFish.Api/bin/.../correos-enviados/` (proveedor Disco) |
+
+## Guía para trabajo futuro
+
+### Agregar un módulo
+
+Seguir la receta de `docs/arquitectura/02-backend.md#agregar-un-módulo-receta`. En resumen: entidades y
+permisos (Domain) → `AppDbContext` + migración de esquema **revisada a mano** → migración de funciones PL/pgSQL
++ `SembradoPermisos.Aplicar` → interfaz + servicio (Application) → repositorio Dapper + registro en
+`AddInfrastructure()` → controlador con `[RequierePermiso]` → pruebas → permisos, menú y páginas en el web.
+
+### Agregar un permiso
+
+1. Constante en `Domain/Seguridad/Permisos.cs` y entrada en `Permisos.Todos`.
+2. Asignarlo en `PerfilesPlantilla.Definicion` (Operativo/Consulta según corresponda; Administrador los recibe todos).
+3. Migración nueva cuyo `Up` llame a `SembradoPermisos.Aplicar(migrationBuilder)`.
+4. Espejo en `apps/web/src/lib/permisos.ts` y uso en `lib/navegacion.ts`.
+5. Retirar uno: moverlo a `Permisos.Retirados` y volver a sembrar.
+
+Separar "registrar" de "aprobar/cerrar" cuando las responsabilidades difieren (ej. `inventario:ajustar` vs
+`inventario:aprobar-ajuste`).
+
+### Acceso a datos (trampas conocidas)
+
+- **Revisar siempre la migración que autogenera EF Core** antes de aplicarla (borrado de columnas antes de
+  migrar datos, `0001-01-01` en fechas, columnas vacías antes de índices únicos, `Cascade` por defecto).
+- FK con `OnDelete(Restrict)`; tablas puente con `Cascade`.
+- **En un `CALL`, castear todos los parámetros** (`@X::uuid`, `@Y::jsonb`): un nulo sin cast hace que
+  Postgres diga que el procedimiento no existe.
+- En `RETURNS TABLE`, devolver `varchar` como `::text`.
+- **Dapper construye records por posición**: el orden de columnas del `SELECT` = orden del constructor.
+- Al renombrar/eliminar una columna, **recrear en la misma migración** toda función que la use (Postgres no
+  valida hasta ejecutar). `CREATE OR REPLACE` no cambia `RETURNS TABLE`: `DROP` + `CREATE`.
+- Dapper no mapea `DateOnly` sin `DateOnlyTypeHandler` (ya registrado).
+- Sembrados idempotentes (`ON CONFLICT DO NOTHING`); nunca sobrescribir datos editados por el negocio.
+- Borrado lógico con índice único parcial (`HasFilter("eliminado_en IS NULL")`).
+- **Normalizar en C# igual que en SQL** (ej. `lower(email)`), o la auditoría registra cambios falsos.
+- Inventario: toda operación que descuente stock debe bloquear la fila (`SELECT ... FOR UPDATE`) dentro del
+  procedimiento y validar que no quede negativo. Nunca calcular el stock en C# y escribirlo.
+
+### API
+
+- Errores de negocio con `Resultado<T>` + `ResultadoHttp.ARespuesta()`; siempre `{ error }`.
+- Todo endpoint exige sesión por defecto; lo público lleva `[AllowAnonymous]` explícito.
+- Usar `IReloj` en vez de `DateTime.Now` en reglas.
+- `TreatWarningsAsErrors` está activo: un warning rompe el build.
+
+### Archivos y PDF
+
+- Nunca aceptar un archivo por extensión o `Content-Type`: `DetectorTipoArchivo` (magic bytes) y la clave
+  sale de `ClaveArchivo` (sin datos del usuario). Máximo 10 MB.
+- S3 autoalojado: `UseChunkEncoding = false` (ya en `AlmacenArchivosS3`).
+- PDF: el módulo arma un `InformeModelo`; nunca usar QuestPDF fuera de `GeneradorInformePdfQuestPdf`.
+  En Linux necesita `libfontconfig1` (ya en `api.Dockerfile`).
+
+### Web
+
+- Binarios por route handlers con streaming, nunca por el proxy `app/api/[...path]` (hace `text()`).
+- Subidas por Server Action + `apiUpload` sin fijar `Content-Type`; límite de Server Actions en
+  `next.config.ts` (12 MB).
+- Constantes de clases en `lib/estilos.ts`, no en `components/campos.tsx` (`"use client"`).
+- Un Server Component solo pasa a un cliente datos serializables o Server Actions (no funciones normales).
+- React: nada de `setState` durante el render ni en `useEffect` para reaccionar a una acción; usar
+  `useTransition` y cerrar/refrescar en el handler.
+- "Se ve pero ningún botón funciona" = no hidrató: revisar 403 en `/_next/static` (abrir `next dev` por IP
+  requiere `allowedDevOrigins`, ya automático en `next.config.ts`).
+- Next.js 16 tiene cambios incompatibles: ver `apps/web/AGENTS.md` y `node_modules/next/dist/docs/`.
+
+### Correo
+
+- Proveedor por defecto `Disco` (no envía). SendGrid exige dominio autenticado: sin eso responde 202 y no
+  entrega. `ResultadoCorreo.LlegoAlDestinatario` distingue "aceptado" de "llegó al destinatario real".
+- `Correo:RedirigirTodoA` activa el modo pruebas (todo el correo a una dirección).
+
+### Infraestructura
+
+- Puertos de desarrollo distintos a ProyectoTransporte (3100/5377/5433/3910) para correr ambos.
+- `api.Dockerfile` copia `JRTropicalFish.slnx` (no `*.sln`): la referencia tenía ese bug.
+- La API no se expone en producción; solo Caddy publica 80/443.
+- Antes de un despliegue con migraciones, respaldo manual. Guía completa: `docs/arquitectura/05-despliegue-vps.md`.

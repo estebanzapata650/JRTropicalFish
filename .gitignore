@@ -1,0 +1,39 @@
+# .NET
+bin/
+obj/
+*.user
+TestResults/
+apps/api/**/appsettings.*.local.json
+
+# Node / Next.js (apps/web tiene su propio .gitignore; esto cubre el resto del repo)
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Entornos y secretos
+.env
+.env.local
+.env.*.local
+.env.prod
+*.p12
+*.pfx
+
+# Documentos de trabajo del usuario (insumos por módulo): no se versionan
+docs/temp/
+
+# Correos que escribe el proveedor "Disco" en desarrollo
+apps/api/**/correos-enviados/
+
+# Respaldos locales de base de datos
+backups/
+
+# IDE / SO
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

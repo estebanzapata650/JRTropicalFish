@@ -1,0 +1,138 @@
+# PRODUCCIÓN en un VPS con Docker Compose. Ver docs/arquitectura/05-despliegue-vps.md.
+#
+#   cp .env.prod.example .env.prod   # y completar secretos
+#   npm run prod:build && npm run prod:migrar && npm run prod:up
+#
+# Solo Caddy publica puertos (80/443). web, api y postgres viven en redes internas.
+name: jrtropicalfish-prod
+
+x-reinicio: &reinicio
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "5" }
+
+services:
+  caddy:
+    <<: *reinicio
+    image: caddy:2.10
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMINIO: ${DOMINIO:?Define DOMINIO en .env.prod}
+      ACME_EMAIL: ${ACME_EMAIL:?Define ACME_EMAIL en .env.prod}
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    networks: [publica]
+
+  web:
+    <<: *reinicio
+    build:
+      context: .
+      dockerfile: infra/docker/web.Dockerfile
+    image: jrtropicalfish-web:${VERSION:-latest}
+    environment:
+      API_URL: http://api:8080
+      TZ: ${TZ:-America/Bogota}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks: [publica, interna]
+
+  api:
+    <<: *reinicio
+    build:
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    image: jrtropicalfish-api:${VERSION:-latest}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      TZ: ${TZ:-America/Bogota}
+      Postgres__Host: postgres
+      Postgres__Port: "5432"
+      Postgres__Database: ${POSTGRES_DB:-jrtropicalfish}
+      Postgres__Username: ${POSTGRES_USER:-jrtropicalfish}
+      Postgres__Password: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env.prod}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?Define JWT_SIGNING_KEY en .env.prod}
+      Almacenamiento__Endpoint: ${S3_ENDPOINT:-}
+      Almacenamiento__Region: ${S3_REGION:-us-east-1}
+      Almacenamiento__Bucket: ${S3_BUCKET:-jr-documentos}
+      Almacenamiento__AccessKey: ${S3_ACCESS_KEY:-}
+      Almacenamiento__SecretKey: ${S3_SECRET_KEY:-}
+      Correo__Proveedor: ${CORREO_PROVEEDOR:-Disco}
+      Correo__ApiKey: ${SENDGRID_API_KEY:-}
+      Correo__RemitenteEmail: ${CORREO_REMITENTE:-no-responder@example.com}
+      Correo__RedirigirTodoA: ${CORREO_REDIRIGIR_TODO_A:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks: [interna, datos]
+
+  postgres:
+    <<: *reinicio
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jrtropicalfish}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:-jrtropicalfish}
+      TZ: ${TZ:-America/Bogota}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jrtropicalfish} -d ${POSTGRES_DB:-jrtropicalfish}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [datos]
+
+  backup:
+    <<: *reinicio
+    build: ./infra/backup
+    image: jrtropicalfish-backup:${VERSION:-latest}
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-jrtropicalfish}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:-jrtropicalfish}
+      BACKUP_CRON: ${BACKUP_CRON:-0 2 * * *}
+      BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      TZ: ${TZ:-America/Bogota}
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [datos]
+
+networks:
+  publica:
+  interna:
+    internal: true
+  datos:
+    internal: true
+
+volumes:
+  postgres-data:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,22 @@
+# Garage para desarrollo local: un solo nodo, sin replicación.
+# La API es S3, así que el código (AWSSDK.S3) es el mismo contra Garage aquí y contra S3/R2 en producción.
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+# Secreto SOLO de desarrollo: este archivo no lleva nada sensible de producción.
+rpc_secret = "b57c0941bb7ff5db0eb80f0c3201e69b7b3fcc6db81d61920bfe165766116388"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.garage.localhost"
+
+[admin]
+api_bind_addr = "[::]:3903"
+admin_token = "desarrollo"
+metrics_token = "desarrollo"

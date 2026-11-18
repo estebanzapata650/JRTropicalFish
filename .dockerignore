@@ -1,0 +1,24 @@
+# El contexto de build es la raíz del repo: excluir todo lo que no necesitan las imágenes.
+**/bin/
+**/obj/
+**/TestResults/
+**/node_modules/
+**/.next/
+**/*.tsbuildinfo
+**/correos-enviados/
+**/appsettings.*.local.json
+
+.git/
+.vs/
+.vscode/
+.idea/
+
+.env
+.env.*
+!.env.example
+!.env.prod.example
+
+docs/
+backups/
+infra/backup/
+*.log

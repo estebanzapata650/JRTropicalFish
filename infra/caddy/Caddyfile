@@ -1,0 +1,27 @@
+# Proxy inverso de producción. Caddy obtiene y renueva el certificado TLS (Let's Encrypt) solo,
+# siempre que el DNS del dominio apunte al VPS y los puertos 80/443 estén abiertos.
+#
+# Solo se publica el web: la API vive en la red interna de Docker y la alcanza únicamente el
+# servidor de Next.js (patrón BFF). Ver docs/arquitectura/05-despliegue-vps.md.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMINIO} {
+	encode zstd gzip
+
+	# Subidas de documentos: margen sobre el máximo de 10 MB que valida la API.
+	request_body {
+		max_size 15MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy web:3000
+}

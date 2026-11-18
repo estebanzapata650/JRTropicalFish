@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/* El tema se controla con la clase `dark` en <html> (ver TemaProvider), no por
+   prefers-color-scheme, para que la preferencia elegida por el usuario mande.
+   Regla: todo color de la UI sale de estos tokens, nunca de la paleta fija de Tailwind. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --fondo: #ffffff;
+  --fondo-sutil: #f6f9fa;
+  --superficie: #ffffff;
+  --superficie-alterna: #f3f8f9;
+  --borde: #dfe7ea;
+  --texto: #0f1d24;
+  --texto-suave: #5b6b73;
+  --texto-tenue: #93a2a9;
+  /* Acento: azul petróleo (agua). */
+  --acento: #0e7490;
+  --acento-texto: #ffffff;
+  --acento-suave: #e6f4f7;
+  --peligro: #dc2626;
+  --exito-fondo: #dcfce7;
+  --exito-texto: #166534;
+  --advertencia-fondo: #fef3c7;
+  --advertencia-texto: #92400e;
+  --neutro-fondo: #eef2f4;
+  --neutro-texto: #374151;
+}
+
+.dark {
+  --fondo: #071318;
+  --fondo-sutil: #0b1b22;
+  --superficie: #0e2029;
+  --superficie-alterna: #132a35;
+  --borde: #23404c;
+  --texto: #eaf4f7;
+  --texto-suave: #9bb2bb;
+  --texto-tenue: #6b8590;
+  --acento: #22d3ee;
+  --acento-texto: #04141a;
+  --acento-suave: #12313c;
+  --peligro: #f87171;
+  --exito-fondo: #14532d;
+  --exito-texto: #bbf7d0;
+  --advertencia-fondo: #451a03;
+  --advertencia-texto: #fde68a;
+  --neutro-fondo: #1a3440;
+  --neutro-texto: #d1dde2;
+}
+
+@theme inline {
+  --color-fondo: var(--fondo);
+  --color-fondo-sutil: var(--fondo-sutil);
+  --color-superficie: var(--superficie);
+  --color-superficie-alterna: var(--superficie-alterna);
+  --color-borde: var(--borde);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+  --color-texto-tenue: var(--texto-tenue);
+  --color-acento: var(--acento);
+  --color-acento-texto: var(--acento-texto);
+  --color-acento-suave: var(--acento-suave);
+  --color-peligro: var(--peligro);
+  --color-exito-fondo: var(--exito-fondo);
+  --color-exito-texto: var(--exito-texto);
+  --color-advertencia-fondo: var(--advertencia-fondo);
+  --color-advertencia-texto: var(--advertencia-texto);
+  --color-neutro-fondo: var(--neutro-fondo);
+  --color-neutro-texto: var(--neutro-texto);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+/* Los controles nativos (selects, inputs de fecha, scrollbars) siguen el tema. */
+:root {
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
+}

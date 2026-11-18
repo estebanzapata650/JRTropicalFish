@@ -1,0 +1,13 @@
+# Finales de línea LF en el repositorio y en la copia de trabajo (coherente con .editorconfig).
+# Imprescindible para los scripts que corren dentro de contenedores Linux (infra/backup/*.sh).
+* text=auto eol=lf
+
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.pdf binary
+*.woff2 binary
