@@ -5,6 +5,7 @@ using JRTropicalFish.Application.Administracion;
 using JRTropicalFish.Application.Maestros;
 using JRTropicalFish.Application.Auditoria;
 using JRTropicalFish.Application.Auth;
+using JRTropicalFish.Application.Crm;
 using JRTropicalFish.Application.Informes;
 using JRTropicalFish.Application.Seguridad;
 using JRTropicalFish.Infrastructure.Almacenamiento;
@@ -77,6 +78,22 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IEmpleadoRepository, EmpleadoRepository>();
         services.AddScoped<MaestroService>();
         services.AddScoped<EmpleadoService>();
+
+        // CRM comercial
+        services.AddScoped<IConsecutivoRepository, ConsecutivoRepository>();
+        services.AddScoped<IComercialRepository, ComercialRepository>();
+        services.AddScoped<IClienteRepository, ClienteRepository>();
+        services.AddScoped<IOportunidadRepository, OportunidadRepository>();
+        services.AddScoped<IVentaRepository, VentaRepository>();
+        services.AddScoped<ITrackingRepository, TrackingRepository>();
+        services.AddScoped<ITareaRepository, TareaRepository>();
+        services.AddScoped<IMetricasRepository, MetricasRepository>();
+        services.AddScoped<ClienteService>();
+        services.AddScoped<OportunidadService>();
+        services.AddScoped<VentaService>();
+        services.AddScoped<TrackingService>();
+        services.AddScoped<TareaService>();
+        services.AddScoped<MetricasService>();
 
         return services;
     }

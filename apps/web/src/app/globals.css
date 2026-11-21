@@ -26,6 +26,9 @@
   --advertencia-texto: #92400e;
   --neutro-fondo: #eef2f4;
   --neutro-texto: #374151;
+  /* Etapas activas del pipeline y estados informativos (azul). */
+  --info-fondo: #dbeafe;
+  --info-texto: #1e40af;
 }
 
 .dark {
@@ -48,6 +51,8 @@
   --advertencia-texto: #fde68a;
   --neutro-fondo: #1a3440;
   --neutro-texto: #d1dde2;
+  --info-fondo: #172554;
+  --info-texto: #bfdbfe;
 }
 
 @theme inline {
@@ -70,6 +75,8 @@
   --color-advertencia-texto: var(--advertencia-texto);
   --color-neutro-fondo: var(--neutro-fondo);
   --color-neutro-texto: var(--neutro-texto);
+  --color-info-fondo: var(--info-fondo);
+  --color-info-texto: var(--info-texto);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

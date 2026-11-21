@@ -1,6 +1,7 @@
 using JRTropicalFish.Domain.Administracion;
 using JRTropicalFish.Domain.Auditoria;
 using JRTropicalFish.Domain.Comun;
+using JRTropicalFish.Domain.Crm;
 using JRTropicalFish.Domain.Maestros;
 using JRTropicalFish.Domain.Seguridad;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Area> Areas => Set<Area>();
     public DbSet<TipoContrato> TiposContrato => Set<TipoContrato>();
     public DbSet<Empleado> Empleados => Set<Empleado>();
+    public DbSet<Cliente> Clientes => Set<Cliente>();
+    public DbSet<Oportunidad> Oportunidades => Set<Oportunidad>();
+    public DbSet<Venta> Ventas => Set<Venta>();
+    public DbSet<TrackingVuelo> TrackingVuelos => Set<TrackingVuelo>();
+    public DbSet<Tarea> Tareas => Set<Tarea>();
+    public DbSet<MetaComercial> MetasComerciales => Set<MetaComercial>();
+    public DbSet<ParametrosComerciales> ParametrosComerciales => Set<ParametrosComerciales>();
+    public DbSet<Consecutivo> Consecutivos => Set<Consecutivo>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +43,193 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigurarAuditoria(modelBuilder);
         ConfigurarMaestros(modelBuilder);
         ConfigurarAdministracion(modelBuilder);
+        ConfigurarCrm(modelBuilder);
+    }
+
+    /// <summary><c>CHECK (columna IN (...))</c> a partir de las constantes de <c>Domain/Crm/EnumsCrm.cs</c>.</summary>
+    private static string EnLista(string columna, IReadOnlyList<string> valores, bool admiteNulo = false) =>
+        $"{(admiteNulo ? $"{columna} IS NULL OR " : "")}{columna} IN ({string.Join(", ", valores.Select(v => $"'{v}'"))})";
+
+    /// <summary>
+    /// CRM comercial. Los enums son texto con CHECK; los montos <c>numeric(14,2)</c>; las columnas
+    /// derivadas (<c>total_cop</c>, <c>porcentaje_doa</c>) son generadas por Postgres para que nadie
+    /// pueda guardarlas desalineadas.
+    /// </summary>
+    private static void ConfigurarCrm(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Consecutivo>(entity =>
+        {
+            entity.ToTable("consecutivos");
+            entity.HasKey(e => e.Prefijo);
+            entity.Property(e => e.Prefijo).HasMaxLength(10);
+        });
+
+        modelBuilder.Entity<Cliente>(entity =>
+        {
+            entity.ToTable("clientes", t =>
+            {
+                t.HasCheckConstraint("ck_clientes_tipo", EnLista("tipo_cliente", TiposCliente.Todos));
+                t.HasCheckConstraint("ck_clientes_licencia", EnLista("licencia_importacion", LicenciasImportacion.Todos));
+                t.HasCheckConstraint("ck_clientes_estado", EnLista("estado", EstadosCliente.Todos));
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.NombreEmpresa).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.ContactoPrincipal).HasMaxLength(150);
+            entity.Property(e => e.Email).HasMaxLength(320);
+            entity.Property(e => e.TelefonoWhatsapp).HasMaxLength(40);
+            entity.Property(e => e.Pais).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Ciudad).HasMaxLength(100);
+            entity.Property(e => e.AeropuertoIata).HasMaxLength(3);
+            entity.Property(e => e.TipoCliente).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.LicenciaImportacion).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Estado).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Notas).HasMaxLength(2000);
+            entity.HasIndex(e => e.Codigo).IsUnique().HasFilter("eliminado_en IS NULL");
+            entity.HasIndex(e => e.NombreEmpresa).IsUnique().HasFilter("eliminado_en IS NULL");
+        });
+
+        modelBuilder.Entity<Oportunidad>(entity =>
+        {
+            entity.ToTable("oportunidades", t =>
+            {
+                t.HasCheckConstraint("ck_oportunidades_tipo_venta", EnLista("tipo_venta", TiposVenta.Todos));
+                t.HasCheckConstraint("ck_oportunidades_etapa", EnLista("etapa", EtapasPipeline.Todos));
+                t.HasCheckConstraint("ck_oportunidades_moneda", EnLista("moneda", Monedas.Todos));
+                t.HasCheckConstraint("ck_oportunidades_monto", "monto_estimado >= 0 AND cajas_estimadas >= 0");
+                // Motivo obligatorio si y solo si está perdida; fecha de pago obligatoria si está ganada.
+                t.HasCheckConstraint(
+                    "ck_oportunidades_motivo_perdida",
+                    "(etapa = 'perdida') = (motivo_perdida IS NOT NULL AND btrim(motivo_perdida) <> '')");
+                t.HasCheckConstraint(
+                    "ck_oportunidades_pago_ganada", "etapa <> 'ganada' OR fecha_pago_confirmado IS NOT NULL");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.TipoVenta).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Etapa).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Moneda).HasMaxLength(3).IsRequired();
+            entity.Property(e => e.MontoEstimado).HasPrecision(14, 2);
+            entity.Property(e => e.MotivoPerdida).HasMaxLength(500);
+            entity.Property(e => e.NotasSeguimiento).HasMaxLength(4000);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasIndex(e => new { e.Etapa, e.ComercialId });
+            entity.HasOne<Cliente>().WithMany().HasForeignKey(e => e.ClienteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.ComercialId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Venta>(entity =>
+        {
+            entity.ToTable("ventas", t =>
+            {
+                t.HasCheckConstraint("ck_ventas_origen", EnLista("origen_canal", OrigenesCanal.Todos));
+                t.HasCheckConstraint("ck_ventas_tipo_venta", EnLista("tipo_venta", TiposVenta.Todos));
+                t.HasCheckConstraint("ck_ventas_moneda", EnLista("moneda", Monedas.Todos));
+                t.HasCheckConstraint("ck_ventas_estado_pago", EnLista("estado_pago", EstadosPago.Todos));
+                t.HasCheckConstraint("ck_ventas_estado_preparacion", EnLista("estado_preparacion", EstadosPreparacion.Todos));
+                t.HasCheckConstraint("ck_ventas_montos", "total >= 0 AND total_cajas >= 0");
+                // USD exige TRM; COP no lleva TRM (total_cop = total).
+                t.HasCheckConstraint("ck_ventas_trm", "(moneda = 'USD') = (trm IS NOT NULL AND trm > 0)");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.OrigenCanal).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.TipoVenta).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Moneda).HasMaxLength(3).IsRequired();
+            entity.Property(e => e.Total).HasPrecision(14, 2);
+            entity.Property(e => e.Trm).HasPrecision(12, 2);
+            entity.Property(e => e.TotalCop).HasPrecision(18, 2)
+                .HasComputedColumnSql("round(total * coalesce(trm, 1), 2)", stored: true);
+            entity.Property(e => e.TransportadoraAerolinea).HasMaxLength(150);
+            entity.Property(e => e.NoGuiaAwb).HasMaxLength(50);
+            entity.Property(e => e.EstadoPago).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.EstadoPreparacion).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.CiudadEntrega).HasMaxLength(100);
+            entity.Property(e => e.DireccionEntrega).HasMaxLength(250);
+            entity.Property(e => e.Notas).HasMaxLength(2000);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasIndex(e => e.OportunidadId).IsUnique().HasFilter("oportunidad_id IS NOT NULL");
+            entity.HasIndex(e => e.FechaPedido);
+            entity.HasOne<Oportunidad>().WithMany().HasForeignKey(e => e.OportunidadId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Cliente>().WithMany().HasForeignKey(e => e.ClienteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.ComercialId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TrackingVuelo>(entity =>
+        {
+            entity.ToTable("tracking_vuelos", t =>
+            {
+                t.HasCheckConstraint("ck_tracking_fase", EnLista("fase", FasesTracking.Todos));
+                t.HasCheckConstraint(
+                    "ck_tracking_montos",
+                    "cajas_reales >= 0 AND monto_fob_usd >= 0 AND flete_aereo_usd >= 0 AND doa_reportado_usd >= 0");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.NFacturaInvoice).HasMaxLength(50);
+            entity.Property(e => e.NoAwb).HasMaxLength(50);
+            entity.Property(e => e.Aerolinea).HasMaxLength(150);
+            entity.Property(e => e.Fase).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.MontoFobUsd).HasPrecision(14, 2);
+            entity.Property(e => e.FleteAereoUsd).HasPrecision(14, 2);
+            entity.Property(e => e.DoaReportadoUsd).HasPrecision(14, 2);
+            entity.Property(e => e.PorcentajeDoa).HasPrecision(7, 2)
+                .HasComputedColumnSql(
+                    "CASE WHEN monto_fob_usd > 0 THEN round(doa_reportado_usd / monto_fob_usd * 100, 2) END", stored: true);
+            entity.Property(e => e.NotaCreditoNo).HasMaxLength(50);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasIndex(e => e.VentaId).IsUnique();
+            entity.HasOne<Venta>().WithMany().HasForeignKey(e => e.VentaId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Oportunidad>().WithMany().HasForeignKey(e => e.OportunidadId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Cliente>().WithMany().HasForeignKey(e => e.ClienteId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Tarea>(entity =>
+        {
+            entity.ToTable("tareas", t =>
+            {
+                t.HasCheckConstraint("ck_tareas_tipo_accion", EnLista("tipo_accion", TiposAccion.Todos));
+                t.HasCheckConstraint("ck_tareas_estado", EnLista("estado", EstadosTarea.Todos));
+                t.HasCheckConstraint("ck_tareas_prioridad", EnLista("prioridad", Prioridades.Todos));
+                t.HasCheckConstraint("ck_tareas_fechas", "fecha_vencimiento >= fecha_asignacion");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Accion).HasMaxLength(300).IsRequired();
+            entity.Property(e => e.TipoAccion).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Estado).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Prioridad).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.Notas).HasMaxLength(4000);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasIndex(e => new { e.ComercialId, e.Estado });
+            entity.HasOne<Cliente>().WithMany().HasForeignKey(e => e.ClienteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Oportunidad>().WithMany().HasForeignKey(e => e.OportunidadId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.ComercialId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MetaComercial>(entity =>
+        {
+            entity.ToTable("metas_comerciales", t =>
+            {
+                t.HasCheckConstraint("ck_metas_mes", "extract(day FROM mes) = 1");
+                t.HasCheckConstraint("ck_metas_valor", "meta_cop >= 0");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MetaCop).HasPrecision(16, 2);
+            entity.HasIndex(e => new { e.Mes, e.ComercialId }).IsUnique();
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.ComercialId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ParametrosComerciales>(entity =>
+        {
+            entity.ToTable("parametros_comerciales", t => t.HasCheckConstraint("ck_parametros_fila_unica", "id = 1"));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.MetaEmpresaCop).HasPrecision(16, 2);
+            entity.Property(e => e.MetaComercialCop).HasPrecision(16, 2);
+            entity.Property(e => e.PorcentajeComision).HasPrecision(5, 2);
+            entity.Property(e => e.UmbralDoa).HasPrecision(5, 2);
+        });
     }
 
     /// <summary>

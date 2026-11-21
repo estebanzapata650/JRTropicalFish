@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import {
   Boxes,
   Briefcase,
+  Handshake,
   ChevronLeft,
   ChevronRight,
   Fish,
@@ -29,12 +30,23 @@ const iconos: Record<IconoNavegacion, typeof LayoutDashboard> = {
   importaciones: PlaneLanding,
   exportaciones: PlaneTakeoff,
   administracion: Briefcase,
+  comercial: Handshake,
   seguridad: ShieldCheck,
 };
 
 const NOMBRE = "JR Tropical Fish";
 
 const CLAVE_COLAPSADO = "jr_sidebar_colapsado";
+
+/**
+ * El hijo activo es el de ruta más larga que coincide: así "/crm" (Dashboard) no queda marcado
+ * cuando se está en "/crm/pipeline".
+ */
+function hijoActivo(pathname: string, href: string, hermanos: { href: string }[]) {
+  const coincide = (h: string) => pathname === h || pathname.startsWith(h + "/");
+  const mejor = hermanos.filter((h) => coincide(h.href)).sort((x, y) => y.href.length - x.href.length)[0];
+  return mejor?.href === href;
+}
 
 export function AppShell({
   navegacion,
@@ -93,7 +105,7 @@ export function AppShell({
                     key={hijo.href}
                     href={hijo.href}
                     className={`rounded-md px-3 py-2 text-sm transition-colors ${
-                      pathname.startsWith(hijo.href)
+                      hijoActivo(pathname, hijo.href, item.hijos!)
                         ? "font-medium text-texto"
                         : "text-texto-suave hover:text-texto"
                     }`}

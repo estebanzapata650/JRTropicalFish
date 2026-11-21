@@ -198,6 +198,710 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                     b.ToTable("auditoria", (string)null);
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.Cliente", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("AeropuertoIata")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("aeropuerto_iata");
+
+                    b.Property<string>("Ciudad")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ciudad");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<string>("ContactoPrincipal")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("contacto_principal");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateTime?>("EliminadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("eliminado_en");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("estado");
+
+                    b.Property<string>("LicenciaImportacion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("licencia_importacion");
+
+                    b.Property<string>("NombreEmpresa")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre_empresa");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notas");
+
+                    b.Property<string>("Pais")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("pais");
+
+                    b.Property<string>("TelefonoWhatsapp")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("telefono_whatsapp");
+
+                    b.Property<string>("TipoCliente")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("tipo_cliente");
+
+                    b.HasKey("Id")
+                        .HasName("pk_clientes");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_clientes_codigo")
+                        .HasFilter("eliminado_en IS NULL");
+
+                    b.HasIndex("NombreEmpresa")
+                        .IsUnique()
+                        .HasDatabaseName("ix_clientes_nombre_empresa")
+                        .HasFilter("eliminado_en IS NULL");
+
+                    b.ToTable("clientes", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_clientes_estado", "estado IN ('activo', 'inactivo', 'prospecto')");
+
+                            t.HasCheckConstraint("ck_clientes_licencia", "licencia_importacion IN ('activa', 'en_tramite', 'vencida', 'no_aplica')");
+
+                            t.HasCheckConstraint("ck_clientes_tipo", "tipo_cliente IN ('b2b_internacional', 'local_colombia', 'ecommerce')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.Consecutivo", b =>
+                {
+                    b.Property<string>("Prefijo")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("prefijo");
+
+                    b.Property<int>("Ultimo")
+                        .HasColumnType("integer")
+                        .HasColumnName("ultimo");
+
+                    b.HasKey("Prefijo")
+                        .HasName("pk_consecutivos");
+
+                    b.ToTable("consecutivos", (string)null);
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.MetaComercial", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<Guid>("ComercialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("comercial_id");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateOnly>("Mes")
+                        .HasColumnType("date")
+                        .HasColumnName("mes");
+
+                    b.Property<decimal>("MetaCop")
+                        .HasPrecision(16, 2)
+                        .HasColumnType("numeric(16,2)")
+                        .HasColumnName("meta_cop");
+
+                    b.HasKey("Id")
+                        .HasName("pk_metas_comerciales");
+
+                    b.HasIndex("ComercialId")
+                        .HasDatabaseName("ix_metas_comerciales_comercial_id");
+
+                    b.HasIndex("Mes", "ComercialId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_metas_comerciales_mes_comercial_id");
+
+                    b.ToTable("metas_comerciales", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_metas_mes", "extract(day FROM mes) = 1");
+
+                            t.HasCheckConstraint("ck_metas_valor", "meta_cop >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.Oportunidad", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<int>("CajasEstimadas")
+                        .HasColumnType("integer")
+                        .HasColumnName("cajas_estimadas");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cliente_id");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<Guid>("ComercialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("comercial_id");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateTime?>("EliminadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("eliminado_en");
+
+                    b.Property<string>("Etapa")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("etapa");
+
+                    b.Property<DateTime>("EtapaCambiadaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("etapa_cambiada_en");
+
+                    b.Property<DateOnly>("FechaContactoInicial")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_contacto_inicial");
+
+                    b.Property<DateOnly?>("FechaPagoConfirmado")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_pago_confirmado");
+
+                    b.Property<string>("Moneda")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("moneda");
+
+                    b.Property<decimal>("MontoEstimado")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("monto_estimado");
+
+                    b.Property<string>("MotivoPerdida")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("motivo_perdida");
+
+                    b.Property<string>("NotasSeguimiento")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notas_seguimiento");
+
+                    b.Property<string>("TipoVenta")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("tipo_venta");
+
+                    b.HasKey("Id")
+                        .HasName("pk_oportunidades");
+
+                    b.HasIndex("ClienteId")
+                        .HasDatabaseName("ix_oportunidades_cliente_id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_oportunidades_codigo");
+
+                    b.HasIndex("ComercialId")
+                        .HasDatabaseName("ix_oportunidades_comercial_id");
+
+                    b.HasIndex("Etapa", "ComercialId")
+                        .HasDatabaseName("ix_oportunidades_etapa_comercial_id");
+
+                    b.ToTable("oportunidades", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_oportunidades_etapa", "etapa IN ('prospeccion', 'stocklist', 'pre_invoice', 'aprobacion_vuelo', 'ganada', 'perdida')");
+
+                            t.HasCheckConstraint("ck_oportunidades_moneda", "moneda IN ('USD', 'COP')");
+
+                            t.HasCheckConstraint("ck_oportunidades_monto", "monto_estimado >= 0 AND cajas_estimadas >= 0");
+
+                            t.HasCheckConstraint("ck_oportunidades_motivo_perdida", "(etapa = 'perdida') = (motivo_perdida IS NOT NULL AND btrim(motivo_perdida) <> '')");
+
+                            t.HasCheckConstraint("ck_oportunidades_pago_ganada", "etapa <> 'ganada' OR fecha_pago_confirmado IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_oportunidades_tipo_venta", "tipo_venta IN ('exportacion', 'nacional')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.ParametrosComerciales", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<int>("MetaClientesNuevos")
+                        .HasColumnType("integer")
+                        .HasColumnName("meta_clientes_nuevos");
+
+                    b.Property<decimal>("MetaComercialCop")
+                        .HasPrecision(16, 2)
+                        .HasColumnType("numeric(16,2)")
+                        .HasColumnName("meta_comercial_cop");
+
+                    b.Property<decimal>("MetaEmpresaCop")
+                        .HasPrecision(16, 2)
+                        .HasColumnType("numeric(16,2)")
+                        .HasColumnName("meta_empresa_cop");
+
+                    b.Property<decimal>("PorcentajeComision")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("porcentaje_comision");
+
+                    b.Property<int>("PuntoEquilibrioDespachos")
+                        .HasColumnType("integer")
+                        .HasColumnName("punto_equilibrio_despachos");
+
+                    b.Property<decimal>("UmbralDoa")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("umbral_doa");
+
+                    b.HasKey("Id")
+                        .HasName("pk_parametros_comerciales");
+
+                    b.ToTable("parametros_comerciales", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_parametros_fila_unica", "id = 1");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.Tarea", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("accion");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cliente_id");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<Guid>("ComercialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("comercial_id");
+
+                    b.Property<DateTime?>("CompletadaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completada_en");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateTime?>("EliminadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("eliminado_en");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateOnly>("FechaAsignacion")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_asignacion");
+
+                    b.Property<DateOnly>("FechaVencimiento")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_vencimiento");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("notas");
+
+                    b.Property<Guid?>("OportunidadId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("oportunidad_id");
+
+                    b.Property<string>("Prioridad")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("prioridad");
+
+                    b.Property<string>("TipoAccion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("tipo_accion");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tareas");
+
+                    b.HasIndex("ClienteId")
+                        .HasDatabaseName("ix_tareas_cliente_id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tareas_codigo");
+
+                    b.HasIndex("OportunidadId")
+                        .HasDatabaseName("ix_tareas_oportunidad_id");
+
+                    b.HasIndex("ComercialId", "Estado")
+                        .HasDatabaseName("ix_tareas_comercial_id_estado");
+
+                    b.ToTable("tareas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tareas_estado", "estado IN ('pendiente', 'en_curso', 'esperando_cliente', 'completada')");
+
+                            t.HasCheckConstraint("ck_tareas_fechas", "fecha_vencimiento >= fecha_asignacion");
+
+                            t.HasCheckConstraint("ck_tareas_prioridad", "prioridad IN ('alta', 'media', 'baja')");
+
+                            t.HasCheckConstraint("ck_tareas_tipo_accion", "tipo_accion IN ('prospeccion', 'stocklist_fotos', 'pre_invoice', 'cobro_cartera', 'post_venta_doa')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.TrackingVuelo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Aerolinea")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("aerolinea");
+
+                    b.Property<int>("CajasReales")
+                        .HasColumnType("integer")
+                        .HasColumnName("cajas_reales");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cliente_id");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<decimal>("DoaReportadoUsd")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("doa_reportado_usd");
+
+                    b.Property<string>("Fase")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("fase");
+
+                    b.Property<DateOnly?>("FechaDespachoVuelo")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_despacho_vuelo");
+
+                    b.Property<decimal>("FleteAereoUsd")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("flete_aereo_usd");
+
+                    b.Property<decimal>("MontoFobUsd")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("monto_fob_usd");
+
+                    b.Property<string>("NFacturaInvoice")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("n_factura_invoice");
+
+                    b.Property<string>("NoAwb")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("no_awb");
+
+                    b.Property<string>("NotaCreditoNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("nota_credito_no");
+
+                    b.Property<Guid?>("OportunidadId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("oportunidad_id");
+
+                    b.Property<decimal?>("PorcentajeDoa")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(7, 2)
+                        .HasColumnType("numeric(7,2)")
+                        .HasColumnName("porcentaje_doa")
+                        .HasComputedColumnSql("CASE WHEN monto_fob_usd > 0 THEN round(doa_reportado_usd / monto_fob_usd * 100, 2) END", true);
+
+                    b.Property<Guid>("VentaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("venta_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tracking_vuelos");
+
+                    b.HasIndex("ClienteId")
+                        .HasDatabaseName("ix_tracking_vuelos_cliente_id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tracking_vuelos_codigo");
+
+                    b.HasIndex("OportunidadId")
+                        .HasDatabaseName("ix_tracking_vuelos_oportunidad_id");
+
+                    b.HasIndex("VentaId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tracking_vuelos_venta_id");
+
+                    b.ToTable("tracking_vuelos", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tracking_fase", "fase IN ('cuarentena', 'empaque_o2', 'inspeccion_ica', 'vuelo_transito', 'arribo', 'control_doa')");
+
+                            t.HasCheckConstraint("ck_tracking_montos", "cajas_reales >= 0 AND monto_fob_usd >= 0 AND flete_aereo_usd >= 0 AND doa_reportado_usd >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.Venta", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("CiudadEntrega")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ciudad_entrega");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cliente_id");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<Guid>("ComercialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("comercial_id");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("DireccionEntrega")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("direccion_entrega");
+
+                    b.Property<string>("EstadoPago")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("estado_pago");
+
+                    b.Property<string>("EstadoPreparacion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("estado_preparacion");
+
+                    b.Property<DateOnly>("FechaPedido")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_pedido");
+
+                    b.Property<string>("Moneda")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("moneda");
+
+                    b.Property<string>("NoGuiaAwb")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("no_guia_awb");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notas");
+
+                    b.Property<Guid?>("OportunidadId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("oportunidad_id");
+
+                    b.Property<string>("OrigenCanal")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("origen_canal");
+
+                    b.Property<string>("TipoVenta")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("tipo_venta");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("total");
+
+                    b.Property<int>("TotalCajas")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_cajas");
+
+                    b.Property<decimal>("TotalCop")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total_cop")
+                        .HasComputedColumnSql("round(total * coalesce(trm, 1), 2)", true);
+
+                    b.Property<string>("TransportadoraAerolinea")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("transportadora_aerolinea");
+
+                    b.Property<decimal?>("Trm")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("trm");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ventas");
+
+                    b.HasIndex("ClienteId")
+                        .HasDatabaseName("ix_ventas_cliente_id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ventas_codigo");
+
+                    b.HasIndex("ComercialId")
+                        .HasDatabaseName("ix_ventas_comercial_id");
+
+                    b.HasIndex("FechaPedido")
+                        .HasDatabaseName("ix_ventas_fecha_pedido");
+
+                    b.HasIndex("OportunidadId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ventas_oportunidad_id")
+                        .HasFilter("oportunidad_id IS NOT NULL");
+
+                    b.ToTable("ventas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_ventas_estado_pago", "estado_pago IN ('pendiente', 'anticipo', 'pagado')");
+
+                            t.HasCheckConstraint("ck_ventas_estado_preparacion", "estado_preparacion IN ('pendiente_picking', 'en_empaque', 'listo_despacho', 'entregado')");
+
+                            t.HasCheckConstraint("ck_ventas_moneda", "moneda IN ('USD', 'COP')");
+
+                            t.HasCheckConstraint("ck_ventas_montos", "total >= 0 AND total_cajas >= 0");
+
+                            t.HasCheckConstraint("ck_ventas_origen", "origen_canal IN ('b2b_directo', 'web_ecommerce', 'whatsapp_directo', 'mostrador_bodega')");
+
+                            t.HasCheckConstraint("ck_ventas_tipo_venta", "tipo_venta IN ('exportacion', 'nacional')");
+
+                            t.HasCheckConstraint("ck_ventas_trm", "(moneda = 'USD') = (trm IS NOT NULL AND trm > 0)");
+                        });
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Maestros.Area", b =>
                 {
                     b.Property<Guid>("Id")
@@ -600,6 +1304,102 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_empleados_tipos_identificacion_tipo_identificacion_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.MetaComercial", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("ComercialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_metas_comerciales_usuarios_comercial_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.Oportunidad", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Crm.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_oportunidades_clientes_cliente_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("ComercialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_oportunidades_usuarios_comercial_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.Tarea", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Crm.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tareas_clientes_cliente_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("ComercialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tareas_usuarios_comercial_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Crm.Oportunidad", null)
+                        .WithMany()
+                        .HasForeignKey("OportunidadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_tareas_oportunidades_oportunidad_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.TrackingVuelo", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Crm.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tracking_vuelos_clientes_cliente_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Crm.Oportunidad", null)
+                        .WithMany()
+                        .HasForeignKey("OportunidadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_tracking_vuelos_oportunidades_oportunidad_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Crm.Venta", null)
+                        .WithMany()
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tracking_vuelos_ventas_venta_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Crm.Venta", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Crm.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_ventas_clientes_cliente_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("ComercialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_ventas_usuarios_comercial_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Crm.Oportunidad", null)
+                        .WithMany()
+                        .HasForeignKey("OportunidadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_ventas_oportunidades_oportunidad_id");
                 });
 
             modelBuilder.Entity("JRTropicalFish.Domain.Seguridad.Usuario", b =>

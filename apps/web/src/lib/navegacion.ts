@@ -7,6 +7,7 @@ export type IconoNavegacion =
   | "importaciones"
   | "exportaciones"
   | "administracion"
+  | "comercial"
   | "seguridad";
 
 export type ItemNavegacion = {
@@ -28,6 +29,20 @@ export type ItemNavegacion = {
 export function construirNavegacion(): ItemNavegacion[] {
   return [
     { href: "/", label: "Panel", icono: "panel" },
+    {
+      href: "/crm",
+      label: "Comercial",
+      icono: "comercial",
+      hijos: [
+        { href: "/crm", label: "Dashboard", permiso: PERMISOS.METAS_LEER },
+        { href: "/crm/pipeline", label: "Pipeline", permiso: PERMISOS.CRM_LEER },
+        { href: "/crm/ventas", label: "Ventas", permiso: PERMISOS.CRM_LEER },
+        { href: "/crm/vuelos", label: "Torre de vuelos", permiso: PERMISOS.CRM_LEER },
+        { href: "/crm/tareas", label: "Tareas", permiso: PERMISOS.CRM_LEER },
+        { href: "/crm/clientes", label: "Clientes", permiso: PERMISOS.CLIENTES_LEER },
+        { href: "/crm/metas", label: "Metas", permiso: PERMISOS.METAS_EDITAR },
+      ],
+    },
     {
       href: "/administracion",
       label: "Administración",

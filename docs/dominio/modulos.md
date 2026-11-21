@@ -76,6 +76,25 @@ Documentos relacionados:
 | `empleados:eliminar` | Desactivar y eliminar empleados | Existe |
 | `empleados:ver-salario` | Ver y editar el salario | Existe |
 
+### 1c. CRM comercial y logístico (implementado)
+
+- **Propósito**: pipeline de ventas, ventas unificadas (nacional y exportación), torre de control de
+  vuelos con DOA, tareas diarias de los comerciales, metas y comisiones. Detalle y reglas en
+  [`crm.md`](crm.md).
+- **Estado**: implementado el 2026-11-21. Menú «Comercial»: Dashboard, Pipeline, Ventas, Torre de
+  vuelos, Tareas, Clientes y Metas. Clientes importados del Excel de control comercial.
+- **Entidades**: Cliente, Oportunidad, Venta, TrackingVuelo, Tarea, MetaComercial,
+  ParametrosComerciales, Consecutivo.
+- **Relación con el resto del mapa**:
+  - `Cliente` nace aquí: el módulo 2 (Catálogos) lo **reutiliza y amplía** (moneda, lista de precios,
+    ventana de reclamo); no se crea otro.
+  - El CRM no maneja líneas por especie (viven en la app de inventario). El futuro módulo 5
+    (Exportaciones, pedido por línea) referenciará `ventas.id`, y su despacho alimentará el
+    `tracking_vuelos` en vez de digitarlo.
+- **Permisos**: `clientes:leer`, `clientes:editar`, `crm:leer`, `crm:vender`, `crm:ver-todo`,
+  `ventas:gestionar`, `tracking:gestionar`, `metas:leer`, `metas:editar` (tabla en
+  [`crm.md`](crm.md#permisos)). `clientes:*` ya existe: la tabla del módulo 2 los conserva.
+
 ### 2. Catálogos / Maestros
 
 - **Propósito**: datos de referencia compartidos por todos los módulos de negocio.
@@ -92,8 +111,8 @@ Documentos relacionados:
 | `catalogos:editar` | Crear, editar y desactivar catálogos técnicos |
 | `proveedores:leer` | Consultar proveedores |
 | `proveedores:editar` | Crear, editar y desactivar proveedores |
-| `clientes:leer` | Consultar clientes |
-| `clientes:editar` | Crear, editar y desactivar clientes |
+| `clientes:leer` | Consultar clientes (existe, creado con el CRM) |
+| `clientes:editar` | Crear, editar y desactivar clientes (existe, creado con el CRM) |
 | `precios:leer` | Consultar listas de precios de venta |
 | `precios:editar` | Crear y modificar listas de precios de venta |
 
@@ -284,7 +303,7 @@ porque ambos módulos solo dependen de Inventario.
 1. ¿Hay una sola bodega o varias? ¿Hay estanques externos o granjas de producción propia?
 2. ¿Además de importar, se compra a acopiadores o pescadores nacionales? Si es así, Importaciones podría
    generalizarse a "Compras" con origen nacional o internacional.
-3. ¿Hay ventas locales (clientes en Colombia) además de exportaciones?
+3. ~~¿Hay ventas locales además de exportaciones?~~ Sí: el CRM maneja ventas nacionales y de exportación.
 4. ¿La misma persona maneja importaciones y exportaciones? Esto define si conviene un solo perfil de
    "comercio exterior".
 5. ¿Quién debe aprobar ajustes, liquidaciones y descuentos: solo el dueño o también un jefe?

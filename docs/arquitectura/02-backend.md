@@ -89,6 +89,33 @@ sesión actual y las demás se cierran. Editar nombre, email o la descripción d
 | `GET /api/v1/seguridad/perfiles[/{id}[/historial]]` · `GET .../permisos` | `perfiles:leer` |
 | `POST` · `PUT /{id}` · `DELETE /{id}` en `/api/v1/seguridad/perfiles` | `perfiles:crear` · `editar` · `eliminar` |
 
+### Endpoints del CRM
+
+Todo bajo `api/v1/crm`. El alcance (`AlcanceCrm`) sale del token: un comercial sin `crm:ver-todo`
+solo ve lo suyo (404 en lo ajeno). Reglas de negocio en [`../dominio/crm.md`](../dominio/crm.md).
+
+| Método y ruta | Permiso |
+|---|---|
+| `GET /clientes[/{id}[/historial]]` | `clientes:leer` |
+| `GET /clientes/{id}/relacionados` (oportunidades, ventas, vuelos, tareas) | `clientes:leer` + `crm:leer` |
+| `POST` · `PUT /{id}` · `DELETE /{id}` en `/clientes` (`codigo` opcional al crear: importación) | `clientes:editar` |
+| `GET /comerciales` | `crm:leer` |
+| `GET /oportunidades[/{id}[/historial]]` · `/ventas…` · `/tracking…` · `/tareas…` | `crm:leer` |
+| `POST` · `PUT /{id}` · `DELETE /{id}` en `/oportunidades`; `PUT /{id}/etapa`; `POST /{id}/ganar` | `crm:vender` |
+| `POST` · `PUT /{id}` en `/ventas` | `ventas:gestionar` |
+| `PUT /tracking/{id}` · `PUT /tracking/{id}/fase` | `tracking:gestionar` |
+| `POST` · `PUT /{id}` · `PUT /{id}/estado` · `DELETE /{id}` en `/tareas` | `crm:vender` |
+| `GET /metricas/dashboard?mes=` · `GET /metricas/parametros` · `GET /metricas/metas?mes=` | `metas:leer` |
+| `PUT /metricas/parametros` · `PUT /metricas/metas` | `metas:editar` |
+
+**Concurrencia "comparar y escribir"**: cambiar etapa, ganar, cambiar fase y mover una tarea reciben
+el estado que vio el usuario. El procedimiento hace `UPDATE … WHERE estado = esperado` y, si no
+afectó filas, lanza `SQLSTATE JR001`; `RepositorioCrm.EjecutarSiNoCambioAsync` lo traduce a
+`false` y el servicio a 409. Usar este patrón en toda transición de estado nueva.
+
+**Columnas generadas**: `ventas.total_cop` y `tracking_vuelos.porcentaje_doa` las calcula Postgres
+(`HasComputedColumnSql(..., stored: true)`); nunca se escriben desde C#.
+
 ## Transversales disponibles
 
 | Pieza | Para qué | Dónde |
@@ -151,7 +178,7 @@ Patrón para los próximos módulos con documentos:
 ## Pruebas
 
 - `apps/api/tests/JRTropicalFish.Tests`: xUnit, una carpeta por área, fakes escritos a mano
-  (`SeguridadEnMemoria`, `AdministracionEnMemoria`), nombres de prueba en español que se leen como regla
+  (`SeguridadEnMemoria`, `AdministracionEnMemoria`, `CrmEnMemoria`), nombres de prueba en español que se leen como regla
   (`Un_usuario_inactivo_no_inicia_sesion`).
 - Se prueban las reglas puras y los servicios. El SQL se verifica ejecutando la API contra la base local.
 - `npm test` (raíz) ejecuta `dotnet test` sobre la solución.

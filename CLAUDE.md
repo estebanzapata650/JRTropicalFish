@@ -18,13 +18,19 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   salario protegido por `empleados:ver-salario`) y **Maestros** genéricos (tipos de identificación, cargos,
   áreas, tipos de contrato; una tabla por maestro, un solo juego de funciones). Primer endpoint de archivos
   (foto). Detalle en `docs/dominio/modulos.md` y `docs/arquitectura/02-backend.md#maestros`.
+- **CRM comercial** (2026-11-21): Dashboard ejecutivo (ventas vs meta, despachos, clientes nuevos,
+  pool de comisiones, embudo, alertas DOA, tareas vencidas), **Pipeline** Kanban (solo avanza; Ganar
+  crea venta + tracking), **Ventas** (formulario dinámico nacional/exportación, TRM por venta),
+  **Torre de vuelos** (6 fases, % DOA generado), **Tareas** Kanban (semáforo de vencidas),
+  **Clientes** con ficha (WhatsApp/llamada) y **Metas**. 53 clientes importados del Excel con
+  `npm run crm:importar-clientes`. Reglas en `docs/dominio/crm.md`.
 - Transversales listos para usar: auditoría (`auditoria` + `ComparadorAuditoria`), archivos S3
   (`IAlmacenArchivos`, `ClaveArchivo`, `DetectorTipoArchivo`), PDF (`IGeneradorInformePdf`), correo
   (`IServicioCorreo`, proveedores `Disco` / `SendGrid`, modo pruebas), `Resultado<T>`, `IReloj`.
-- Health check con Postgres en `/api/v1/health`. 65 pruebas unitarias en verde.
+- Health check con Postgres en `/api/v1/health`. 94 pruebas unitarias en verde.
 - Producción: `docker-compose.prod.yml` (Caddy, web, api, postgres, backup), Dockerfiles, `.env.prod.example`.
 
-**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: Catálogos, Inventario, Importaciones,
+**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: Catálogos (ampliar `Cliente`), Inventario, Importaciones,
 Exportaciones, Reportes. Recuperación de contraseña por correo. CI/CD (fase 2).
 
 ## Descripción del proyecto
@@ -91,6 +97,7 @@ JRTropicalFish/
 │   │   │   ├── Seguridad/        Usuario, Perfil, Permiso, Permisos (catálogo + PerfilesPlantilla)
 │   │   │   ├── Maestros/         TipoIdentificacion, Cargo, Area, TipoContrato (CatalogoSimple)
 │   │   │   ├── Administracion/   Empleado
+│   │   │   ├── Crm/              Cliente, Oportunidad, Venta, TrackingVuelo, Tarea, Metas; EnumsCrm
 │   │   │   └── Auditoria/        RegistroAuditoria
 │   │   ├── src/JRTropicalFish.Application/
 │   │   │   ├── Abstractions/     interfaces: repositorios, IReloj, IAlmacenArchivos, IServicioCorreo…
@@ -114,7 +121,7 @@ JRTropicalFish/
 │           ├── components/       # AppShell, PageHeader, LoginForm, campos, TemaProvider
 │           └── lib/              # api, session, permisos, navegacion, estilos
 ├── infra/  docker/ · caddy/ · garage/ · backup/
-├── scripts/  stop.mjs · s3-init.mjs
+├── scripts/  stop.mjs · s3-init.mjs · importar-clientes.mjs (Excel → CRM)
 └── docs/  arquitectura/ (+ adr/) · dominio/ · design-thinking/ · temp/ (ignorado)
 ```
 
@@ -184,6 +191,9 @@ Separar "registrar" de "aprobar/cerrar" cuando las responsabilidades difieren (e
 - Sembrados idempotentes (`ON CONFLICT DO NOTHING`); nunca sobrescribir datos editados por el negocio.
 - Borrado lógico con índice único parcial (`HasFilter("eliminado_en IS NULL")`).
 - **Normalizar en C# igual que en SQL** (ej. `lower(email)`), o la auditoría registra cambios falsos.
+- Transiciones de estado (etapa, fase, estado de tarea): "comparar y escribir" con `SQLSTATE JR001` →
+  409 (ver `docs/arquitectura/02-backend.md#endpoints-del-crm`). Enums del CRM: texto + `CHECK`,
+  constantes en `Domain/Crm/EnumsCrm.cs` y etiquetas en `web/src/lib/crm.ts`.
 - Inventario: toda operación que descuente stock debe bloquear la fila (`SELECT ... FOR UPDATE`) dentro del
   procedimiento y validar que no quede negativo. Nunca calcular el stock en C# y escribirlo.
 

@@ -34,6 +34,27 @@ public static class Permisos
     /// <summary>Ver y editar el salario. Sin este permiso el salario no viaja en ninguna respuesta.</summary>
     public const string EmpleadosVerSalario = "empleados:ver-salario";
 
+    // --- CRM comercial ---
+    public const string ClientesLeer = "clientes:leer";
+    public const string ClientesEditar = "clientes:editar";
+
+    /// <summary>Ver pipeline, ventas, vuelos y tareas. Un comercial sin <see cref="CrmVerTodo"/> solo ve lo suyo.</summary>
+    public const string CrmLeer = "crm:leer";
+
+    /// <summary>
+    /// Marca al usuario como comercial: aparece en los selectores y en las metas, y crea y gestiona
+    /// oportunidades y tareas.
+    /// </summary>
+    public const string CrmVender = "crm:vender";
+
+    /// <summary>Un comercial con este permiso ve y gestiona lo de todos los comerciales (gerencia).</summary>
+    public const string CrmVerTodo = "crm:ver-todo";
+
+    public const string VentasGestionar = "ventas:gestionar";
+    public const string TrackingGestionar = "tracking:gestionar";
+    public const string MetasLeer = "metas:leer";
+    public const string MetasEditar = "metas:editar";
+
     // Módulos de negocio (Catálogos, Inventario, Importaciones, Exportaciones): sus permisos se
     // agregan con cada módulo. El mapa previsto está en docs/dominio/modulos.md.
 
@@ -55,6 +76,15 @@ public static class Permisos
         [EmpleadosEditar] = "Editar empleados",
         [EmpleadosEliminar] = "Desactivar y eliminar empleados",
         [EmpleadosVerSalario] = "Ver y editar el salario de los empleados",
+        [ClientesLeer] = "Consultar el directorio de clientes",
+        [ClientesEditar] = "Crear, editar y eliminar clientes",
+        [CrmLeer] = "Consultar pipeline, ventas, vuelos y tareas",
+        [CrmVender] = "Ser comercial: gestionar sus oportunidades y tareas",
+        [CrmVerTodo] = "Ver y gestionar lo de todos los comerciales",
+        [VentasGestionar] = "Registrar y editar ventas (pago, preparación, guía)",
+        [TrackingGestionar] = "Editar el seguimiento de vuelos y el DOA",
+        [MetasLeer] = "Ver el dashboard comercial, metas y comisiones",
+        [MetasEditar] = "Editar metas y parámetros comerciales",
     };
 
     /// <summary>
@@ -70,13 +100,27 @@ public static class PerfilesPlantilla
     public const string Administrador = "Administrador";
     public const string Operativo = "Operativo";
     public const string Consulta = "Consulta";
+    public const string Comercial = "Comercial";
 
     public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> Definicion =
         new Dictionary<string, IReadOnlyList<string>>
         {
             [Administrador] = [.. Permisos.Todos.Keys],
-            // Operativo y Consulta reciben los permisos de negocio a medida que nacen los módulos.
-            [Operativo] = [],
-            [Consulta] = [Permisos.UsuariosLeer, Permisos.PerfilesLeer, Permisos.MaestrosLeer, Permisos.EmpleadosLeer],
+            // Operativo: logística y despachos (no es comercial, así que ve todas las ventas).
+            [Operativo] =
+            [
+                Permisos.ClientesLeer, Permisos.CrmLeer, Permisos.VentasGestionar, Permisos.TrackingGestionar,
+                Permisos.MetasLeer,
+            ],
+            [Consulta] =
+            [
+                Permisos.UsuariosLeer, Permisos.PerfilesLeer, Permisos.MaestrosLeer, Permisos.EmpleadosLeer,
+                Permisos.ClientesLeer, Permisos.CrmLeer, Permisos.MetasLeer,
+            ],
+            // Comercial: ve y gestiona solo lo suyo (sin crm:ver-todo).
+            [Comercial] =
+            [
+                Permisos.ClientesLeer, Permisos.ClientesEditar, Permisos.CrmLeer, Permisos.CrmVender, Permisos.MetasLeer,
+            ],
         };
 }

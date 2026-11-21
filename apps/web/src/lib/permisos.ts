@@ -15,6 +15,15 @@ export const PERMISOS = {
   EMPLEADOS_EDITAR: "empleados:editar",
   EMPLEADOS_ELIMINAR: "empleados:eliminar",
   EMPLEADOS_VER_SALARIO: "empleados:ver-salario",
+  CLIENTES_LEER: "clientes:leer",
+  CLIENTES_EDITAR: "clientes:editar",
+  CRM_LEER: "crm:leer",
+  CRM_VENDER: "crm:vender",
+  CRM_VER_TODO: "crm:ver-todo",
+  VENTAS_GESTIONAR: "ventas:gestionar",
+  TRACKING_GESTIONAR: "tracking:gestionar",
+  METAS_LEER: "metas:leer",
+  METAS_EDITAR: "metas:editar",
   // Catálogos, Inventario, Importaciones y Exportaciones se agregan con cada módulo
   // (ver docs/dominio/modulos.md).
 } as const;
@@ -36,6 +45,11 @@ export const ETIQUETAS_MODULO: Record<string, string> = {
   perfiles: "Perfiles",
   maestros: "Maestros",
   empleados: "Empleados",
+  clientes: "Clientes",
+  crm: "CRM comercial",
+  ventas: "Ventas",
+  tracking: "Tracking de vuelos",
+  metas: "Metas y comisiones",
 };
 
 export const etiquetaModulo = (modulo: string) =>

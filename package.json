@@ -18,7 +18,8 @@
     "migracion:nueva": "dotnet ef migrations add --project apps/api/src/JRTropicalFish.Infrastructure --startup-project apps/api/src/JRTropicalFish.Api --output-dir Persistence/Migrations",
     "prod:build": "docker compose -f docker-compose.prod.yml --env-file .env.prod build",
     "prod:up": "docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --wait",
-    "prod:migrar": "docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm api --migrar"
+    "prod:migrar": "docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm api --migrar",
+    "crm:importar-clientes": "node scripts/importar-clientes.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

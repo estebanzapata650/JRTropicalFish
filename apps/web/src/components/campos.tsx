@@ -103,11 +103,17 @@ export function Seccion({ titulo, children }: { titulo: string; children: ReactN
   );
 }
 
-/** Tabla con scroll horizontal contenido, para que nunca desborde la página. */
-export function TablaResponsive({ children }: { children: ReactNode }) {
+/**
+ * Tabla con scroll horizontal contenido, para que nunca desborde la página.
+ *
+ * `compactaEnMovil`: sin ancho mínimo bajo `md`. Úsalo cuando las columnas visibles en móvil (las
+ * demás con `hidden md:table-cell`) caben en ~390 px; así el estado y las acciones no quedan
+ * escondidos detrás del scroll.
+ */
+export function TablaResponsive({ children, compactaEnMovil = false }: { children: ReactNode; compactaEnMovil?: boolean }) {
   return (
     <div className="w-full overflow-x-auto rounded-md border border-borde bg-superficie">
-      <table className="w-full min-w-[40rem] text-left text-sm">{children}</table>
+      <table className={`w-full text-left text-sm ${compactaEnMovil ? "md:min-w-[40rem]" : "min-w-[40rem]"}`}>{children}</table>
     </div>
   );
 }
@@ -122,6 +128,7 @@ const tonos = {
   advertencia: "bg-advertencia-fondo text-advertencia-texto",
   peligro: "bg-peligro/15 text-peligro",
   neutro: "bg-neutro-fondo text-neutro-texto",
+  info: "bg-info-fondo text-info-texto",
 } as const;
 
 export type TonoEtiqueta = keyof typeof tonos;

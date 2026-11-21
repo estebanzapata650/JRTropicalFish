@@ -49,3 +49,24 @@ const formatoPesos = new Intl.NumberFormat("es-CO", { style: "currency", currenc
 export function moneda(valor: number | null | undefined): string {
   return valor == null ? "—" : formatoPesos.format(valor);
 }
+
+const formatoDolares = new Intl.NumberFormat("es-CO", { style: "currency", currency: "USD", currencyDisplay: "code" });
+
+/** Valor en la moneda del documento: COP sin decimales, USD con dos. */
+export function dinero(valor: number | null | undefined, codigo: string): string {
+  if (valor == null) return "—";
+  return codigo === "USD" ? formatoDolares.format(valor) : formatoPesos.format(valor);
+}
+
+/** Cifras grandes en COP abreviadas para tarjetas de KPI: "$ 45,2 M". */
+export function monedaCorta(valor: number): string {
+  if (Math.abs(valor) >= 1_000_000) {
+    return `$ ${(valor / 1_000_000).toLocaleString("es-CO", { maximumFractionDigits: 1 })} M`;
+  }
+  return moneda(valor);
+}
+
+/** Días transcurridos desde una marca de tiempo ISO. */
+export function diasDesde(iso: string, ahora: Date = new Date()): number {
+  return Math.max(0, Math.floor((ahora.getTime() - new Date(iso).getTime()) / 86_400_000));
+}
