@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { History, PackageOpen, Plus, Search } from "lucide-react";
+import { History, PackageOpen, PlaneTakeoff, Plus, Search } from "lucide-react";
 import { Dialogo } from "@/components/Dialogo";
 import { HistorialRemoto } from "@/components/HistorialCambios";
 import { PageHeader } from "@/components/PageHeader";
@@ -32,6 +32,7 @@ export function VentasCliente({
   puedeGestionar,
   puedeAsignar,
   verPedidos,
+  verExportaciones,
   hoy,
 }: {
   ventas: Venta[];
@@ -41,6 +42,8 @@ export function VentasCliente({
   puedeAsignar: boolean;
   /** Con `inventario:leer`: enlace al pedido de bodega de cada venta. */
   verPedidos: boolean;
+  /** Con `exportaciones:leer`: enlace al embarque (documentos) de cada venta de exportación. */
+  verExportaciones: boolean;
   hoy: string;
 }) {
   const router = useRouter();
@@ -185,6 +188,16 @@ export function VentasCliente({
               </td>
               <td className="px-4 py-3">
                 <div className="flex justify-end">
+                  {verExportaciones && v.tipoVenta === "exportacion" ? (
+                    <Link
+                      href={`/exportaciones?venta=${v.id}`}
+                      title={`Embarque y documentos de ${v.codigo}`}
+                      aria-label={`Embarque y documentos de ${v.codigo}`}
+                      className="rounded-md p-2 text-texto-suave transition-colors hover:bg-acento-suave hover:text-texto"
+                    >
+                      <PlaneTakeoff className="size-4" aria-hidden />
+                    </Link>
+                  ) : null}
                   {verPedidos ? (
                     <Link
                       href={`/crm/pedidos?venta=${v.id}`}

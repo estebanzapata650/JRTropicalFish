@@ -1350,6 +1350,857 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.CargoExportacion", b =>
+                {
+                    b.Property<string>("Codigo")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("nombre");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer")
+                        .HasColumnName("orden");
+
+                    b.Property<decimal>("PrecioUsd")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("precio_usd");
+
+                    b.HasKey("Codigo")
+                        .HasName("pk_cargos_exportacion");
+
+                    b.ToTable("cargos_exportacion", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_cargos_exportacion_codigo", "codigo IN ('zoosanitario', 'origen', 'cites', 'airport_fee', 'heat_pack')");
+
+                            t.HasCheckConstraint("ck_cargos_exportacion_precio", "precio_usd >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.ClienteExportacion", b =>
+                {
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cliente_id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal>("DescuentoPeces")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("descuento_peces");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("direccion");
+
+                    b.Property<string>("Eori")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("eori");
+
+                    b.Property<string>("FormatoFactura")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("formato_factura");
+
+                    b.Property<Guid?>("ListaPreciosId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lista_precios_id");
+
+                    b.HasKey("ClienteId")
+                        .HasName("pk_clientes_exportacion");
+
+                    b.HasIndex("ListaPreciosId")
+                        .HasDatabaseName("ix_clientes_exportacion_lista_precios_id");
+
+                    b.ToTable("clientes_exportacion", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_clientes_exportacion_descuento", "descuento_peces BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("ck_clientes_exportacion_formato", "formato_factura IN ('jrch', 'v2')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.DatosEmpresa", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Banco")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("banco");
+
+                    b.Property<string>("Beneficiario")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("beneficiario");
+
+                    b.Property<string>("CiudadPais")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("ciudad_pais");
+
+                    b.Property<string>("CuentaBancaria")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("cuenta_bancaria");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("direccion");
+
+                    b.Property<string>("DireccionBanco")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("direccion_banco");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("FirmanteCargo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("firmante_cargo");
+
+                    b.Property<string>("FirmanteNombre")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("firmante_nombre");
+
+                    b.Property<string>("FirmanteTelefono")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("firmante_telefono");
+
+                    b.Property<string>("LogoClave")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("logo_clave");
+
+                    b.Property<string>("Nit")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("nit");
+
+                    b.Property<string>("RazonSocial")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("razon_social");
+
+                    b.Property<string>("SitioWeb")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("sitio_web");
+
+                    b.Property<string>("Swift")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("swift");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("telefono");
+
+                    b.HasKey("Id")
+                        .HasName("pk_datos_empresa");
+
+                    b.ToTable("datos_empresa", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_datos_empresa_fila_unica", "id = 1");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.DocumentoEmbarque", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("ArchivoClave")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("archivo_clave");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<Guid>("EmbarqueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("embarque_id");
+
+                    b.Property<string>("GeneradoPor")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("generado_por");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("numero");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tipo");
+
+                    b.HasKey("Id")
+                        .HasName("pk_embarque_documentos");
+
+                    b.HasIndex("EmbarqueId", "Tipo")
+                        .HasDatabaseName("ix_embarque_documentos_embarque_id_tipo");
+
+                    b.ToTable("embarque_documentos", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_embarque_documentos_tipo", "tipo IN ('preinvoice', 'flete', 'orden_cargue', 'empaque', 'factura', 'nota_credito', 'balance')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.Embarque", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Aerolinea")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("aerolinea");
+
+                    b.Property<decimal>("AnticipoRecibido")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("anticipo_recibido");
+
+                    b.Property<string>("Awb")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("awb");
+
+                    b.Property<decimal?>("AwbValor")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("awb_valor");
+
+                    b.Property<string>("CajasEstimadas")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("cajas_estimadas");
+
+                    b.Property<string>("CajasReales")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("cajas_reales");
+
+                    b.Property<string>("Cargos")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("cargos");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cliente_id");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<Guid>("ComercialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("comercial_id");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<decimal>("DescuentoPeces")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("descuento_peces");
+
+                    b.Property<string>("Destino")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("destino");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateOnly?>("FacturaFecha")
+                        .HasColumnType("date")
+                        .HasColumnName("factura_fecha");
+
+                    b.Property<int?>("FacturaNumero")
+                        .HasColumnType("integer")
+                        .HasColumnName("factura_numero");
+
+                    b.Property<DateOnly?>("FechaDespacho")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_despacho");
+
+                    b.Property<string>("FormatoFactura")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("formato_factura");
+
+                    b.Property<Guid?>("ListaPreciosId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lista_precios_id");
+
+                    b.Property<DateTime?>("LlegadaVuelo")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("llegada_vuelo");
+
+                    b.Property<DateOnly?>("NotaCreditoFecha")
+                        .HasColumnType("date")
+                        .HasColumnName("nota_credito_fecha");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notas");
+
+                    b.Property<Guid?>("PedidoClienteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pedido_cliente_id");
+
+                    b.Property<DateOnly?>("PreinvoiceFecha")
+                        .HasColumnType("date")
+                        .HasColumnName("preinvoice_fecha");
+
+                    b.Property<string>("PreinvoiceNumero")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("preinvoice_numero");
+
+                    b.Property<string>("Ruta")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("ruta");
+
+                    b.Property<DateTime?>("SalidaVuelo")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("salida_vuelo");
+
+                    b.Property<string>("Tarifas")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("tarifas");
+
+                    b.Property<Guid>("VentaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("venta_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_embarques");
+
+                    b.HasIndex("ClienteId")
+                        .HasDatabaseName("ix_embarques_cliente_id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_embarques_codigo");
+
+                    b.HasIndex("ComercialId")
+                        .HasDatabaseName("ix_embarques_comercial_id");
+
+                    b.HasIndex("FacturaNumero")
+                        .IsUnique()
+                        .HasDatabaseName("ix_embarques_factura_numero")
+                        .HasFilter("factura_numero IS NOT NULL");
+
+                    b.HasIndex("ListaPreciosId")
+                        .HasDatabaseName("ix_embarques_lista_precios_id");
+
+                    b.HasIndex("PedidoClienteId")
+                        .HasDatabaseName("ix_embarques_pedido_cliente_id");
+
+                    b.HasIndex("VentaId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_embarques_venta_id");
+
+                    b.HasIndex("Estado", "ComercialId")
+                        .HasDatabaseName("ix_embarques_estado_comercial_id");
+
+                    b.ToTable("embarques", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_embarques_estado", "estado IN ('borrador', 'preinvoice_enviada', 'confirmado', 'empacado', 'facturado', 'cerrado', 'cancelado')");
+
+                            t.HasCheckConstraint("ck_embarques_formato", "formato_factura IN ('jrch', 'v2')");
+
+                            t.HasCheckConstraint("ck_embarques_valores", "descuento_peces BETWEEN 0 AND 100 AND anticipo_recibido >= 0 AND (awb_valor IS NULL OR awb_valor >= 0)");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EmbarqueEmpaque", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Bolsas")
+                        .HasColumnType("integer")
+                        .HasColumnName("bolsas");
+
+                    b.Property<int>("Doa")
+                        .HasColumnType("integer")
+                        .HasColumnName("doa");
+
+                    b.Property<int>("DoaAdicional")
+                        .HasColumnType("integer")
+                        .HasColumnName("doa_adicional");
+
+                    b.Property<int>("DoaFinal")
+                        .HasColumnType("integer")
+                        .HasColumnName("doa_final");
+
+                    b.Property<Guid>("EmbarqueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("embarque_id");
+
+                    b.Property<string>("NombreFactura")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre_factura");
+
+                    b.Property<string>("Nota")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("nota");
+
+                    b.Property<int>("NumeroCaja")
+                        .HasColumnType("integer")
+                        .HasColumnName("numero_caja");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer")
+                        .HasColumnName("orden");
+
+                    b.Property<int>("PecesPorBolsa")
+                        .HasColumnType("integer")
+                        .HasColumnName("peces_por_bolsa");
+
+                    b.Property<decimal>("Precio")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("precio");
+
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.Property<Guid?>("TipoBolsaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tipo_bolsa_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_embarque_empaque");
+
+                    b.HasIndex("ProductoId")
+                        .HasDatabaseName("ix_embarque_empaque_producto_id");
+
+                    b.HasIndex("TipoBolsaId")
+                        .HasDatabaseName("ix_embarque_empaque_tipo_bolsa_id");
+
+                    b.HasIndex("EmbarqueId", "NumeroCaja", "Orden")
+                        .HasDatabaseName("ix_embarque_empaque_embarque_id_numero_caja_orden");
+
+                    b.ToTable("embarque_empaque", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_embarque_empaque_doa", "doa >= 0 AND doa_adicional >= 0 AND doa_final >= 0 AND doa + doa_adicional + doa_final <= bolsas * peces_por_bolsa");
+
+                            t.HasCheckConstraint("ck_embarque_empaque_valores", "numero_caja > 0 AND bolsas > 0 AND peces_por_bolsa > 0 AND precio >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EmbarqueLinea", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer")
+                        .HasColumnName("cantidad");
+
+                    b.Property<Guid>("EmbarqueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("embarque_id");
+
+                    b.Property<string>("Empaque")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("empaque");
+
+                    b.Property<decimal>("FraccionCaja")
+                        .HasPrecision(8, 4)
+                        .HasColumnType("numeric(8,4)")
+                        .HasColumnName("fraccion_caja");
+
+                    b.Property<string>("Nota")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("nota");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer")
+                        .HasColumnName("orden");
+
+                    b.Property<decimal>("Precio")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("precio");
+
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_embarque_lineas");
+
+                    b.HasIndex("ProductoId")
+                        .HasDatabaseName("ix_embarque_lineas_producto_id");
+
+                    b.HasIndex("EmbarqueId", "Orden")
+                        .HasDatabaseName("ix_embarque_lineas_embarque_id_orden");
+
+                    b.ToTable("embarque_lineas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_embarque_lineas_valores", "cantidad > 0 AND precio >= 0 AND fraccion_caja >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EnvioDocumento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Asunto")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("asunto");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<Guid>("EmbarqueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("embarque_id");
+
+                    b.Property<string>("EnviadoPor")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("enviado_por");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("error");
+
+                    b.Property<bool>("Exitoso")
+                        .HasColumnType("boolean")
+                        .HasColumnName("exitoso");
+
+                    b.Property<bool>("LlegoAlDestinatario")
+                        .HasColumnType("boolean")
+                        .HasColumnName("llego_al_destinatario");
+
+                    b.Property<string>("MensajeId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("mensaje_id");
+
+                    b.Property<string>("Para")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("para");
+
+                    b.Property<string>("Proveedor")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("proveedor");
+
+                    b.Property<string>("TipoDocumento")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tipo_documento");
+
+                    b.HasKey("Id")
+                        .HasName("pk_embarque_envios");
+
+                    b.HasIndex("EmbarqueId", "CreadoEn")
+                        .HasDatabaseName("ix_embarque_envios_embarque_id_creado_en");
+
+                    b.ToTable("embarque_envios", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_embarque_envios_tipo", "tipo_documento IN ('preinvoice', 'flete', 'orden_cargue', 'empaque', 'factura', 'nota_credito', 'balance')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.TarifasFlete", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal>("DbcMinimo")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("dbc_minimo");
+
+                    b.Property<decimal>("DbcPorcentaje")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("dbc_porcentaje");
+
+                    b.Property<decimal>("DfMinimo")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("df_minimo");
+
+                    b.Property<decimal>("DfPorcentaje")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("df_porcentaje");
+
+                    b.Property<decimal>("DueAgentCliente")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("due_agent_cliente");
+
+                    b.Property<decimal>("DueAgentJr")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("due_agent_jr");
+
+                    b.Property<decimal>("DueCarrier")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("due_carrier");
+
+                    b.Property<decimal>("FuelKg")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("fuel_kg");
+
+                    b.Property<decimal>("JpFeeKg")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("jp_fee_kg");
+
+                    b.Property<decimal>("TarifaKgCliente")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("tarifa_kg_cliente");
+
+                    b.Property<decimal>("TarifaKgJr")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("tarifa_kg_jr");
+
+                    b.Property<decimal>("VscKg")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("vsc_kg");
+
+                    b.Property<decimal>("VscMinimo")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("vsc_minimo");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tarifas_flete");
+
+                    b.ToTable("tarifas_flete", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tarifas_flete_fila_unica", "id = 1");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.TipoBolsa", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean")
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal>("CostoCop")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("costo_cop");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("nombre");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer")
+                        .HasColumnName("orden");
+
+                    b.Property<decimal>("Porcion")
+                        .HasPrecision(8, 6)
+                        .HasColumnType("numeric(8,6)")
+                        .HasColumnName("porcion");
+
+                    b.Property<string>("Tamano")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tamano");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tipos_bolsa");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tipos_bolsa_nombre");
+
+                    b.ToTable("tipos_bolsa", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tipos_bolsa_valores", "porcion > 0 AND porcion <= 1 AND costo_cop >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.TipoCaja", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean")
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal>("CostoCop")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("costo_cop");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("DescripcionFactura")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("descripcion_factura");
+
+                    b.Property<decimal>("KgPorCaja")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)")
+                        .HasColumnName("kg_por_caja");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("nombre");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer")
+                        .HasColumnName("orden");
+
+                    b.Property<int>("Pisos")
+                        .HasColumnType("integer")
+                        .HasColumnName("pisos");
+
+                    b.Property<decimal>("PrecioUsd")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("precio_usd");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tipos_caja");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tipos_caja_nombre");
+
+                    b.ToTable("tipos_caja", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tipos_caja_pisos", "pisos BETWEEN 1 AND 5");
+
+                            t.HasCheckConstraint("ck_tipos_caja_valores", "costo_cop >= 0 AND precio_usd >= 0 AND kg_por_caja >= 0");
+                        });
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Acuario", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2805,6 +3656,118 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OportunidadId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_ventas_oportunidades_oportunidad_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.ClienteExportacion", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Crm.Cliente", null)
+                        .WithOne()
+                        .HasForeignKey("JRTropicalFish.Domain.Exportaciones.ClienteExportacion", "ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_clientes_exportacion_clientes_cliente_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.ListaPrecios", null)
+                        .WithMany()
+                        .HasForeignKey("ListaPreciosId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_clientes_exportacion_listas_precios_lista_precios_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.DocumentoEmbarque", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.Embarque", null)
+                        .WithMany()
+                        .HasForeignKey("EmbarqueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarque_documentos_embarques_embarque_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.Embarque", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Crm.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarques_clientes_cliente_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("ComercialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarques_usuarios_comercial_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.ListaPrecios", null)
+                        .WithMany()
+                        .HasForeignKey("ListaPreciosId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_embarques_listas_precios_lista_precios_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Inventario.PedidoCliente", null)
+                        .WithMany()
+                        .HasForeignKey("PedidoClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_embarques_pedidos_cliente_pedido_cliente_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Crm.Venta", null)
+                        .WithMany()
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarques_ventas_venta_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EmbarqueEmpaque", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.Embarque", null)
+                        .WithMany()
+                        .HasForeignKey("EmbarqueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarque_empaque_embarques_embarque_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarque_empaque_productos_producto_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.TipoBolsa", null)
+                        .WithMany()
+                        .HasForeignKey("TipoBolsaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_embarque_empaque_tipos_bolsa_tipo_bolsa_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EmbarqueLinea", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.Embarque", null)
+                        .WithMany()
+                        .HasForeignKey("EmbarqueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarque_lineas_embarques_embarque_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarque_lineas_productos_producto_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EnvioDocumento", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.Embarque", null)
+                        .WithMany()
+                        .HasForeignKey("EmbarqueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarque_envios_embarques_embarque_id");
                 });
 
             modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Existencia", b =>

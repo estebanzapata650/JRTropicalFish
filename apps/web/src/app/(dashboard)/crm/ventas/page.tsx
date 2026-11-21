@@ -29,6 +29,7 @@ export default async function VentasPage() {
       puedeGestionar={puedeGestionar}
       puedeAsignar={permisos.includes(PERMISOS.CRM_VER_TODO) || !esComercial}
       verPedidos={permisos.includes(PERMISOS.INVENTARIO_LEER)}
+      verExportaciones={permisos.includes(PERMISOS.EXPORTACIONES_LEER)}
       hoy={hoyNegocio()}
     />
   );

@@ -164,6 +164,26 @@ origen (`FOR UPDATE`) y nunca la deja negativa. SQLSTATE propios, traducidos por
 
 Los consecutivos de inventario (`DISP`, `PP`, `REC`, `LOT`, `PC`) usan 4 dígitos; los del CRM, 3.
 
+### Endpoints de exportaciones
+
+Todo bajo `api/v1/exportaciones`. Reglas en [`../dominio/exportaciones.md`](../dominio/exportaciones.md).
+
+| Método y ruta | Permiso |
+|---|---|
+| `GET /configuracion` · `GET /configuracion/logo` · `GET /clientes/{clienteId}` | `exportaciones:leer` |
+| `PUT /configuracion/{empresa, tarifas, cargos}` · `POST /configuracion/{logo, cajas, bolsas}` | `exportaciones:configurar` |
+| `PUT /clientes/{clienteId}` | `exportaciones:gestionar` |
+| `GET /embarques[/{id}[/historial]]` · `GET /embarques/por-venta/{ventaId}` (204 si no hay) · `GET /embarques/{id}/documentos/{tipo}` (PDF) | `exportaciones:leer` |
+| `POST /embarques` · `PUT /embarques/{id}[/lineas, /doa]` · `POST /embarques/{id}/facturar` · `POST /embarques/{id}/documentos/{tipo}/enviar` | `exportaciones:gestionar` |
+| `PUT /embarques/{id}/empaque` | `exportaciones:empacar` |
+| `PUT /embarques/{id}/estado` | `leer` + (`gestionar`, o `empacar` solo para empacado ↔ confirmado) |
+
+**PDF**: cada documento arma su `InformeModelo` en `Application/Exportaciones/DocumentosEmbarque.cs`. El modelo
+ganó logo, datos de la empresa en el encabezado, bloques lado a lado (`SeccionBloques`), alineación por columna,
+filas de totales, tablas compactas, hoja horizontal y pie propio; todo opcional (los informes anteriores no cambian).
+La factura emitida se guarda en S3 (`embarque_documentos`) y se sirve tal cual. En el web, los PDF y el logo van
+por route handlers con streaming (`app/archivos/exportaciones/...`), nunca por el proxy.
+
 ## Transversales disponibles
 
 | Pieza | Para qué | Dónde |

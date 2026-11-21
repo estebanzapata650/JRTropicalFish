@@ -174,27 +174,17 @@ Documentos relacionados:
 
 - **Depende de**: Inventario, Catálogos, Seguridad.
 
-### 5. Exportaciones
+### 5. Exportaciones (documentos comerciales implementados)
 
-- **Propósito**: venta a clientes del exterior, desde la lista de disponibilidad hasta el despacho y la
-  atención de reclamos. Detalle en [`exportaciones.md`](exportaciones.md).
-- **Entidades principales**: Pedido, LineaPedido, Proforma, Reserva (de Inventario), Caja, ContenidoCaja,
-  DocumentoExportacion, FacturaComercial, Despacho, ReclamoCliente.
-- **Permisos**:
-
-| Código | Descripción |
-|---|---|
-| `exportaciones:leer` | Consultar pedidos, proformas, despachos y reclamos |
-| `exportaciones:cotizar` | Crear pedidos, generar y enviar proformas y listas de disponibilidad |
-| `exportaciones:aprobar-precio` | Aprobar precios por debajo de la lista o descuentos especiales |
-| `exportaciones:confirmar` | Confirmar pedidos (reserva stock) y cancelarlos (libera reserva) |
-| `exportaciones:empacar` | Registrar preparación y empaque (cajas, bolsas, cantidades reales) |
-| `exportaciones:documentar` | Generar packing list y factura comercial, y cargar certificados, CITES y AWB |
-| `exportaciones:despachar` | Registrar el despacho (salida de inventario) |
-| `exportaciones:reclamar` | Registrar reclamos DOA del cliente |
-| `exportaciones:aprobar-reclamo` | Aprobar o rechazar reclamos y su compensación |
-
-- **Depende de**: Inventario, Catálogos, Seguridad.
+- **Propósito**: el despacho documental de cada venta de exportación, del libro «Formatos Comerciales»:
+  preinvoice, flete estimado, orden de cargue, empaque por caja, factura (JRCH o V2), DOA con nota crédito y
+  balance, en PDF y por correo. Detalle en [`exportaciones.md`](exportaciones.md).
+- **Estado** (2026-11-21): implementado. Pendientes con gerencia: proforma AUNAP, lista de aeropuerto, custom
+  invoice, informe AUNAP y resumen Siigo.
+- **Entidades**: Embarque, EmbarqueLinea, EmbarqueEmpaque, DocumentoEmbarque, EnvioDocumento; configuración
+  DatosEmpresa, TarifasFlete, TipoCaja, TipoBolsa, CargoExportacion, ClienteExportacion.
+- **Permisos**: `exportaciones:leer`, `exportaciones:gestionar`, `exportaciones:empacar`, `exportaciones:configurar` (existen).
+- **Depende de**: CRM (venta, tracking, cliente), Inventario (pedido de cliente), Catálogos (productos, listas).
 
 ### 6. Reportes
 

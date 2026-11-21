@@ -56,6 +56,15 @@ export function construirNavegacion(): ItemNavegacion[] {
       ],
     },
     {
+      href: "/exportaciones",
+      label: "Exportaciones",
+      icono: "exportaciones",
+      hijos: [
+        { href: "/exportaciones", label: "Embarques", permiso: PERMISOS.EXPORTACIONES_LEER },
+        { href: "/exportaciones/configuracion", label: "Configuración", permiso: PERMISOS.EXPORTACIONES_CONFIGURAR },
+      ],
+    },
+    {
       href: "/compras",
       label: "Compras",
       icono: "importaciones",

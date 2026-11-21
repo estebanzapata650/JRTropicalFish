@@ -51,6 +51,14 @@ public class CorreoDisco(IOptions<CorreoOptions> opciones, ILogger<CorreoDisco> 
             }
         }
 
+        // Los adjuntos se guardan al lado (mismo nombre + el del adjunto) para poder revisarlos en desarrollo.
+        foreach (var adjunto in mensaje.Adjuntos ?? [])
+        {
+            var nombre = string.Concat(adjunto.NombreArchivo.Split(Path.GetInvalidFileNameChars()));
+            texto.AppendLine($"Adjunto: {nombre} ({adjunto.TipoMime}, {adjunto.Contenido.Length:N0} bytes)");
+            await File.WriteAllBytesAsync($"{archivo[..^4]} - {nombre}", adjunto.Contenido, ct);
+        }
+
         texto.AppendLine(new string('-', 60)).AppendLine(mensaje.CuerpoTexto);
 
         await File.WriteAllTextAsync(archivo, texto.ToString(), Encoding.UTF8, ct);

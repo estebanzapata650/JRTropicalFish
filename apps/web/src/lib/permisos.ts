@@ -38,6 +38,10 @@ export const PERMISOS = {
   COMPRAS_RECIBIR: "compras:recibir",
   PEDIDOS_GESTIONAR: "pedidos:gestionar",
   PEDIDOS_DESPACHAR: "pedidos:despachar",
+  EXPORTACIONES_LEER: "exportaciones:leer",
+  EXPORTACIONES_GESTIONAR: "exportaciones:gestionar",
+  EXPORTACIONES_EMPACAR: "exportaciones:empacar",
+  EXPORTACIONES_CONFIGURAR: "exportaciones:configurar",
   // Catálogos, Inventario, Importaciones y Exportaciones se agregan con cada módulo
   // (ver docs/dominio/modulos.md).
 } as const;

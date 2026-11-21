@@ -86,6 +86,19 @@ public static class Permisos
     public const string PedidosGestionar = "pedidos:gestionar";
     public const string PedidosDespachar = "pedidos:despachar";
 
+    // --- Exportaciones: documentos comerciales del despacho ---
+    /// <summary>Consultar embarques y descargar sus documentos.</summary>
+    public const string ExportacionesLeer = "exportaciones:leer";
+
+    /// <summary>Preinvoice, flete, factura, nota crédito y balance; enviar documentos al cliente.</summary>
+    public const string ExportacionesGestionar = "exportaciones:gestionar";
+
+    /// <summary>Registrar el empaque real caja por caja (bodega).</summary>
+    public const string ExportacionesEmpacar = "exportaciones:empacar";
+
+    /// <summary>Datos de la empresa, tipos de caja y bolsa, cargos y tarifas de flete.</summary>
+    public const string ExportacionesConfigurar = "exportaciones:configurar";
+
     // Módulos de negocio (Catálogos, Inventario, Importaciones, Exportaciones): sus permisos se
     // agregan con cada módulo. El mapa previsto está en docs/dominio/modulos.md.
 
@@ -130,6 +143,10 @@ public static class Permisos
         [ComprasRecibir] = "Recibir pedidos de proveedor (crea los lotes)",
         [PedidosGestionar] = "Crear y editar pedidos de clientes",
         [PedidosDespachar] = "Picking y despacho de pedidos de clientes",
+        [ExportacionesLeer] = "Consultar embarques de exportación y sus documentos",
+        [ExportacionesGestionar] = "Preinvoice, factura, nota crédito y envío de documentos al cliente",
+        [ExportacionesEmpacar] = "Registrar el empaque real de un embarque (cajas y bolsas)",
+        [ExportacionesConfigurar] = "Datos de la empresa, cajas, bolsas, cargos y tarifas de flete",
     };
 
     /// <summary>
@@ -158,25 +175,26 @@ public static class PerfilesPlantilla
                 Permisos.ClientesLeer, Permisos.CrmLeer, Permisos.VentasGestionar, Permisos.TrackingGestionar,
                 Permisos.MetasLeer, Permisos.CatalogosLeer, Permisos.PreciosLeer, Permisos.ProveedoresLeer,
                 Permisos.InventarioLeer, Permisos.InventarioOperar, Permisos.ComprasGestionar, Permisos.ComprasRecibir,
-                Permisos.PedidosDespachar,
+                Permisos.PedidosDespachar, Permisos.ExportacionesLeer, Permisos.ExportacionesGestionar, Permisos.ExportacionesEmpacar,
             ],
             [Consulta] =
             [
                 Permisos.UsuariosLeer, Permisos.PerfilesLeer, Permisos.MaestrosLeer, Permisos.EmpleadosLeer,
                 Permisos.ClientesLeer, Permisos.CrmLeer, Permisos.MetasLeer, Permisos.CatalogosLeer, Permisos.PreciosLeer,
-                Permisos.ProveedoresLeer, Permisos.InventarioLeer,
+                Permisos.ProveedoresLeer, Permisos.InventarioLeer, Permisos.ExportacionesLeer,
             ],
             // Comercial: ve y gestiona solo lo suyo (sin crm:ver-todo).
             [Comercial] =
             [
                 Permisos.ClientesLeer, Permisos.ClientesEditar, Permisos.CrmLeer, Permisos.CrmVender, Permisos.MetasLeer,
                 Permisos.CatalogosLeer, Permisos.PreciosLeer, Permisos.InventarioLeer, Permisos.PedidosGestionar,
+                Permisos.ExportacionesLeer, Permisos.ExportacionesGestionar,
             ],
             // Bodega (rol del Excel de inventario): recibe, ubica, registra novedades y despacha.
             [Bodega] =
             [
                 Permisos.CatalogosLeer, Permisos.InventarioLeer, Permisos.InventarioOperar, Permisos.ComprasRecibir,
-                Permisos.PedidosDespachar,
+                Permisos.PedidosDespachar, Permisos.ExportacionesLeer, Permisos.ExportacionesEmpacar,
             ],
         };
 }

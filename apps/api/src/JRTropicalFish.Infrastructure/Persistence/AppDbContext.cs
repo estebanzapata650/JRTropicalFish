@@ -3,6 +3,7 @@ using JRTropicalFish.Domain.Catalogos;
 using JRTropicalFish.Domain.Auditoria;
 using JRTropicalFish.Domain.Comun;
 using JRTropicalFish.Domain.Crm;
+using JRTropicalFish.Domain.Exportaciones;
 using JRTropicalFish.Domain.Inventario;
 using JRTropicalFish.Domain.Maestros;
 using JRTropicalFish.Domain.Seguridad;
@@ -54,6 +55,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Existencia> Existencias => Set<Existencia>();
     public DbSet<MovimientoInventario> MovimientosInventario => Set<MovimientoInventario>();
     public DbSet<PedidoCliente> PedidosCliente => Set<PedidoCliente>();
+    public DbSet<Embarque> Embarques => Set<Embarque>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,6 +66,209 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigurarCrm(modelBuilder);
         ConfigurarCatalogos(modelBuilder);
         ConfigurarInventario(modelBuilder);
+        ConfigurarExportaciones(modelBuilder);
+    }
+
+    /// <summary>
+    /// Exportaciones: configuración de documentos (empresa, cajas, bolsas, cargos, tarifas) y el embarque
+    /// con sus líneas y su empaque real. Montos en USD <c>numeric(14,2)</c>; fracciones con 4 decimales.
+    /// </summary>
+    private static void ConfigurarExportaciones(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DatosEmpresa>(entity =>
+        {
+            entity.ToTable("datos_empresa", t => t.HasCheckConstraint("ck_datos_empresa_fila_unica", "id = 1"));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.RazonSocial).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Nit).HasMaxLength(30);
+            entity.Property(e => e.Direccion).HasMaxLength(250);
+            entity.Property(e => e.CiudadPais).HasMaxLength(150);
+            entity.Property(e => e.Telefono).HasMaxLength(60);
+            entity.Property(e => e.Email).HasMaxLength(320);
+            entity.Property(e => e.SitioWeb).HasMaxLength(200);
+            entity.Property(e => e.Banco).HasMaxLength(100);
+            entity.Property(e => e.Swift).HasMaxLength(20);
+            entity.Property(e => e.CuentaBancaria).HasMaxLength(60);
+            entity.Property(e => e.Beneficiario).HasMaxLength(200);
+            entity.Property(e => e.DireccionBanco).HasMaxLength(250);
+            entity.Property(e => e.FirmanteNombre).HasMaxLength(150);
+            entity.Property(e => e.FirmanteCargo).HasMaxLength(100);
+            entity.Property(e => e.FirmanteTelefono).HasMaxLength(60);
+            entity.Property(e => e.LogoClave).HasMaxLength(300);
+        });
+
+        modelBuilder.Entity<TarifasFlete>(entity =>
+        {
+            entity.ToTable("tarifas_flete", t => t.HasCheckConstraint("ck_tarifas_flete_fila_unica", "id = 1"));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            foreach (var propiedad in new[]
+                     {
+                         nameof(TarifasFlete.TarifaKgJr), nameof(TarifasFlete.TarifaKgCliente), nameof(TarifasFlete.FuelKg),
+                         nameof(TarifasFlete.JpFeeKg), nameof(TarifasFlete.VscKg), nameof(TarifasFlete.VscMinimo),
+                         nameof(TarifasFlete.DbcPorcentaje), nameof(TarifasFlete.DbcMinimo), nameof(TarifasFlete.DfPorcentaje),
+                         nameof(TarifasFlete.DfMinimo), nameof(TarifasFlete.DueAgentJr), nameof(TarifasFlete.DueAgentCliente),
+                         nameof(TarifasFlete.DueCarrier),
+                     })
+            {
+                entity.Property(propiedad).HasPrecision(12, 4);
+            }
+        });
+
+        modelBuilder.Entity<TipoCaja>(entity =>
+        {
+            entity.ToTable("tipos_caja", t =>
+            {
+                t.HasCheckConstraint("ck_tipos_caja_valores", "costo_cop >= 0 AND precio_usd >= 0 AND kg_por_caja >= 0");
+                t.HasCheckConstraint("ck_tipos_caja_pisos", "pisos BETWEEN 1 AND 5");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Nombre).HasMaxLength(80).IsRequired();
+            entity.Property(e => e.DescripcionFactura).HasMaxLength(150).IsRequired();
+            entity.Property(e => e.CostoCop).HasPrecision(14, 2);
+            entity.Property(e => e.PrecioUsd).HasPrecision(12, 2);
+            entity.Property(e => e.KgPorCaja).HasPrecision(8, 2);
+            entity.HasIndex(e => e.Nombre).IsUnique();
+        });
+
+        modelBuilder.Entity<TipoBolsa>(entity =>
+        {
+            entity.ToTable("tipos_bolsa", t => t.HasCheckConstraint("ck_tipos_bolsa_valores", "porcion > 0 AND porcion <= 1 AND costo_cop >= 0"));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Nombre).HasMaxLength(40).IsRequired();
+            entity.Property(e => e.Tamano).HasMaxLength(20);
+            entity.Property(e => e.Porcion).HasPrecision(8, 6);
+            entity.Property(e => e.CostoCop).HasPrecision(12, 2);
+            entity.HasIndex(e => e.Nombre).IsUnique();
+        });
+
+        modelBuilder.Entity<CargoExportacion>(entity =>
+        {
+            entity.ToTable("cargos_exportacion", t =>
+            {
+                t.HasCheckConstraint("ck_cargos_exportacion_codigo", EnLista("codigo", CodigosCargo.Todos));
+                t.HasCheckConstraint("ck_cargos_exportacion_precio", "precio_usd >= 0");
+            });
+            entity.HasKey(e => e.Codigo);
+            entity.Property(e => e.Codigo).HasMaxLength(20);
+            entity.Property(e => e.Nombre).HasMaxLength(120).IsRequired();
+            entity.Property(e => e.PrecioUsd).HasPrecision(12, 2);
+        });
+
+        modelBuilder.Entity<ClienteExportacion>(entity =>
+        {
+            entity.ToTable("clientes_exportacion", t =>
+            {
+                t.HasCheckConstraint("ck_clientes_exportacion_formato", EnLista("formato_factura", FormatosFactura.Todos));
+                t.HasCheckConstraint("ck_clientes_exportacion_descuento", "descuento_peces BETWEEN 0 AND 100");
+            });
+            entity.HasKey(e => e.ClienteId);
+            entity.Property(e => e.Direccion).HasMaxLength(300);
+            entity.Property(e => e.Eori).HasMaxLength(40);
+            entity.Property(e => e.FormatoFactura).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.DescuentoPeces).HasPrecision(5, 2);
+            entity.HasOne<Cliente>().WithOne().HasForeignKey<ClienteExportacion>(e => e.ClienteId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<ListaPrecios>().WithMany().HasForeignKey(e => e.ListaPreciosId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Embarque>(entity =>
+        {
+            entity.ToTable("embarques", t =>
+            {
+                t.HasCheckConstraint("ck_embarques_estado", EnLista("estado", EstadosEmbarque.Todos));
+                t.HasCheckConstraint("ck_embarques_formato", EnLista("formato_factura", FormatosFactura.Todos));
+                t.HasCheckConstraint(
+                    "ck_embarques_valores",
+                    "descuento_peces BETWEEN 0 AND 100 AND anticipo_recibido >= 0 AND (awb_valor IS NULL OR awb_valor >= 0)");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Estado).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.DescuentoPeces).HasPrecision(5, 2);
+            entity.Property(e => e.Aerolinea).HasMaxLength(150);
+            entity.Property(e => e.Ruta).HasMaxLength(150);
+            entity.Property(e => e.Awb).HasMaxLength(50);
+            entity.Property(e => e.Destino).HasMaxLength(200);
+            entity.Property(e => e.PreinvoiceNumero).HasMaxLength(20);
+            entity.Property(e => e.FormatoFactura).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.AwbValor).HasPrecision(14, 2);
+            entity.Property(e => e.AnticipoRecibido).HasPrecision(14, 2);
+            entity.Property(e => e.Tarifas).HasColumnType("jsonb").IsRequired();
+            entity.Property(e => e.Cargos).HasColumnType("jsonb").IsRequired();
+            entity.Property(e => e.CajasEstimadas).HasColumnType("jsonb").IsRequired();
+            entity.Property(e => e.CajasReales).HasColumnType("jsonb").IsRequired();
+            entity.Property(e => e.Notas).HasMaxLength(2000);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasIndex(e => e.VentaId).IsUnique();
+            entity.HasIndex(e => e.FacturaNumero).IsUnique().HasFilter("factura_numero IS NOT NULL");
+            entity.HasIndex(e => new { e.Estado, e.ComercialId });
+            entity.HasOne<Venta>().WithMany().HasForeignKey(e => e.VentaId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<PedidoCliente>().WithMany().HasForeignKey(e => e.PedidoClienteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Cliente>().WithMany().HasForeignKey(e => e.ClienteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.ComercialId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ListaPrecios>().WithMany().HasForeignKey(e => e.ListaPreciosId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<EmbarqueLinea>(entity =>
+        {
+            entity.ToTable("embarque_lineas", t =>
+                t.HasCheckConstraint("ck_embarque_lineas_valores", "cantidad > 0 AND precio >= 0 AND fraccion_caja >= 0"));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Precio).HasPrecision(12, 4);
+            entity.Property(e => e.FraccionCaja).HasPrecision(8, 4);
+            entity.Property(e => e.Empaque).HasMaxLength(60);
+            entity.Property(e => e.Nota).HasMaxLength(300);
+            entity.HasIndex(e => new { e.EmbarqueId, e.Orden });
+            entity.HasOne<Embarque>().WithMany().HasForeignKey(e => e.EmbarqueId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<EmbarqueEmpaque>(entity =>
+        {
+            entity.ToTable("embarque_empaque", t =>
+            {
+                t.HasCheckConstraint("ck_embarque_empaque_valores", "numero_caja > 0 AND bolsas > 0 AND peces_por_bolsa > 0 AND precio >= 0");
+                t.HasCheckConstraint(
+                    "ck_embarque_empaque_doa",
+                    "doa >= 0 AND doa_adicional >= 0 AND doa_final >= 0 AND doa + doa_adicional + doa_final <= bolsas * peces_por_bolsa");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.NombreFactura).HasMaxLength(200);
+            entity.Property(e => e.Precio).HasPrecision(12, 4);
+            entity.Property(e => e.Nota).HasMaxLength(300);
+            entity.HasIndex(e => new { e.EmbarqueId, e.NumeroCaja, e.Orden });
+            entity.HasOne<Embarque>().WithMany().HasForeignKey(e => e.EmbarqueId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<TipoBolsa>().WithMany().HasForeignKey(e => e.TipoBolsaId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<DocumentoEmbarque>(entity =>
+        {
+            entity.ToTable("embarque_documentos", t => t.HasCheckConstraint("ck_embarque_documentos_tipo", EnLista("tipo", TiposDocumentoEmbarque.Todos)));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Tipo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Numero).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.ArchivoClave).HasMaxLength(300).IsRequired();
+            entity.Property(e => e.GeneradoPor).HasMaxLength(200);
+            entity.HasIndex(e => new { e.EmbarqueId, e.Tipo });
+            entity.HasOne<Embarque>().WithMany().HasForeignKey(e => e.EmbarqueId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EnvioDocumento>(entity =>
+        {
+            entity.ToTable("embarque_envios", t => t.HasCheckConstraint("ck_embarque_envios_tipo", EnLista("tipo_documento", TiposDocumentoEmbarque.Todos)));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TipoDocumento).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Para).HasMaxLength(320).IsRequired();
+            entity.Property(e => e.Asunto).HasMaxLength(300).IsRequired();
+            entity.Property(e => e.Proveedor).HasMaxLength(40).IsRequired();
+            entity.Property(e => e.MensajeId).HasMaxLength(200);
+            entity.Property(e => e.Error).HasMaxLength(1000);
+            entity.Property(e => e.EnviadoPor).HasMaxLength(200);
+            entity.HasIndex(e => new { e.EmbarqueId, e.CreadoEn });
+            entity.HasOne<Embarque>().WithMany().HasForeignKey(e => e.EmbarqueId).OnDelete(DeleteBehavior.Cascade);
+        });
     }
 
     /// <summary>

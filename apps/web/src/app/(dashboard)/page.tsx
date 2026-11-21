@@ -11,7 +11,7 @@ const MODULOS: { titulo: string; detalle: string; Icono: typeof Boxes; href?: st
   { titulo: "Inventario", detalle: "Existencias, lotes, acuarios, enfermos y mortalidad", Icono: PackageCheck, href: "/inventario", permiso: PERMISOS.INVENTARIO_LEER },
   { titulo: "Compras", detalle: "Necesidades, disponibilidad de proveedores, pedidos y recepciones", Icono: ShoppingCart, href: "/compras/necesidades", permiso: PERMISOS.INVENTARIO_LEER },
   { titulo: "Importaciones", detalle: "Compras al exterior, recepción y cuarentena", Icono: PlaneLanding },
-  { titulo: "Exportaciones", detalle: "Pedidos, proformas, packing list y despacho", Icono: PlaneTakeoff },
+  { titulo: "Exportaciones", detalle: "Preinvoice, empaque, factura, DOA y balance de cada despacho", Icono: PlaneTakeoff, href: "/exportaciones", permiso: PERMISOS.EXPORTACIONES_LEER },
 ];
 
 export default async function PanelPage() {

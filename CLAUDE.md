@@ -37,14 +37,19 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   **Tableros** (reemplazan Looker): Bodega, Proveedores, Clientes y Trazabilidad con el recorrido del lote
   (aclimatación y cuarentena medidas del kardex). Gráficos en `components/Graficos.tsx` (CSS + tokens
   `serie-*`, sin librería). Reglas en `docs/dominio/inventario.md`.
+- **Exportaciones** (2026-11-21): embarque por venta de exportación con los documentos del libro «Formatos
+  Comerciales»: preinvoice, flete, orden de cargue, empaque por caja, factura (JRCH/V2, n.º desde 12187),
+  DOA → nota crédito y balance, en PDF y por correo; sincroniza venta, tracking y pedido de cliente.
+  Configuración de empresa/logo/banco, cajas, bolsas, cargos y tarifas. Documentos para autoridades (AUNAP,
+  aeropuerto, aduana, Siigo) **pendientes con gerencia**. Reglas en `docs/dominio/exportaciones.md`.
 - Transversales listos para usar: auditoría (`auditoria` + `ComparadorAuditoria`), archivos S3
   (`IAlmacenArchivos`, `ClaveArchivo`, `DetectorTipoArchivo`), PDF (`IGeneradorInformePdf`), correo
   (`IServicioCorreo`, proveedores `Disco` / `SendGrid`, modo pruebas), `Resultado<T>`, `IReloj`.
-- Health check con Postgres en `/api/v1/health`. 156 pruebas unitarias en verde.
+- Health check con Postgres en `/api/v1/health`. 174 pruebas unitarias en verde.
 - Producción: `docker-compose.prod.yml` (Caddy, web, api, postgres, backup), Dockerfiles, `.env.prod.example`.
 
 **Pendiente (por fases, ver `docs/dominio/modulos.md`)**: resto de Catálogos (aerolíneas…), Inventario (conteos, ajustes con aprobación, reservas, PDFs), Importaciones,
-Exportaciones, Reportes. Recuperación de contraseña por correo. CI/CD (fase 2).
+Exportaciones (documentos AUNAP/aduana pendientes con gerencia), Reportes. Recuperación de contraseña por correo. CI/CD (fase 2).
 
 ## Descripción del proyecto
 
@@ -112,6 +117,7 @@ JRTropicalFish/
 │   │   │   ├── Administracion/   Empleado
 │   │   │   ├── Crm/              Cliente, Oportunidad, Venta, TrackingVuelo, Tarea, Metas; EnumsCrm
 │   │   │   ├── Catalogos/        Producto, CentroAcopio, ListaPrecios, PrecioProducto, Proveedor
+│   │   │   ├── Exportaciones/    DatosEmpresa, TarifasFlete, TipoCaja, TipoBolsa, CargoExportacion, Embarque (+líneas, empaque)
 │   │   │   ├── Inventario/       Acuario, Lote, Existencia, MovimientoInventario, Oferta/PedidoProveedor, Recepcion, PedidoCliente
 │   │   │   └── Auditoria/        RegistroAuditoria
 │   │   ├── src/JRTropicalFish.Application/

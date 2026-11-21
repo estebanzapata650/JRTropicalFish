@@ -14,7 +14,23 @@ public record InformeModelo(
     string EmpresaNombre,
     string GeneradoPor,
     DateTime GeneradoEnUtc,
-    IReadOnlyList<SeccionInforme> Secciones);
+    IReadOnlyList<SeccionInforme> Secciones)
+{
+    /// <summary>Logo (PNG/JPG) a la izquierda del encabezado. Nulo = solo texto.</summary>
+    public byte[]? Logo { get; init; }
+
+    /// <summary>Líneas bajo el nombre de la empresa (NIT, dirección, teléfono…) en los documentos comerciales.</summary>
+    public IReadOnlyList<string>? EmpresaDatos { get; init; }
+
+    /// <summary>Hoja horizontal (tablas anchas).</summary>
+    public bool Horizontal { get; init; }
+
+    /// <summary>
+    /// Texto del pie en lugar de "Generado por…" (los documentos que se envían al cliente no muestran quién
+    /// los generó). La numeración de páginas se mantiene.
+    /// </summary>
+    public string? Pie { get; init; }
+}
 
 public abstract record SeccionInforme(string Titulo);
 
@@ -26,7 +42,32 @@ public record SeccionTabla(
     string Titulo,
     IReadOnlyList<string> Encabezados,
     IReadOnlyList<IReadOnlyList<string>> Filas,
-    IReadOnlyList<int>? PesosColumna = null) : SeccionInforme(Titulo);
+    IReadOnlyList<int>? PesosColumna = null) : SeccionInforme(Titulo)
+{
+    /// <summary>Alineación por columna (las cifras van a la derecha). Nulo = todo a la izquierda.</summary>
+    public IReadOnlyList<Alineacion>? Alineaciones { get; init; }
+
+    /// <summary>Filas finales en negrita (subtotal, descuento, total), con las mismas columnas.</summary>
+    public IReadOnlyList<IReadOnlyList<string>>? Totales { get; init; }
+
+    /// <summary>Letra más pequeña para tablas con muchas filas (empaque, factura por caja).</summary>
+    public bool Compacta { get; init; }
+}
+
+public enum Alineacion
+{
+    Izquierda,
+    Derecha,
+    Centro,
+}
+
+/// <summary>
+/// Bloques de datos lado a lado: en los documentos comerciales, el cliente a la izquierda y el número,
+/// la fecha, la aerolínea y la guía a la derecha.
+/// </summary>
+public record SeccionBloques(string Titulo, IReadOnlyList<BloqueInforme> Bloques) : SeccionInforme(Titulo);
+
+public record BloqueInforme(string? Titulo, IReadOnlyList<CampoInforme> Campos);
 
 /// <summary>Texto libre largo (observaciones, instrucciones).</summary>
 public record SeccionTexto(string Titulo, string Contenido) : SeccionInforme(Titulo);

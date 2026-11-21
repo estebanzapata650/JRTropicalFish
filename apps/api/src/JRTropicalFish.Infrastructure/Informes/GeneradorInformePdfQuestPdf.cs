@@ -25,7 +25,7 @@ public class GeneradorInformePdfQuestPdf : IGeneradorInformePdf
         {
             contenedor.Page(pagina =>
             {
-                pagina.Size(PageSizes.A4);
+                pagina.Size(informe.Horizontal ? PageSizes.A4.Landscape() : PageSizes.A4);
                 pagina.Margin(1.5f, Unit.Centimetre);
                 pagina.DefaultTextStyle(x => x.FontSize(9).FontColor(Tinta));
 
@@ -36,14 +36,45 @@ public class GeneradorInformePdfQuestPdf : IGeneradorInformePdf
         }).GeneratePdf();
 
     private static void Cabecera(IContainer contenedor, InformeModelo informe) =>
-        contenedor.PaddingBottom(8).BorderBottom(1).BorderColor(Borde).Column(columna =>
+        contenedor.PaddingBottom(8).BorderBottom(1).BorderColor(Borde).Row(fila =>
         {
-            columna.Item().Text(informe.EmpresaNombre).FontSize(8).FontColor(TintaSuave);
-            columna.Item().PaddingTop(2).Text(informe.Titulo).FontSize(16).SemiBold();
-
-            if (!string.IsNullOrWhiteSpace(informe.Subtitulo))
+            if (informe.Logo is { Length: > 0 } logo)
             {
-                columna.Item().Text(informe.Subtitulo).FontSize(10).FontColor(TintaSuave);
+                fila.ConstantItem(64).PaddingRight(10).Image(logo).FitArea();
+            }
+
+            fila.RelativeItem().Column(columna =>
+            {
+                if (informe.EmpresaDatos is { Count: > 0 } datos)
+                {
+                    // Documento comercial: la empresa en grande y sus datos debajo; el título a la derecha.
+                    columna.Item().Text(informe.EmpresaNombre).FontSize(12).SemiBold();
+                    foreach (var linea in datos)
+                    {
+                        columna.Item().Text(linea).FontSize(8).FontColor(TintaSuave);
+                    }
+                }
+                else
+                {
+                    columna.Item().Text(informe.EmpresaNombre).FontSize(8).FontColor(TintaSuave);
+                    columna.Item().PaddingTop(2).Text(informe.Titulo).FontSize(16).SemiBold();
+                    if (!string.IsNullOrWhiteSpace(informe.Subtitulo))
+                    {
+                        columna.Item().Text(informe.Subtitulo).FontSize(10).FontColor(TintaSuave);
+                    }
+                }
+            });
+
+            if (informe.EmpresaDatos is { Count: > 0 })
+            {
+                fila.RelativeItem().AlignRight().AlignBottom().Column(columna =>
+                {
+                    columna.Item().AlignRight().Text(informe.Titulo).FontSize(16).SemiBold();
+                    if (!string.IsNullOrWhiteSpace(informe.Subtitulo))
+                    {
+                        columna.Item().AlignRight().Text(informe.Subtitulo).FontSize(10).FontColor(TintaSuave);
+                    }
+                });
             }
         });
 
@@ -56,12 +87,18 @@ public class GeneradorInformePdfQuestPdf : IGeneradorInformePdf
             {
                 columna.Item().Column(bloque =>
                 {
-                    bloque.Item().PaddingBottom(4).Text(seccion.Titulo).FontSize(11).SemiBold();
+                    if (!string.IsNullOrWhiteSpace(seccion.Titulo))
+                    {
+                        bloque.Item().PaddingBottom(4).Text(seccion.Titulo).FontSize(11).SemiBold();
+                    }
 
                     switch (seccion)
                     {
                         case SeccionCampos campos:
                             bloque.Item().Element(e => DibujarCampos(e, campos));
+                            break;
+                        case SeccionBloques bloques:
+                            bloque.Item().Element(e => DibujarBloques(e, bloques));
                             break;
                         case SeccionTabla tabla:
                             bloque.Item().Element(e => DibujarTabla(e, tabla));
@@ -105,15 +142,45 @@ public class GeneradorInformePdfQuestPdf : IGeneradorInformePdf
             }
         });
 
+    /// <summary>Bloques lado a lado, cada uno con sus pares etiqueta/valor en una columna.</summary>
+    private static void DibujarBloques(IContainer contenedor, SeccionBloques seccion) =>
+        contenedor.Row(fila =>
+        {
+            fila.Spacing(16);
+            foreach (var b in seccion.Bloques)
+            {
+                fila.RelativeItem().Border(1).BorderColor(Borde).Padding(8).Column(columna =>
+                {
+                    columna.Spacing(2);
+                    if (!string.IsNullOrWhiteSpace(b.Titulo))
+                    {
+                        columna.Item().PaddingBottom(2).Text(b.Titulo).FontSize(8).SemiBold().FontColor(TintaSuave);
+                    }
+
+                    foreach (var campo in b.Campos)
+                    {
+                        columna.Item().Row(celda =>
+                        {
+                            celda.ConstantItem(78).Text(campo.Etiqueta).FontColor(TintaSuave);
+                            celda.RelativeItem().Text(string.IsNullOrWhiteSpace(campo.Valor) ? "—" : campo.Valor);
+                        });
+                    }
+                });
+            }
+        });
+
     private static void DibujarTabla(IContainer contenedor, SeccionTabla seccion)
     {
-        if (seccion.Filas.Count == 0)
+        if (seccion.Filas.Count == 0 && seccion.Totales is not { Count: > 0 })
         {
             contenedor.Text("Sin registros.").FontColor(TintaSuave).Italic();
             return;
         }
 
-        contenedor.Table(tabla =>
+        var tamano = seccion.Compacta ? 8f : 9f;
+        var relleno = seccion.Compacta ? 3f : 5f;
+
+        contenedor.DefaultTextStyle(x => x.FontSize(tamano)).Table(tabla =>
         {
             tabla.ColumnsDefinition(columnas =>
             {
@@ -125,21 +192,37 @@ public class GeneradorInformePdfQuestPdf : IGeneradorInformePdf
 
             tabla.Header(encabezado =>
             {
-                foreach (var titulo in seccion.Encabezados)
+                for (var i = 0; i < seccion.Encabezados.Count; i++)
                 {
-                    encabezado.Cell().Background(Fondo).Padding(5).Text(titulo).SemiBold();
+                    Alinear(encabezado.Cell().Background(Fondo).Padding(relleno), seccion, i).Text(seccion.Encabezados[i]).SemiBold();
                 }
             });
 
             foreach (var fila in seccion.Filas)
             {
-                foreach (var celda in fila)
+                for (var i = 0; i < fila.Count; i++)
                 {
-                    tabla.Cell().BorderBottom(1).BorderColor(Borde).Padding(5).Text(celda);
+                    Alinear(tabla.Cell().BorderBottom(1).BorderColor(Borde).Padding(relleno), seccion, i).Text(fila[i]);
+                }
+            }
+
+            foreach (var fila in seccion.Totales ?? [])
+            {
+                for (var i = 0; i < fila.Count; i++)
+                {
+                    Alinear(tabla.Cell().Padding(relleno), seccion, i).Text(fila[i]).SemiBold();
                 }
             }
         });
     }
+
+    private static IContainer Alinear(IContainer celda, SeccionTabla seccion, int columna) =>
+        (seccion.Alineaciones is { } a && columna < a.Count ? a[columna] : Alineacion.Izquierda) switch
+        {
+            Alineacion.Derecha => celda.AlignRight(),
+            Alineacion.Centro => celda.AlignCenter(),
+            _ => celda.AlignLeft(),
+        };
 
     /// <summary>
     /// Casillas de firma, repartidas a lo ancho. La línea se dibuja con un borde superior sobre un
@@ -178,16 +261,28 @@ public class GeneradorInformePdfQuestPdf : IGeneradorInformePdf
             fila.RelativeItem().Text(text =>
             {
                 text.DefaultTextStyle(x => x.FontSize(8).FontColor(TintaSuave));
-                text.Span($"Generado por {informe.GeneradoPor} · ");
-                text.Span(informe.GeneradoEnUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm"));
+                if (informe.Pie is { } pie)
+                {
+                    text.Span(pie);
+                }
+                else
+                {
+                    text.Span($"Generado por {informe.GeneradoPor} · ");
+                    text.Span(informe.GeneradoEnUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm"));
+                }
             });
 
             fila.ConstantItem(90).AlignRight().Text(text =>
             {
                 text.DefaultTextStyle(x => x.FontSize(8).FontColor(TintaSuave));
-                text.Span("Página ");
+                // Con pie propio (documentos al cliente, en inglés o español) la numeración va sin idioma.
+                if (informe.Pie is null)
+                {
+                    text.Span("Página ");
+                }
+
                 text.CurrentPageNumber();
-                text.Span(" de ");
+                text.Span(informe.Pie is null ? " de " : " / ");
                 text.TotalPages();
             });
         });
