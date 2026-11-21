@@ -47,6 +47,35 @@ Documentos relacionados:
 | `perfiles:eliminar` | Eliminar perfiles | Existe |
 | `auditoria:leer` | Consultar el registro de auditoría | Propuesto |
 
+### 1b. Administración: Empleados y Maestros (implementado)
+
+- **Propósito**: información básica y laboral del personal, y las listas de valores (maestros) que
+  usan los formularios.
+- **Estado**: implementado el 2026-11-20. Menú «Administración» con dos pantallas:
+  - **Empleados**: identificación (tipo y número, nombres, apellidos, género, fecha de nacimiento),
+    contacto (teléfono, correo, dirección, ciudad), datos laborales (cargo, área, tipo de contrato,
+    fechas de ingreso y retiro, salario) y foto (JPG/PNG/WEBP, 10 MB). Ficha, activar/desactivar,
+    borrado lógico e historial.
+  - **Maestros**: pantalla genérica con un selector; hoy **Tipos de identificación** (sembrado: CC, CE,
+    TI, PA, PPT), **Cargos**, **Áreas** y **Tipos de contrato** (sembrado: indefinido, fijo, obra o
+    labor, prestación de servicios, aprendizaje). Una tabla por maestro; receta para agregar otro en
+    [`../arquitectura/02-backend.md`](../arquitectura/02-backend.md#maestros).
+- **Tipo de identificación ≠ TipoDocumento**: el primero es el documento de identidad de una persona;
+  `TipoDocumento` (módulo 2) sigue reservado para los documentos de importación/exportación.
+- **Salario protegido**: sin `empleados:ver-salario` el salario no viaja en ninguna respuesta (ni en el
+  historial), no se puede fijar y al editar se conserva el guardado.
+- **Permisos**:
+
+| Código | Descripción | Estado |
+|---|---|---|
+| `maestros:leer` | Consultar maestros | Existe |
+| `maestros:editar` | Crear, editar y eliminar valores de maestros | Existe |
+| `empleados:leer` | Consultar empleados | Existe |
+| `empleados:crear` | Crear empleados | Existe |
+| `empleados:editar` | Editar empleados (incluida la foto) | Existe |
+| `empleados:eliminar` | Desactivar y eliminar empleados | Existe |
+| `empleados:ver-salario` | Ver y editar el salario | Existe |
+
 ### 2. Catálogos / Maestros
 
 - **Propósito**: datos de referencia compartidos por todos los módulos de negocio.

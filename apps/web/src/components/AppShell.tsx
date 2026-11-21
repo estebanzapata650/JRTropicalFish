@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Boxes,
+  Briefcase,
   ChevronLeft,
   ChevronRight,
   Fish,
@@ -27,6 +28,7 @@ const iconos: Record<IconoNavegacion, typeof LayoutDashboard> = {
   inventario: PackageCheck,
   importaciones: PlaneLanding,
   exportaciones: PlaneTakeoff,
+  administracion: Briefcase,
   seguridad: ShieldCheck,
 };
 

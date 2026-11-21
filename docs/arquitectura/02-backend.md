@@ -114,10 +114,44 @@ sesión actual y las demás se cierran. Editar nombre, email o la descripción d
 7. **Tests**: reglas y servicios con fakes escritos a mano (sin base de datos).
 8. **Web**: permisos en `lib/permisos.ts`, ítem en `lib/navegacion.ts`, páginas en `app/(dashboard)/<modulo>`.
 
+## Maestros
+
+Una **tabla por maestro** (todas con la forma de `CatalogoSimple`: código en mayúsculas, nombre,
+activo, borrado lógico con únicos parciales), pero **un solo juego de código**:
+
+- `Application/Maestros/RegistroMaestros` es la lista blanca: clave de la URL → tabla, nombre y singular.
+- `fn_maestro_*` / `sp_maestro_*` reciben la tabla como parámetro, la validan contra `fn_maestro_tabla`
+  (segunda lista blanca, en SQL) y la citan con `format('%I')`. Nunca se concatena.
+- API genérica `api/v1/maestros/{clave}`; `?soloActivos=true` lo puede pedir cualquier usuario con sesión
+  (son las opciones de los formularios); la lista completa exige `maestros:leer`.
+- El web (`/administracion/maestros`) lee los maestros disponibles de la API: no cambia al agregar uno.
+
+**Agregar un maestro**: (1) clase en `Domain/Maestros/Maestros.cs` que herede `CatalogoSimple`; (2) `DbSet`
+y `ConfigurarCatalogo<T>(..., "tabla")` en `AppDbContext`; (3) migración que cree la tabla, recree
+`fn_maestro_tabla` incluyéndola (`CREATE OR REPLACE`, misma firma) y siembre valores si aplica;
+(4) entrada en `RegistroMaestros.Todos`.
+
+Un valor desactivado o eliminado deja de ofrecerse, pero quien ya lo tiene lo conserva (las funciones de
+lectura de empleados unen los maestros sin filtrar `eliminado_en`, y el servicio solo exige "activo" cuando
+el valor cambia).
+
+## Archivos: foto de empleado (primer endpoint de archivos)
+
+Patrón para los próximos módulos con documentos:
+
+- **Subida**: `POST .../{id}/foto` multipart (campo `archivo`) con `[RequestSizeLimit]` y
+  `[RequestFormLimits]`; el servicio lee el contenido, decide el tipo con `DetectorTipoArchivo` (no con
+  el nombre ni el `Content-Type`), arma la clave con `ClaveArchivo.ParaDocumento`, sube, actualiza la fila
+  y borra el archivo anterior. En el web, Server Action + `apiUpload`.
+- **Descarga**: `GET .../{id}/foto` devuelve el stream; el web la sirve con el route handler
+  `app/archivos/empleados/[id]/foto/route.ts`, que hace streaming de `response.body`.
+- La API expone una **versión** (`fotoVersion`, el id del documento en la clave), nunca la clave del
+  almacén; el web la pone en `?v=` y así la imagen se puede cachear como inmutable.
+
 ## Pruebas
 
 - `apps/api/tests/JRTropicalFish.Tests`: xUnit, una carpeta por área, fakes escritos a mano
-  (`UsuariosFalsos`, `RelojFijo`), nombres de prueba en español que se leen como regla
+  (`SeguridadEnMemoria`, `AdministracionEnMemoria`), nombres de prueba en español que se leen como regla
   (`Un_usuario_inactivo_no_inicia_sesion`).
 - Se prueban las reglas puras y los servicios. El SQL se verifica ejecutando la API contra la base local.
 - `npm test` (raíz) ejecuta `dotnet test` sobre la solución.

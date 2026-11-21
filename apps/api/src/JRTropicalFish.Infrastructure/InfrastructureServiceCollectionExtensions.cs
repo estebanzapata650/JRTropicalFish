@@ -1,6 +1,8 @@
 using Amazon.Runtime;
 using Amazon.S3;
 using JRTropicalFish.Application.Abstractions;
+using JRTropicalFish.Application.Administracion;
+using JRTropicalFish.Application.Maestros;
 using JRTropicalFish.Application.Auditoria;
 using JRTropicalFish.Application.Auth;
 using JRTropicalFish.Application.Informes;
@@ -69,6 +71,12 @@ public static class InfrastructureServiceCollectionExtensions
         RegistrarCorreo(services, configuration);
 
         // Módulos de negocio: registrar aquí repositorios y servicios de cada módulo.
+
+        // Administración: maestros y empleados
+        services.AddScoped<IMaestroRepository, MaestroRepository>();
+        services.AddScoped<IEmpleadoRepository, EmpleadoRepository>();
+        services.AddScoped<MaestroService>();
+        services.AddScoped<EmpleadoService>();
 
         return services;
     }

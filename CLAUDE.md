@@ -14,10 +14,14 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   módulo, eliminar, historial), y **Mi cuenta** (cambiar la propia contraseña). Bloqueo tras 5 intentos
   fallidos (15 min), revocación inmediata de sesiones, auditoría de todo cambio y salvaguarda de "último
   administrador". Detalle en `docs/arquitectura/02-backend.md#autenticación-y-autorización`.
+- **Administración** (2026-11-20): pantallas de **Empleados** (datos básicos, contacto, laborales, foto,
+  salario protegido por `empleados:ver-salario`) y **Maestros** genéricos (tipos de identificación, cargos,
+  áreas, tipos de contrato; una tabla por maestro, un solo juego de funciones). Primer endpoint de archivos
+  (foto). Detalle en `docs/dominio/modulos.md` y `docs/arquitectura/02-backend.md#maestros`.
 - Transversales listos para usar: auditoría (`auditoria` + `ComparadorAuditoria`), archivos S3
   (`IAlmacenArchivos`, `ClaveArchivo`, `DetectorTipoArchivo`), PDF (`IGeneradorInformePdf`), correo
   (`IServicioCorreo`, proveedores `Disco` / `SendGrid`, modo pruebas), `Resultado<T>`, `IReloj`.
-- Health check con Postgres en `/api/v1/health`. 50 pruebas unitarias en verde.
+- Health check con Postgres en `/api/v1/health`. 65 pruebas unitarias en verde.
 - Producción: `docker-compose.prod.yml` (Caddy, web, api, postgres, backup), Dockerfiles, `.env.prod.example`.
 
 **Pendiente (por fases, ver `docs/dominio/modulos.md`)**: Catálogos, Inventario, Importaciones,
@@ -85,6 +89,8 @@ JRTropicalFish/
 │   │   ├── src/JRTropicalFish.Domain/
 │   │   │   ├── Comun/            EntidadBase, CatalogoSimple
 │   │   │   ├── Seguridad/        Usuario, Perfil, Permiso, Permisos (catálogo + PerfilesPlantilla)
+│   │   │   ├── Maestros/         TipoIdentificacion, Cargo, Area, TipoContrato (CatalogoSimple)
+│   │   │   ├── Administracion/   Empleado
 │   │   │   └── Auditoria/        RegistroAuditoria
 │   │   ├── src/JRTropicalFish.Application/
 │   │   │   ├── Abstractions/     interfaces: repositorios, IReloj, IAlmacenArchivos, IServicioCorreo…

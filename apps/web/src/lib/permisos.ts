@@ -8,6 +8,13 @@ export const PERMISOS = {
   PERFILES_CREAR: "perfiles:crear",
   PERFILES_EDITAR: "perfiles:editar",
   PERFILES_ELIMINAR: "perfiles:eliminar",
+  MAESTROS_LEER: "maestros:leer",
+  MAESTROS_EDITAR: "maestros:editar",
+  EMPLEADOS_LEER: "empleados:leer",
+  EMPLEADOS_CREAR: "empleados:crear",
+  EMPLEADOS_EDITAR: "empleados:editar",
+  EMPLEADOS_ELIMINAR: "empleados:eliminar",
+  EMPLEADOS_VER_SALARIO: "empleados:ver-salario",
   // Catálogos, Inventario, Importaciones y Exportaciones se agregan con cada módulo
   // (ver docs/dominio/modulos.md).
 } as const;
@@ -27,6 +34,8 @@ export type UsuarioActual = {
 export const ETIQUETAS_MODULO: Record<string, string> = {
   usuarios: "Usuarios",
   perfiles: "Perfiles",
+  maestros: "Maestros",
+  empleados: "Empleados",
 };
 
 export const etiquetaModulo = (modulo: string) =>

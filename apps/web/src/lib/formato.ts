@@ -22,3 +22,30 @@ export function haceCuanto(iso: string | null | undefined, ahora: Date = new Dat
 export function estaBloqueado(bloqueadoHasta: string | null, ahora: Date = new Date()): boolean {
   return !!bloqueadoHasta && new Date(bloqueadoHasta).getTime() > ahora.getTime();
 }
+
+/** Fecha de calendario (`yyyy-MM-dd`, un DateOnly de la API) sin conversión de zona horaria. */
+export function fecha(valor: string | null | undefined): string {
+  if (!valor) return "—";
+  const [anio, mes, dia] = valor.split("-").map(Number);
+  return new Date(Date.UTC(anio, mes - 1, dia)).toLocaleDateString("es-CO", { dateStyle: "medium", timeZone: "UTC" });
+}
+
+/** Edad cumplida a la fecha `hoy` (`yyyy-MM-dd`). */
+export function edad(nacimiento: string | null | undefined, hoy: string): number | null {
+  if (!nacimiento) return null;
+  const [an, mn, dn] = nacimiento.split("-").map(Number);
+  const [ah, mh, dh] = hoy.split("-").map(Number);
+  return ah - an - (mh < mn || (mh === mn && dh < dn) ? 1 : 0);
+}
+
+/** "Hoy" de negocio (Bogotá) como `yyyy-MM-dd`. */
+export function hoyNegocio(ahora: Date = new Date()): string {
+  return ahora.toLocaleDateString("en-CA", { timeZone: ZONA });
+}
+
+const formatoPesos = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
+
+/** Valor en pesos colombianos, sin decimales. */
+export function moneda(valor: number | null | undefined): string {
+  return valor == null ? "—" : formatoPesos.format(valor);
+}

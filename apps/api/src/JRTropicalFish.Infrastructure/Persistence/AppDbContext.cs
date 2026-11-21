@@ -1,4 +1,7 @@
+using JRTropicalFish.Domain.Administracion;
 using JRTropicalFish.Domain.Auditoria;
+using JRTropicalFish.Domain.Comun;
+using JRTropicalFish.Domain.Maestros;
 using JRTropicalFish.Domain.Seguridad;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,11 +22,76 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Perfil> Perfiles => Set<Perfil>();
     public DbSet<Permiso> Permisos => Set<Permiso>();
     public DbSet<RegistroAuditoria> RegistrosAuditoria => Set<RegistroAuditoria>();
+    public DbSet<TipoIdentificacion> TiposIdentificacion => Set<TipoIdentificacion>();
+    public DbSet<Cargo> Cargos => Set<Cargo>();
+    public DbSet<Area> Areas => Set<Area>();
+    public DbSet<TipoContrato> TiposContrato => Set<TipoContrato>();
+    public DbSet<Empleado> Empleados => Set<Empleado>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigurarSeguridad(modelBuilder);
         ConfigurarAuditoria(modelBuilder);
+        ConfigurarMaestros(modelBuilder);
+        ConfigurarAdministracion(modelBuilder);
+    }
+
+    /// <summary>
+    /// Una tabla por maestro, todas con la misma forma (<see cref="CatalogoSimple"/>). Al agregar un
+    /// maestro: entidad, DbSet, una línea aquí, migración y entrada en <c>RegistroMaestros</c>.
+    /// </summary>
+    private static void ConfigurarMaestros(ModelBuilder modelBuilder)
+    {
+        ConfigurarCatalogo<TipoIdentificacion>(modelBuilder, "tipos_identificacion");
+        ConfigurarCatalogo<Cargo>(modelBuilder, "cargos");
+        ConfigurarCatalogo<Area>(modelBuilder, "areas");
+        ConfigurarCatalogo<TipoContrato>(modelBuilder, "tipos_contrato");
+    }
+
+    /// <summary>
+    /// Código (guardado en mayúsculas) y nombre únicos entre los no eliminados: el índice parcial
+    /// permite volver a crear un valor que se borró lógicamente.
+    /// </summary>
+    private static void ConfigurarCatalogo<T>(ModelBuilder modelBuilder, string tabla) where T : CatalogoSimple
+    {
+        modelBuilder.Entity<T>(entity =>
+        {
+            entity.ToTable(tabla);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Nombre).HasMaxLength(150).IsRequired();
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => e.Codigo).IsUnique().HasFilter("eliminado_en IS NULL");
+            entity.HasIndex(e => e.Nombre).IsUnique().HasFilter("eliminado_en IS NULL");
+        });
+    }
+
+    private static void ConfigurarAdministracion(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Empleado>(entity =>
+        {
+            entity.ToTable("empleados");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.NumeroIdentificacion).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Nombres).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Apellidos).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Genero).HasMaxLength(20);
+            entity.Property(e => e.Telefono).HasMaxLength(30);
+            entity.Property(e => e.Email).HasMaxLength(320);
+            entity.Property(e => e.Direccion).HasMaxLength(250);
+            entity.Property(e => e.Ciudad).HasMaxLength(100);
+            entity.Property(e => e.Salario).HasPrecision(14, 2);
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.FotoClave).HasMaxLength(300);
+
+            entity.HasIndex(e => new { e.TipoIdentificacionId, e.NumeroIdentificacion })
+                .IsUnique().HasFilter("eliminado_en IS NULL");
+
+            entity.HasOne<TipoIdentificacion>().WithMany().HasForeignKey(e => e.TipoIdentificacionId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Cargo>().WithMany().HasForeignKey(e => e.CargoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Area>().WithMany().HasForeignKey(e => e.AreaId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<TipoContrato>().WithMany().HasForeignKey(e => e.TipoContratoId).OnDelete(DeleteBehavior.Restrict);
+        });
     }
 
     private static void ConfigurarSeguridad(ModelBuilder modelBuilder)

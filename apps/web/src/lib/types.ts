@@ -53,3 +53,44 @@ export type UsuarioResumen = {
 
 /** Resultado de las Server Actions de formularios. */
 export type EstadoFormulario = { error?: string; ok?: boolean };
+
+// --- Maestros ---
+
+export type MaestroInfo = { clave: string; nombre: string; nombreSingular: string; descripcion: string };
+
+export type ValorMaestro = { id: string; codigo: string; nombre: string; activo: boolean; creadoEn: string };
+
+/** Opción de un `<select>` alimentado por un maestro. */
+export type OpcionMaestro = { id: string; codigo: string; nombre: string };
+
+// --- Empleados ---
+
+export type Empleado = {
+  id: string;
+  tipoIdentificacionId: string;
+  tipoIdentificacionCodigo: string;
+  numeroIdentificacion: string;
+  nombres: string;
+  apellidos: string;
+  genero: string | null;
+  /** `yyyy-MM-dd` (DateOnly). */
+  fechaNacimiento: string | null;
+  telefono: string | null;
+  email: string | null;
+  direccion: string | null;
+  ciudad: string | null;
+  cargoId: string;
+  cargoNombre: string;
+  areaId: string | null;
+  areaNombre: string | null;
+  tipoContratoId: string;
+  tipoContratoNombre: string;
+  fechaIngreso: string;
+  fechaRetiro: string | null;
+  /** `null` si el usuario no tiene `empleados:ver-salario`. */
+  salario: number | null;
+  activo: boolean;
+  /** Cambia con cada foto nueva; `null` si no tiene foto. */
+  fotoVersion: string | null;
+  creadoEn: string;
+};

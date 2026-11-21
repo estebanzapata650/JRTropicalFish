@@ -6,6 +6,7 @@ export type IconoNavegacion =
   | "inventario"
   | "importaciones"
   | "exportaciones"
+  | "administracion"
   | "seguridad";
 
 export type ItemNavegacion = {
@@ -27,6 +28,15 @@ export type ItemNavegacion = {
 export function construirNavegacion(): ItemNavegacion[] {
   return [
     { href: "/", label: "Panel", icono: "panel" },
+    {
+      href: "/administracion",
+      label: "Administración",
+      icono: "administracion",
+      hijos: [
+        { href: "/administracion/empleados", label: "Empleados", permiso: PERMISOS.EMPLEADOS_LEER },
+        { href: "/administracion/maestros", label: "Maestros", permiso: PERMISOS.MAESTROS_LEER },
+      ],
+    },
     {
       href: "/seguridad",
       label: "Seguridad",

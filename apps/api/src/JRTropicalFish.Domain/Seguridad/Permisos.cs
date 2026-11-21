@@ -23,6 +23,17 @@ public static class Permisos
     public const string PerfilesEditar = "perfiles:editar";
     public const string PerfilesEliminar = "perfiles:eliminar";
 
+    public const string MaestrosLeer = "maestros:leer";
+    public const string MaestrosEditar = "maestros:editar";
+
+    public const string EmpleadosLeer = "empleados:leer";
+    public const string EmpleadosCrear = "empleados:crear";
+    public const string EmpleadosEditar = "empleados:editar";
+    public const string EmpleadosEliminar = "empleados:eliminar";
+
+    /// <summary>Ver y editar el salario. Sin este permiso el salario no viaja en ninguna respuesta.</summary>
+    public const string EmpleadosVerSalario = "empleados:ver-salario";
+
     // Módulos de negocio (Catálogos, Inventario, Importaciones, Exportaciones): sus permisos se
     // agregan con cada módulo. El mapa previsto está en docs/dominio/modulos.md.
 
@@ -37,6 +48,13 @@ public static class Permisos
         [PerfilesCrear] = "Crear perfiles",
         [PerfilesEditar] = "Editar perfiles",
         [PerfilesEliminar] = "Eliminar perfiles",
+        [MaestrosLeer] = "Consultar maestros",
+        [MaestrosEditar] = "Crear, editar y eliminar valores de maestros",
+        [EmpleadosLeer] = "Consultar empleados",
+        [EmpleadosCrear] = "Crear empleados",
+        [EmpleadosEditar] = "Editar empleados",
+        [EmpleadosEliminar] = "Desactivar y eliminar empleados",
+        [EmpleadosVerSalario] = "Ver y editar el salario de los empleados",
     };
 
     /// <summary>
@@ -59,6 +77,6 @@ public static class PerfilesPlantilla
             [Administrador] = [.. Permisos.Todos.Keys],
             // Operativo y Consulta reciben los permisos de negocio a medida que nacen los módulos.
             [Operativo] = [],
-            [Consulta] = [Permisos.UsuariosLeer, Permisos.PerfilesLeer],
+            [Consulta] = [Permisos.UsuariosLeer, Permisos.PerfilesLeer, Permisos.MaestrosLeer, Permisos.EmpleadosLeer],
         };
 }
