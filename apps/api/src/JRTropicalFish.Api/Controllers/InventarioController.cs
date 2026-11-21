@@ -10,15 +10,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JRTropicalFish.Api.Controllers;
 
-/// <summary>Existencias, lotes, acuarios, operaciones de stock, saldo inicial, necesidades y dashboard.</summary>
+/// <summary>Existencias, lotes, acuarios, operaciones de stock, saldo inicial y necesidades.</summary>
 [ApiController]
 [Route("api/v1/inventario")]
 public class InventarioController(InventarioService service, IUsuarioActual usuario) : CrmControllerBase(usuario)
 {
-    [HttpGet("dashboard")]
-    [RequierePermiso(Permisos.InventarioLeer)]
-    public async Task<IActionResult> Dashboard(CancellationToken ct) => Ok(await service.DashboardAsync(Alcance.FiltroComercial, ct));
-
     [HttpGet("existencias")]
     [RequierePermiso(Permisos.InventarioLeer)]
     public async Task<IActionResult> Existencias(
@@ -29,17 +25,6 @@ public class InventarioController(InventarioService service, IUsuarioActual usua
     [RequierePermiso(Permisos.InventarioLeer)]
     public async Task<IActionResult> Lotes([FromQuery] Guid? productoId, [FromQuery] bool soloConStock, CancellationToken ct) =>
         Ok(await service.LotesAsync(productoId, soloConStock, ct));
-
-    /// <summary>Trazabilidad: el lote, dónde está hoy y todos sus movimientos.</summary>
-    [HttpGet("lotes/{id:guid}")]
-    [RequierePermiso(Permisos.InventarioLeer)]
-    public async Task<IActionResult> Lote(Guid id, CancellationToken ct)
-    {
-        var resultado = await service.LoteAsync(id, ct);
-        return resultado.Exitoso
-            ? Ok(new { lote = resultado.Valor.Lote, existencias = resultado.Valor.Existencias, movimientos = resultado.Valor.Movimientos })
-            : ResultadoHttp.Error(resultado.Error!);
-    }
 
     [HttpGet("movimientos")]
     [RequierePermiso(Permisos.InventarioLeer)]
@@ -194,4 +179,44 @@ public class PedidosClienteController(PedidoClienteService service, IUsuarioActu
     [RequierePermiso(Permisos.PedidosDespachar)]
     public async Task<IActionResult> Despachar(Guid id, DespacharRequest request, CancellationToken ct) =>
         (await service.DespacharAsync(id, request, Alcance, ct)).ARespuesta();
+}
+
+/// <summary>
+/// Tableros de inventario: bodega, proveedores, clientes y trazabilidad del lote (reemplazan los de Looker).
+/// Periodo por defecto: los últimos 30 días.
+/// </summary>
+[ApiController]
+[Route("api/v1/inventario/tableros")]
+public class TablerosInventarioController(TablerosInventarioService service, IUsuarioActual usuario) : CrmControllerBase(usuario)
+{
+    [HttpGet("bodega")]
+    [RequierePermiso(Permisos.InventarioLeer)]
+    public async Task<IActionResult> Bodega(CancellationToken ct) => Ok(await service.BodegaAsync(ct));
+
+    [HttpGet("proveedores")]
+    [RequierePermiso(Permisos.InventarioLeer)]
+    public async Task<IActionResult> Proveedores([FromQuery] DateOnly? desde, [FromQuery] DateOnly? hasta, CancellationToken ct)
+    {
+        var (inicio, fin) = service.Periodo(desde, hasta);
+        return Ok(await service.ProveedoresAsync(inicio, fin, ct));
+    }
+
+    /// <summary>Despachos y pendientes; el comercial sin <c>crm:ver-todo</c> ve solo sus clientes.</summary>
+    [HttpGet("clientes")]
+    [RequierePermiso(Permisos.InventarioLeer)]
+    public async Task<IActionResult> Clientes([FromQuery] DateOnly? desde, [FromQuery] DateOnly? hasta, CancellationToken ct)
+    {
+        var (inicio, fin) = service.Periodo(desde, hasta);
+        return Ok(await service.ClientesAsync(inicio, fin, Alcance.FiltroComercial, ct));
+    }
+
+    [HttpGet("trazabilidad")]
+    [RequierePermiso(Permisos.InventarioLeer)]
+    public async Task<IActionResult> Trazabilidad([FromQuery] bool soloConStock, CancellationToken ct) =>
+        Ok(await service.TrazabilidadAsync(soloConStock, ct));
+
+    /// <summary>Recorrido del lote: proveedor, tiempos, dónde está hoy, a qué clientes se envió y su kardex.</summary>
+    [HttpGet("trazabilidad/{id:guid}")]
+    [RequierePermiso(Permisos.InventarioLeer)]
+    public async Task<IActionResult> Recorrido(Guid id, CancellationToken ct) => (await service.RecorridoAsync(id, ct)).ARespuesta();
 }

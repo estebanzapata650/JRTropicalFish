@@ -323,28 +323,3 @@ public sealed record InventarioProductoFila(
     public bool Cubierto => PendienteClientes > 0 && Faltante == 0;
 }
 
-public sealed record VentaProductoFila(Guid ProductoId, string ProductoCodigo, string NombreCientifico, int Cantidad);
-
-public sealed record CompraProveedorFila(
-    Guid ProveedorId, string ProveedorNombre, int Recepciones, int Unidades, decimal? CostoTotal, int Pedidas)
-{
-    public decimal Cumplimiento => Pedidas > 0 ? Math.Round(Unidades * 100m / Pedidas, 1) : 0;
-}
-
-public sealed record DashboardInventario(
-    int Sanos,
-    int PorUbicar,
-    int Enfermos,
-    int PendienteClientes,
-    int EnTransito,
-    int LotesActivos,
-    int LotesAntiguos,
-    int AcuariosOcupados,
-    int AcuariosConEnfermos,
-    IReadOnlyList<InventarioProductoFila> Productos,
-    IReadOnlyList<PedidoProveedorFila> PedidosPorLlegar,
-    IReadOnlyList<LoteFila> LotesConMasDeVeinteDias,
-    IReadOnlyList<ExistenciaFila> ExistenciasEnfermas,
-    IReadOnlyList<VentaProductoFila> MasVendidas,
-    IReadOnlyList<CompraProveedorFila> Proveedores,
-    IReadOnlyList<PedidoClienteFila> PedidosClientePendientes);

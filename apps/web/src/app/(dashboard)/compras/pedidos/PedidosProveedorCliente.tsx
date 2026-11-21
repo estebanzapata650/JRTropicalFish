@@ -225,7 +225,7 @@ export function PedidosProveedorCliente({
                 }
                 setError(null);
                 setAviso(
-                  `Recepción ${r.datos.codigo}: lotes ${r.datos.lotes.join(", ")} creados por ubicar.` +
+                  `Recepción ${r.datos.codigo}: lotes ${r.datos.lotes.join(", ")} creados en aclimatación.` +
                     (r.datos.avisos.length ? ` Aviso: ${r.datos.avisos.join(" ")}` : ""),
                 );
                 setVersion((v) => v + 1);
@@ -523,7 +523,7 @@ function FormularioRecepcion({
       className="flex flex-col gap-5"
     >
       <p className="text-sm text-texto-suave">
-        «Llegó» es el total de la especie (sanos + enfermos + muertos). Los vivos quedan <strong>por ubicar</strong> en un lote nuevo por especie.
+        «Llegó» es el total de la especie (sanos + enfermos + muertos). Los vivos quedan <strong>en aclimatación</strong> en un lote nuevo por especie, hasta ubicarlos en acuarios.
       </p>
       <ul className="flex flex-col gap-3">
         {detalle.lineas.map((l) => (

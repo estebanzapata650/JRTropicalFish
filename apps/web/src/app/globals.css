@@ -29,6 +29,14 @@
   /* Etapas activas del pipeline y estados informativos (azul). */
   --info-fondo: #dbeafe;
   --info-texto: #1e40af;
+  /* Gráficos: dónde está cada pez de un lote. Paleta categórica validada (CVD y contraste) con
+     scripts/validate_palette.js del skill dataviz, en este orden de adyacencia. Barra delgada
+     siempre acompañada de su leyenda con cifras (dos tonos claros < 3:1 sobre blanco). */
+  --serie-sano: #2a78d6;
+  --serie-aclimatacion: #1baf7a;
+  --serie-enfermo: #eda100;
+  --serie-despachado: #6250d6;
+  --serie-muerto: #e34948;
 }
 
 .dark {
@@ -53,6 +61,11 @@
   --neutro-texto: #d1dde2;
   --info-fondo: #172554;
   --info-texto: #bfdbfe;
+  --serie-sano: #3987e5;
+  --serie-aclimatacion: #199e70;
+  --serie-enfermo: #c98500;
+  --serie-despachado: #9085e9;
+  --serie-muerto: #e66767;
 }
 
 @theme inline {
@@ -77,6 +90,11 @@
   --color-neutro-texto: var(--neutro-texto);
   --color-info-fondo: var(--info-fondo);
   --color-info-texto: var(--info-texto);
+  --color-serie-sano: var(--serie-sano);
+  --color-serie-aclimatacion: var(--serie-aclimatacion);
+  --color-serie-enfermo: var(--serie-enfermo);
+  --color-serie-despachado: var(--serie-despachado);
+  --color-serie-muerto: var(--serie-muerto);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

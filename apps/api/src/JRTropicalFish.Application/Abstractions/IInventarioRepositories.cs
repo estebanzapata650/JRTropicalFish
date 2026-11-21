@@ -42,10 +42,21 @@ public interface IInventarioRepository
         CancellationToken ct = default);
 
     Task<IReadOnlyList<InventarioProductoFila>> PorProductoAsync(CancellationToken ct = default);
+}
 
-    Task<IReadOnlyList<VentaProductoFila>> DespachosPorProductoAsync(DateTime desde, DateTime hasta, CancellationToken ct = default);
+/// <summary>Lecturas de los tableros de inventario (funciones de la migración TablerosInventario).</summary>
+public interface ITablerosInventarioRepository
+{
+    /// <summary>Tiempos en aclimatación y cuarentena; <paramref name="loteId"/> nulo = todos los lotes.</summary>
+    Task<IReadOnlyList<LoteTiemposFila>> TiemposAsync(Guid? loteId, DateTime ahora, CancellationToken ct = default);
 
-    Task<IReadOnlyList<CompraProveedorFila>> ComprasPorProveedorAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default);
+    Task<IReadOnlyList<DespachoFila>> DespachosAsync(DateTime? desde, DateTime? hasta, Guid? loteId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CompraPendienteFila>> ComprasPendientesAsync(CancellationToken ct = default);
+
+    Task<IReadOnlyList<CumplimientoCompraFila>> CumplimientoComprasAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default);
+
+    Task<IReadOnlyList<PedidoClientePendienteFila>> PedidosClientePendientesAsync(CancellationToken ct = default);
 }
 
 public interface IComprasRepository

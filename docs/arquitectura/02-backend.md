@@ -141,7 +141,8 @@ Reglas en [`../dominio/inventario.md`](../dominio/inventario.md). Costos solo co
 
 | Método y ruta | Permiso |
 |---|---|
-| `GET /inventario/{dashboard, existencias, lotes[/{id}], movimientos, necesidades, acuarios}` | `inventario:leer` |
+| `GET /inventario/{existencias, lotes, movimientos, necesidades, acuarios}` | `inventario:leer` |
+| `GET /inventario/tableros/{bodega, proveedores, clientes, trazabilidad[/{id}]}` (`?desde&hasta`, por defecto 30 días; clientes con alcance del CRM) | `inventario:leer` |
 | `POST /inventario/operaciones` (lista de operaciones, todo o nada; `ajuste` exige `inventario:ajustar`) | `inventario:operar` |
 | `POST /inventario/saldo-inicial` · `POST` · `PUT /{id}` en `/inventario/acuarios` | `inventario:ajustar` |
 | `GET /compras/{ofertas, pedidos, recepciones}[/{id}]` | `inventario:leer` |

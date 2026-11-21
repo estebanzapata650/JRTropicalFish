@@ -15,8 +15,6 @@ namespace JRTropicalFish.Application.Inventario;
 /// </summary>
 public partial class InventarioService(
     IInventarioRepository inventario,
-    IComprasRepository compras,
-    IPedidoClienteRepository pedidos,
     IProductoRepository productos,
     IConsecutivoRepository consecutivos,
     IUsuarioActual usuario,
@@ -97,17 +95,6 @@ public partial class InventarioService(
 
     public Task<IReadOnlyList<LoteFila>> LotesAsync(Guid? productoId, bool soloConStock, CancellationToken ct = default) =>
         inventario.LotesAsync(reloj.Hoy, productoId, soloConStock, ct);
-
-    public async Task<Resultado<(LoteFila Lote, IReadOnlyList<ExistenciaFila> Existencias, IReadOnlyList<MovimientoFila> Movimientos)>> LoteAsync(
-        Guid id, CancellationToken ct = default)
-    {
-        if (await inventario.LoteAsync(id, reloj.Hoy, ct) is not { } lote)
-        {
-            return Error.NoEncontrado("El lote no existe.");
-        }
-
-        return (lote, await inventario.ExistenciasAsync(reloj.Hoy, null, id, null, ct), await inventario.MovimientosAsync(id, 500, ct));
-    }
 
     public Task<IReadOnlyList<MovimientoFila>> MovimientosAsync(int limite = 200, CancellationToken ct = default) =>
         inventario.MovimientosAsync(null, Math.Clamp(limite, 1, 1000), ct);
@@ -227,37 +214,6 @@ public partial class InventarioService(
     /// <summary>Necesidades de compra (paso 6): productos con demanda de clientes y lo que falta comprar.</summary>
     public async Task<IReadOnlyList<InventarioProductoFila>> NecesidadesAsync(CancellationToken ct = default) =>
         [.. (await inventario.PorProductoAsync(ct)).Where(p => p.PendienteClientes > 0).OrderByDescending(p => p.Faltante)];
-
-    public async Task<DashboardInventario> DashboardAsync(Guid? comercialFiltro, CancellationToken ct = default)
-    {
-        var hoy = reloj.Hoy;
-        var desde = hoy.AddDays(-30);
-        var porProducto = await inventario.PorProductoAsync(ct);
-        var lotes = await inventario.LotesAsync(hoy, null, soloConStock: true, ct);
-        var existencias = await inventario.ExistenciasAsync(hoy, null, null, null, ct);
-        var acuarios = await inventario.AcuariosAsync(ct);
-        var pedidosProveedor = await compras.PedidosAsync(ct);
-        var pedidosCliente = await pedidos.ListarAsync(comercialFiltro, ct);
-
-        return new DashboardInventario(
-            porProducto.Sum(p => p.Sanos),
-            porProducto.Sum(p => p.PorUbicar),
-            porProducto.Sum(p => p.Enfermos),
-            porProducto.Sum(p => p.PendienteClientes),
-            porProducto.Sum(p => p.EnTransito),
-            lotes.Count,
-            lotes.Count(l => l.DiasEnBodega > DiasLoteAntiguo),
-            acuarios.Count(a => a.Sanos + a.Enfermos > 0),
-            acuarios.Count(a => a.Enfermos > 0),
-            porProducto,
-            [.. pedidosProveedor.Where(p => EstadosPedidoProveedor.Pendientes.Contains(p.Estado)).OrderBy(p => p.FechaEstimadaLlegada ?? p.Fecha)],
-            [.. lotes.Where(l => l.DiasEnBodega > DiasLoteAntiguo).OrderByDescending(l => l.DiasEnBodega)],
-            [.. existencias.Where(e => e.Condicion == Condiciones.Enfermo)],
-            await inventario.DespachosPorProductoAsync(
-                desde.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), hoy.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), ct),
-            await inventario.ComprasPorProveedorAsync(desde, hoy, ct),
-            [.. pedidosCliente.Where(p => EstadosPedidoCliente.Activos.Contains(p.Estado)).OrderBy(p => p.Fecha)]);
-    }
 
     private static Error? ValidarAcuario(GuardarAcuarioRequest r) => Primero(
         Requerido(Limpiar(r.Sector), "Sector", 10),

@@ -80,7 +80,7 @@ export function ExistenciasCliente({
 
       <div className="grid grid-cols-3 gap-3">
         <Resumen titulo="Sanos ubicados" valor={total((e) => e.condicion === "sano" && e.acuarioId !== null)} />
-        <Resumen titulo="Por ubicar" valor={total((e) => e.acuarioId === null)} alerta={total((e) => e.acuarioId === null) > 0} />
+        <Resumen titulo="En aclimatación" valor={total((e) => e.acuarioId === null)} alerta={total((e) => e.acuarioId === null) > 0} />
         <Resumen titulo="Enfermos" valor={total((e) => e.condicion === "enfermo")} peligro />
       </div>
 
@@ -97,7 +97,7 @@ export function ExistenciasCliente({
         </select>
         <label className="flex items-center gap-2 text-sm text-texto">
           <input type="checkbox" checked={soloPorUbicar} onChange={(e) => setSoloPorUbicar(e.target.checked)} className={casillaClass} />
-          Solo por ubicar
+          Solo en aclimatación
         </label>
       </div>
 
@@ -127,7 +127,7 @@ export function ExistenciasCliente({
                 </Link>
               </td>
               <td className="px-4 py-3 whitespace-nowrap">
-                {e.acuarioCodigo ? <span className="font-mono text-texto">{e.acuarioCodigo}</span> : <Etiqueta texto="Por ubicar" tono="advertencia" />}
+                {e.acuarioCodigo ? <span className="font-mono text-texto">{e.acuarioCodigo}</span> : <Etiqueta texto="Aclimatación" tono="advertencia" />}
                 {e.condicion === "enfermo" ? <div className="mt-1"><Etiqueta texto="Enfermo" tono="peligro" /></div> : null}
               </td>
               <td className="px-4 py-3 text-right font-medium tabular-nums text-texto">{piezas(e.cantidad)}</td>
@@ -261,7 +261,7 @@ function FormularioOperacion({
       <p className="text-sm text-texto">
         <span className="font-mono text-texto-suave">{e.productoCodigo}</span> <span className="italic">{e.nombreCientifico}</span> · {e.loteCodigo}
         <br />
-        En {e.acuarioCodigo ?? "por ubicar"} · {CONDICIONES[e.condicion]} · <strong>{piezas(e.cantidad)}</strong> disponibles
+        En {e.acuarioCodigo ?? "aclimatación"} · {CONDICIONES[e.condicion]} · <strong>{piezas(e.cantidad)}</strong> disponibles
       </p>
       <RejillaCampos>
         {tipo === "ajuste" ? (
@@ -291,7 +291,7 @@ function FormularioOperacion({
             htmlFor="destino"
           >
             <select id="destino" value={destino} onChange={(ev) => setDestino(ev.target.value)} className={selectClass}>
-              <option value="">{tipo === "enfermo" || tipo === "aliviado" ? (e.acuarioId ? "Selecciona…" : "Por ubicar") : "Selecciona…"}</option>
+              <option value="">{tipo === "enfermo" || tipo === "aliviado" ? (e.acuarioId ? "Selecciona…" : "Aclimatación") : "Selecciona…"}</option>
               {opciones.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.codigo}

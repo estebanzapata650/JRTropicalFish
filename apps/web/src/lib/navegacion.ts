@@ -49,9 +49,9 @@ export function construirNavegacion(): ItemNavegacion[] {
       label: "Inventario",
       icono: "inventario",
       hijos: [
-        { href: "/inventario", label: "Dashboard", permiso: PERMISOS.INVENTARIO_LEER },
+        { href: "/inventario", label: "Tableros", permiso: PERMISOS.INVENTARIO_LEER },
         { href: "/inventario/existencias", label: "Existencias", permiso: PERMISOS.INVENTARIO_LEER },
-        { href: "/inventario/lotes", label: "Lotes", permiso: PERMISOS.INVENTARIO_LEER },
+        { href: "/inventario/lotes", label: "Trazabilidad", permiso: PERMISOS.INVENTARIO_LEER },
         { href: "/inventario/acuarios", label: "Acuarios", permiso: PERMISOS.INVENTARIO_LEER },
       ],
     },

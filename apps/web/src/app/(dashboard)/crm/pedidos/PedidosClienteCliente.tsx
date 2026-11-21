@@ -496,7 +496,7 @@ function FormularioPedido({
 
 /**
  * Picking: por cada especie pendiente se listan sus existencias **sanas y ubicadas** (lote × acuario) y se
- * escribe cuánto sale de cada una. Lo enfermo y lo por ubicar nunca se despacha. La base valida de nuevo
+ * escribe cuánto sale de cada una. Lo enfermo y lo que sigue en aclimatación nunca se despacha. La base valida de nuevo
  * con la fila bloqueada, así que dos despachos a la vez no pueden dejar stock negativo.
  */
 function FormularioDespacho({

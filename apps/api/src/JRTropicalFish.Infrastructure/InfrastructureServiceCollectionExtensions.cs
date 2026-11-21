@@ -109,9 +109,11 @@ public static class InfrastructureServiceCollectionExtensions
 
         // Inventario, compras y pedidos de cliente
         services.AddScoped<IInventarioRepository, InventarioRepository>();
+        services.AddScoped<ITablerosInventarioRepository, TablerosInventarioRepository>();
         services.AddScoped<IComprasRepository, ComprasRepository>();
         services.AddScoped<IPedidoClienteRepository, PedidoClienteRepository>();
         services.AddScoped<InventarioService>();
+        services.AddScoped<TablerosInventarioService>();
         services.AddScoped<ComprasService>();
         services.AddScoped<PedidoClienteService>();
 

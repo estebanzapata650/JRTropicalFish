@@ -143,14 +143,27 @@ public class InventarioRepository(PostgresConnectionFactory conexiones) : Reposi
 
     public Task<IReadOnlyList<InventarioProductoFila>> PorProductoAsync(CancellationToken ct = default) =>
         ListarAsync<InventarioProductoFila>("SELECT * FROM fn_inventario_por_producto()", null, ct);
+}
 
-    public Task<IReadOnlyList<VentaProductoFila>> DespachosPorProductoAsync(DateTime desde, DateTime hasta, CancellationToken ct = default) =>
-        ListarAsync<VentaProductoFila>(
-            "SELECT * FROM fn_inventario_despachos_por_producto(@Desde::timestamptz, @Hasta::timestamptz)", new { Desde = desde, Hasta = hasta }, ct);
+public class TablerosInventarioRepository(PostgresConnectionFactory conexiones) : RepositorioInventario(conexiones), ITablerosInventarioRepository
+{
+    public Task<IReadOnlyList<LoteTiemposFila>> TiemposAsync(Guid? loteId, DateTime ahora, CancellationToken ct = default) =>
+        ListarAsync<LoteTiemposFila>("SELECT * FROM fn_lotes_tiempos(@LoteId::uuid, @Ahora::timestamptz)", new { LoteId = loteId, Ahora = ahora }, ct);
 
-    public Task<IReadOnlyList<CompraProveedorFila>> ComprasPorProveedorAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default) =>
-        ListarAsync<CompraProveedorFila>(
-            "SELECT * FROM fn_inventario_compras_por_proveedor(@Desde::date, @Hasta::date)", new { Desde = desde, Hasta = hasta }, ct);
+    public Task<IReadOnlyList<DespachoFila>> DespachosAsync(DateTime? desde, DateTime? hasta, Guid? loteId, CancellationToken ct = default) =>
+        ListarAsync<DespachoFila>(
+            "SELECT * FROM fn_despachos_listar(@Desde::timestamptz, @Hasta::timestamptz, @LoteId::uuid)",
+            new { Desde = desde, Hasta = hasta, LoteId = loteId }, ct);
+
+    public Task<IReadOnlyList<CompraPendienteFila>> ComprasPendientesAsync(CancellationToken ct = default) =>
+        ListarAsync<CompraPendienteFila>("SELECT * FROM fn_compras_lineas_pendientes()", null, ct);
+
+    public Task<IReadOnlyList<CumplimientoCompraFila>> CumplimientoComprasAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default) =>
+        ListarAsync<CumplimientoCompraFila>(
+            "SELECT * FROM fn_compras_cumplimiento(@Desde::date, @Hasta::date)", new { Desde = desde, Hasta = hasta }, ct);
+
+    public Task<IReadOnlyList<PedidoClientePendienteFila>> PedidosClientePendientesAsync(CancellationToken ct = default) =>
+        ListarAsync<PedidoClientePendienteFila>("SELECT * FROM fn_pedidos_cliente_lineas_pendientes()", null, ct);
 }
 
 public class ComprasRepository(PostgresConnectionFactory conexiones) : RepositorioInventario(conexiones), IComprasRepository

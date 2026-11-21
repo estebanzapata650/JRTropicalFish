@@ -142,9 +142,11 @@ public class IndicadoresInventarioTests
         var pedido = new PedidoClienteFila(
             Guid.NewGuid(), "PC-0001", Guid.NewGuid(), "c", Guid.NewGuid(), "v", null, null, null, new DateOnly(2026, 11, 1), null,
             EstadosPedidoCliente.Despachado, null, Unidades: 200, Despachadas: 170, null, DateTime.UtcNow);
-        var compra = new CompraProveedorFila(Guid.NewGuid(), "Absalon", 2, Unidades: 72, null, Pedidas: 70);
+        // Recibir de más (72 de 70 en una línea) no pasa del 100 %: el "en full" ya viene topado por línea.
+        var compra = new CumplimientoCompraFila(
+            Guid.NewGuid(), "PP-0001", Guid.NewGuid(), "Absalon", new DateOnly(2026, 11, 1), "recibido", Pedidas: 90, Recibidas: 82, RecibidasEnFull: 80);
 
         Assert.Equal(85m, pedido.Cumplimiento);
-        Assert.Equal(102.9m, compra.Cumplimiento);
+        Assert.Equal(88.9m, compra.Cumplimiento);
     }
 }

@@ -297,23 +297,177 @@ export type InventarioProducto = {
   cubierto: boolean;
 };
 
-export type DashboardInventario = {
+// --- Tableros (Bodega, Proveedores, Clientes, Trazabilidad) ---
+
+export type UbicacionAcuario = {
+  acuarioId: string;
+  acuarioCodigo: string;
+  sector: string;
   sanos: number;
-  porUbicar: number;
   enfermos: number;
-  pendienteClientes: number;
-  enTransito: number;
-  lotesActivos: number;
-  lotesAntiguos: number;
+  total: number;
+  especies: { productoCodigo: string; nombreCientifico: string; cantidad: number }[];
+};
+
+export type TableroBodega = {
+  sanos: number;
+  aclimatacion: number;
+  enfermos: number;
+  acuariosActivos: number;
   acuariosOcupados: number;
   acuariosConEnfermos: number;
+  acuariosVacios: number;
+  ocupacion: number;
+  lotesActivos: number;
+  lotesAntiguos: number;
   productos: InventarioProducto[];
-  pedidosPorLlegar: PedidoProveedor[];
-  lotesConMasDeVeinteDias: Lote[];
+  ubicaciones: UbicacionAcuario[];
   existenciasEnfermas: Existencia[];
-  masVendidas: { productoId: string; productoCodigo: string; nombreCientifico: string; cantidad: number }[];
-  proveedores: { proveedorId: string; proveedorNombre: string; recepciones: number; unidades: number; costoTotal: number | null; pedidas: number; cumplimiento: number }[];
-  pedidosClientePendientes: PedidoCliente[];
+};
+
+export type CompraPendiente = {
+  pedidoId: string;
+  pedidoCodigo: string;
+  proveedorId: string;
+  proveedorNombre: string;
+  fecha: string;
+  fechaEstimadaLlegada: string | null;
+  estado: string;
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  centroNombre: string | null;
+  cantidad: number;
+  recibida: number;
+  pendiente: number;
+};
+
+export type CumplimientoCompra = {
+  pedidoId: string;
+  pedidoCodigo: string;
+  proveedorId: string;
+  proveedorNombre: string;
+  fecha: string;
+  estado: string;
+  pedidas: number;
+  recibidas: number;
+  recibidasEnFull: number;
+  cumplimiento: number;
+};
+
+export type ProveedorResumen = {
+  proveedorId: string | null;
+  proveedorNombre: string;
+  pedidos: number;
+  pedidas: number;
+  recibidasEnFull: number;
+  lotes: number;
+  recibidos: number;
+  muertosLlegada: number;
+  muertosDespues: number;
+  cumplimiento: number;
+  porcentajeMuertos: number;
+};
+
+export type SemanaRecepcion = { semana: string; recibidos: number; muertos: number; porcentajeMuertos: number };
+
+export type TableroProveedores = {
+  desde: string;
+  hasta: string;
+  pedidosEnTransito: number;
+  unidadesEnTransito: number;
+  centrosEnTransito: number;
+  pedidas: number;
+  recibidasEnFull: number;
+  recibidos: number;
+  muertos: number;
+  cumplimiento: number;
+  porcentajeMuertos: number;
+  enTransito: CompraPendiente[];
+  proveedores: ProveedorResumen[];
+  pedidos: CumplimientoCompra[];
+  semanas: SemanaRecepcion[];
+};
+
+export type PedidoClientePendiente = {
+  pedidoId: string;
+  pedidoCodigo: string;
+  clienteId: string;
+  clienteNombre: string;
+  comercialId: string;
+  fecha: string;
+  estado: string;
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  cantidad: number;
+  despachada: number;
+  stockSano: number;
+  pendiente: number;
+};
+
+export type ClienteResumen = {
+  clienteId: string;
+  clienteNombre: string;
+  pedidos: number;
+  solicitadas: number;
+  despachadasPedidos: number;
+  despachadoPeriodo: number;
+  cumplimiento: number;
+};
+
+export type TableroClientes = {
+  desde: string;
+  hasta: string;
+  pedidosPendientes: number;
+  unidadesPendientes: number;
+  unidadesDespachadas: number;
+  solicitadas: number;
+  despachadasPedidos: number;
+  cumplimiento: number;
+  pendientes: PedidoClientePendiente[];
+  clientes: ClienteResumen[];
+  especies: { productoId: string; productoCodigo: string; nombreCientifico: string; cantidad: number; clientes: number }[];
+};
+
+export type LoteTiempos = {
+  loteId: string;
+  diasAclimatacion: number;
+  aclimatacionEnCurso: boolean;
+  diasCuarentena: number;
+  cuarentenaEnCurso: boolean;
+  episodiosCuarentena: number;
+  despachos: number;
+  clientes: number;
+  primerDespacho: string | null;
+  ultimoDespacho: string | null;
+};
+
+export type LoteTrazable = { lote: Lote; tiempos: LoteTiempos };
+
+export type Despacho = {
+  fecha: string;
+  loteId: string;
+  loteCodigo: string;
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  clienteId: string;
+  clienteNombre: string;
+  comercialId: string;
+  pedidoId: string;
+  pedidoCodigo: string;
+  acuarioCodigo: string | null;
+  cantidad: number;
+};
+
+export type RecorridoLote = { lote: Lote; tiempos: LoteTiempos; existencias: Existencia[]; despachos: Despacho[]; movimientos: Movimiento[] };
+
+/** Duración legible: horas si es menos de un día ("5 h"), un decimal bajo 10 días ("2,5 días"), si no entero. */
+export const dias = (v: number) => {
+  if (v < 1) return `${Math.max(1, Math.round(v * 24))} h`;
+  const n = v < 10 ? Math.round(v * 10) / 10 : Math.round(v);
+  return `${n.toLocaleString("es-CO")} ${n === 1 ? "día" : "días"}`;
 };
 
 /** Producto para los selectores de líneas: "AP005 · Crenicara Punctulatum". */

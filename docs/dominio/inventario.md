@@ -9,7 +9,7 @@
 
 | Paso | Dónde se hace |
 |---|---|
-| 1. Disponibilidad de inventario | `/inventario` (dashboard) y `/inventario/existencias` |
+| 1. Disponibilidad de inventario | `/inventario` (tablero Bodega) y `/inventario/existencias` |
 | 2. Disponibilidad del proveedor | `/compras/ofertas` |
 | 3. Tabla de disponibilidad al cliente | Disponibilidad publicada del producto (catálogo) |
 | 4–5. Pedido del cliente | `/crm/pedidos`: desde la venta del CRM (botón en Ventas) o suelto |
@@ -40,7 +40,8 @@ Las cantidades son **piezas enteras**. Los costos van en COP y solo viajan con `
 
 - **Sano** y en un acuario: vendible. La **aclimatación es solo informativa**: se muestran los días
   desde el ingreso y la alerta de **más de 20 días**.
-- **Por ubicar** (recién recibido): no se despacha hasta ubicarlo.
+- **Aclimatación** (recién recibido, sin acuario; en el modelo, existencia con acuario nulo): no se
+  despacha hasta ubicarlo. En el Excel era el «acuario» virtual `ACLIMATACION`.
 - **Enfermo**: **nunca** se despacha. Se alivia (vuelve a sano) o muere.
 
 ## Motor de stock
@@ -103,18 +104,41 @@ Por especie: pendiente de los pedidos de cliente **confirmados o en preparación
 ubicar − en tránsito (pedidos a proveedor pendientes) = **faltante**. Se marcan especies, se elige el
 proveedor y se crea el pedido con el faltante como cantidad.
 
-## Dashboard (`/inventario`): los 10 indicadores
+## Tableros (reemplazan los 4 de Looker)
 
-1. Disponibilidad por especie (sano, por ubicar, enfermo, pedido por clientes, en tránsito, última oferta, estado).
-2. Pedidos a proveedor por llegar.
-3. Filtro por especie y centro de acopio.
-4. Trazabilidad: ficha del lote con su kardex (`/inventario/lotes/{id}`).
-5. Acuarios con enfermos.
-6. Cumplimiento de proveedores (recibido / pedido, 30 días).
-7. Especies más vendidas (despachos, 30 días).
-8. Proveedor más comprado.
-9. Lotes con más de 20 días en bodega.
-10. Pedidos de clientes sin despachar y su cumplimiento.
+Cuatro pestañas bajo **Inventario → Tableros**. Proveedores y Clientes tienen periodo en la URL
+(`?periodo=30d|mes|mes-anterior|90d|anio`, por defecto 30 días); lo que está en camino o pendiente no
+depende del periodo.
+
+| Pestaña | Ruta | Qué muestra |
+|---|---|---|
+| **Bodega** | `/inventario` | En acuarios, en aclimatación, enfermos, ocupación de acuarios (ocupados / activos, vacíos), lotes activos y de más de 20 días; disponibilidad por especie (acuarios, aclimatación, enfermos, total, pedido por clientes, en tránsito, última oferta, faltante); ubicaciones por acuario; acuarios con enfermos |
+| **Proveedores** | `/inventario/proveedores` | Pedidos y peces en camino (con «atrasado»), cumplimiento *in full*, recibidos y mortalidad del periodo; cumplimiento y mortalidad por proveedor; compras por proveedor; recibidos por semana; cumplimiento por pedido |
+| **Clientes** | `/inventario/clientes` | Pedidos y peces por despachar con **si el stock sano alcanza**; despachado y cumplimiento del periodo; cumplimiento y despachos por cliente; 20 especies más vendidas |
+| **Trazabilidad** | `/inventario/lotes` y `/inventario/lotes/{id}` | Por lote: dónde está cada pez (barra), días en aclimatación y en cuarentena, clientes. El **recorrido** del lote: llegada (proveedor, centro, muertos al llegar), aclimatación, acuarios, cuarentena, envíos a clientes y mortalidad, más el kardex |
+
+**Qué se corrigió respecto a Looker**
+
+- *Cumplimiento in full* nunca pasa de 100 %: por línea se cuenta lo recibido (o despachado) hasta lo
+  pedido; recibir de más en una especie no compensa lo que faltó en otra. Looker mostraba 1536 % y
+  pendientes negativos.
+- Las tortas pasaron a **barras ordenadas** (comparar partes sobre una base común es más exacto).
+- El evolutivo recibidos/muertos con dos escalas pasó a **columnas por semana** con los muertos en el
+  detalle y la mortalidad por proveedor aparte.
+- «Pendiente por despachar» dice si el stock sano de la especie alcanza (el stock es total por especie:
+  varios pedidos pueden competir por él).
+
+### Aclimatación y cuarentena (cómo se miden)
+
+Salen del kardex (`fn_lotes_tiempos`), sin estados nuevos:
+
+- **Aclimatación**: tiempo en que el lote tuvo al menos un pez sin acuario. «En curso» si todavía tiene.
+- **Cuarentena** = **tiempo enfermo**: tiempo en que el lote tuvo al menos un pez enfermo, sumando
+  episodios (de enfermo a aliviado o muerto). «En curso» si hoy hay enfermos.
+- Lotes del saldo inicial: la aclimatación se cuenta desde la fecha de ingreso del Excel; la cuarentena,
+  desde la migración (el Excel no traía esa historia).
+- La línea de tiempo del recorrido está pensada para sumar después la **bitácora** de enfermedad y
+  alimentación como eventos del mismo lote.
 
 ## Permisos
 

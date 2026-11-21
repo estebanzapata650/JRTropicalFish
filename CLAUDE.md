@@ -34,11 +34,13 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   **Lotes** con kardex, **Acuarios** (mapa), **Necesidades de compra**, **Disponibilidad de proveedores**,
   **Pedidos a proveedor** con **Recepción** (crea lotes) y **Pedidos de clientes** enlazados a la venta del
   CRM con picking y despacho. Saldo inicial (63 lotes, 13.528 peces) con `npm run inventario:importar`.
-  Reglas en `docs/dominio/inventario.md`.
+  **Tableros** (reemplazan Looker): Bodega, Proveedores, Clientes y Trazabilidad con el recorrido del lote
+  (aclimatación y cuarentena medidas del kardex). Gráficos en `components/Graficos.tsx` (CSS + tokens
+  `serie-*`, sin librería). Reglas en `docs/dominio/inventario.md`.
 - Transversales listos para usar: auditoría (`auditoria` + `ComparadorAuditoria`), archivos S3
   (`IAlmacenArchivos`, `ClaveArchivo`, `DetectorTipoArchivo`), PDF (`IGeneradorInformePdf`), correo
   (`IServicioCorreo`, proveedores `Disco` / `SendGrid`, modo pruebas), `Resultado<T>`, `IReloj`.
-- Health check con Postgres en `/api/v1/health`. 149 pruebas unitarias en verde.
+- Health check con Postgres en `/api/v1/health`. 156 pruebas unitarias en verde.
 - Producción: `docker-compose.prod.yml` (Caddy, web, api, postgres, backup), Dockerfiles, `.env.prod.example`.
 
 **Pendiente (por fases, ver `docs/dominio/modulos.md`)**: resto de Catálogos (aerolíneas…), Inventario (conteos, ajustes con aprobación, reservas, PDFs), Importaciones,

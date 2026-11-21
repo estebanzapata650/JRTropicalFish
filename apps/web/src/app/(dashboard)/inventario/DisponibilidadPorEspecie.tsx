@@ -8,12 +8,12 @@ import { piezas, type InventarioProducto } from "@/lib/inventario";
 import { fecha } from "@/lib/formato";
 import { inputClass, selectClass } from "@/lib/estilos";
 
-const POR_PAGINA = 40;
+const POR_PAGINA = 15;
 
 /**
- * Indicadores 1, 3 y 10 de la app anterior: por especie, lo que hay en bodega (sano, por ubicar,
- * enfermo), lo pedido por clientes y no despachado, lo que viene en tránsito y la última oferta de
- * proveedor; si la demanda ya está cubierta («pedido») o falta comprar. Filtro por especie y centro.
+ * «Disponibilidad por referencia» de Looker, mejorada: por especie, lo que hay en acuarios, en
+ * aclimatación y enfermo; lo pedido por clientes sin despachar, lo que viene en camino y la última
+ * oferta; y si falta comprar. Filtro por especie y centro de acopio.
  */
 export function DisponibilidadPorEspecie({ productos }: { productos: InventarioProducto[] }) {
   const [busqueda, setBusqueda] = useState("");
@@ -70,8 +70,10 @@ export function DisponibilidadPorEspecie({ productos }: { productos: InventarioP
         <EncabezadoTabla>
           <tr className="text-texto-suave">
             <th className="px-4 py-3 font-medium">Especie</th>
-            <th className="px-4 py-3 text-right font-medium">En bodega</th>
+            <th className="px-4 py-3 text-right font-medium">En acuarios</th>
+            <th className="hidden px-4 py-3 text-right font-medium sm:table-cell">Aclimatación</th>
             <th className="hidden px-4 py-3 text-right font-medium sm:table-cell">Enfermos</th>
+            <th className="hidden px-4 py-3 text-right font-medium lg:table-cell">Total</th>
             <th className="hidden px-4 py-3 text-right font-medium md:table-cell">Pedido clientes</th>
             <th className="hidden px-4 py-3 text-right font-medium md:table-cell">En tránsito</th>
             <th className="hidden px-4 py-3 font-medium xl:table-cell">Última oferta</th>
@@ -89,10 +91,12 @@ export function DisponibilidadPorEspecie({ productos }: { productos: InventarioP
                 <p className="text-xs text-texto-suave">{p.centroNombre ?? "—"}</p>
               </td>
               <td className="px-4 py-3 text-right tabular-nums text-texto">
-                {piezas(p.sanos + p.porUbicar)}
-                {p.porUbicar > 0 ? <p className="text-xs text-advertencia-texto">{piezas(p.porUbicar)} por ubicar</p> : null}
+                {piezas(p.sanos)}
+                {p.porUbicar > 0 ? <p className="text-xs text-texto-suave sm:hidden">+{piezas(p.porUbicar)} aclim.</p> : null}
               </td>
+              <td className="hidden px-4 py-3 text-right tabular-nums sm:table-cell">{p.porUbicar ? <span className="text-texto">{piezas(p.porUbicar)}</span> : <span className="text-texto-tenue">—</span>}</td>
               <td className={`hidden px-4 py-3 text-right tabular-nums sm:table-cell ${p.enfermos ? "font-medium text-peligro" : "text-texto-tenue"}`}>{p.enfermos ? piezas(p.enfermos) : "—"}</td>
+              <td className="hidden px-4 py-3 text-right font-medium tabular-nums text-texto lg:table-cell">{piezas(p.sanos + p.porUbicar + p.enfermos)}</td>
               <td className="hidden px-4 py-3 text-right tabular-nums text-texto md:table-cell">{p.pendienteClientes ? piezas(p.pendienteClientes) : "—"}</td>
               <td className="hidden px-4 py-3 text-right tabular-nums text-texto md:table-cell">{p.enTransito ? piezas(p.enTransito) : "—"}</td>
               <td className="hidden px-4 py-3 text-texto xl:table-cell">
@@ -118,7 +122,7 @@ export function DisponibilidadPorEspecie({ productos }: { productos: InventarioP
           ))}
           {visibles.length === 0 ? (
             <tr>
-              <td colSpan={7} className="px-4 py-8 text-center text-texto-suave">
+              <td colSpan={9} className="px-4 py-8 text-center text-texto-suave">
                 Sin especies con stock, pedidos u ofertas.
               </td>
             </tr>
