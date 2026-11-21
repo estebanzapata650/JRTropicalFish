@@ -249,7 +249,7 @@ export function TareasCliente({
         />
       </Dialogo>
       <Dialogo titulo="Historial de la tarea" abierto={historialDe !== null} onCerrar={() => setHistorialDe(null)}>
-        {historialDe ? <HistorialRemoto ruta={`/api/v1/crm/tareas/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} /> : null}
+        {historialDe ? <HistorialRemoto ruta={`/api/crm/tareas/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} /> : null}
       </Dialogo>
       <DialogoConfirmacion
         titulo="Eliminar tarea"

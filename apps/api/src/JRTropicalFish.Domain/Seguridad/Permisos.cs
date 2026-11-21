@@ -71,6 +71,21 @@ public static class Permisos
     public const string ProveedoresLeer = "proveedores:leer";
     public const string ProveedoresEditar = "proveedores:editar";
 
+    // --- Inventario, compras y pedidos de cliente ---
+    /// <summary>Existencias, lotes, acuarios, movimientos, dashboard, ofertas y pedidos.</summary>
+    public const string InventarioLeer = "inventario:leer";
+
+    /// <summary>Ubicar, trasladar y registrar novedades (enfermo, aliviado, mortalidad).</summary>
+    public const string InventarioOperar = "inventario:operar";
+
+    /// <summary>Ajustes manuales con motivo, carga de saldo inicial y catálogo de acuarios.</summary>
+    public const string InventarioAjustar = "inventario:ajustar";
+
+    public const string ComprasGestionar = "compras:gestionar";
+    public const string ComprasRecibir = "compras:recibir";
+    public const string PedidosGestionar = "pedidos:gestionar";
+    public const string PedidosDespachar = "pedidos:despachar";
+
     // Módulos de negocio (Catálogos, Inventario, Importaciones, Exportaciones): sus permisos se
     // agregan con cada módulo. El mapa previsto está en docs/dominio/modulos.md.
 
@@ -108,6 +123,13 @@ public static class Permisos
         [PreciosEditar] = "Editar precios, listas de precios y recalcular",
         [ProveedoresLeer] = "Consultar proveedores",
         [ProveedoresEditar] = "Crear y editar proveedores",
+        [InventarioLeer] = "Consultar existencias, lotes, acuarios, ofertas y pedidos",
+        [InventarioOperar] = "Ubicar, trasladar y registrar enfermos, aliviados y muertos",
+        [InventarioAjustar] = "Ajustes de inventario, saldo inicial y acuarios",
+        [ComprasGestionar] = "Registrar disponibilidad de proveedores y pedidos a proveedor",
+        [ComprasRecibir] = "Recibir pedidos de proveedor (crea los lotes)",
+        [PedidosGestionar] = "Crear y editar pedidos de clientes",
+        [PedidosDespachar] = "Picking y despacho de pedidos de clientes",
     };
 
     /// <summary>
@@ -124,6 +146,7 @@ public static class PerfilesPlantilla
     public const string Operativo = "Operativo";
     public const string Consulta = "Consulta";
     public const string Comercial = "Comercial";
+    public const string Bodega = "Bodega";
 
     public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> Definicion =
         new Dictionary<string, IReadOnlyList<string>>
@@ -134,18 +157,26 @@ public static class PerfilesPlantilla
             [
                 Permisos.ClientesLeer, Permisos.CrmLeer, Permisos.VentasGestionar, Permisos.TrackingGestionar,
                 Permisos.MetasLeer, Permisos.CatalogosLeer, Permisos.PreciosLeer, Permisos.ProveedoresLeer,
+                Permisos.InventarioLeer, Permisos.InventarioOperar, Permisos.ComprasGestionar, Permisos.ComprasRecibir,
+                Permisos.PedidosDespachar,
             ],
             [Consulta] =
             [
                 Permisos.UsuariosLeer, Permisos.PerfilesLeer, Permisos.MaestrosLeer, Permisos.EmpleadosLeer,
                 Permisos.ClientesLeer, Permisos.CrmLeer, Permisos.MetasLeer, Permisos.CatalogosLeer, Permisos.PreciosLeer,
-                Permisos.ProveedoresLeer,
+                Permisos.ProveedoresLeer, Permisos.InventarioLeer,
             ],
             // Comercial: ve y gestiona solo lo suyo (sin crm:ver-todo).
             [Comercial] =
             [
                 Permisos.ClientesLeer, Permisos.ClientesEditar, Permisos.CrmLeer, Permisos.CrmVender, Permisos.MetasLeer,
-                Permisos.CatalogosLeer, Permisos.PreciosLeer,
+                Permisos.CatalogosLeer, Permisos.PreciosLeer, Permisos.InventarioLeer, Permisos.PedidosGestionar,
+            ],
+            // Bodega (rol del Excel de inventario): recibe, ubica, registra novedades y despacha.
+            [Bodega] =
+            [
+                Permisos.CatalogosLeer, Permisos.InventarioLeer, Permisos.InventarioOperar, Permisos.ComprasRecibir,
+                Permisos.PedidosDespachar,
             ],
         };
 }

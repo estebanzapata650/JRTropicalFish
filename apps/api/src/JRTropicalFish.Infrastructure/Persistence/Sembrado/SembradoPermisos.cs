@@ -13,6 +13,13 @@ namespace JRTropicalFish.Infrastructure.Persistence.Sembrado;
 /// retirados y asigna permisos a los perfiles plantilla sin deshacer ajustes que el negocio haya
 /// hecho a mano.
 /// </para>
+///
+/// <para>
+/// Cuando un perfil <b>recibe o pierde</b> permisos, se revocan las sesiones de sus usuarios
+/// (<c>usuarios.sesion_invalida_antes</c>): el token trae los permisos de cuando se emitió, y sin esto
+/// las pantallas nuevas no aparecerían hasta que expire. Así el usuario vuelve al login y entra con
+/// los permisos al día. Si el perfil no cambió, nadie pierde la sesión.
+/// </para>
 /// </summary>
 public static class SembradoPermisos
 {
@@ -36,9 +43,14 @@ public static class SembradoPermisos
         if (Permisos.Retirados.Count > 0)
         {
             var retirados = string.Join(", ", Permisos.Retirados.Select(c => $"'{c}'"));
+            // Quitar un permiso cambia lo que pueden hacer sus usuarios: se revocan sus sesiones.
             migrationBuilder.Sql(
                 $"""
-                DELETE FROM perfil_permisos WHERE permiso_id IN (SELECT id FROM permisos WHERE codigo IN ({retirados}));
+                WITH quitados AS (
+                    DELETE FROM perfil_permisos
+                    WHERE permiso_id IN (SELECT id FROM permisos WHERE codigo IN ({retirados}))
+                    RETURNING perfil_id)
+                {ActualizarSesiones("quitados")}
                 DELETE FROM permisos WHERE codigo IN ({retirados});
                 """);
         }
@@ -65,16 +77,32 @@ public static class SembradoPermisos
                 continue;
             }
 
+            // Si el perfil recibió permisos nuevos, sus usuarios deben volver a iniciar sesión: el token
+            // trae los permisos de cuando se emitió y, sin esto, las pantallas nuevas no aparecerían
+            // (sin aviso) hasta que el token expire.
             var codigos = string.Join(", ", permisos.Select(p => $"'{p}'"));
             migrationBuilder.Sql(
                 $"""
-                INSERT INTO perfil_permisos (perfil_id, permiso_id)
-                SELECT pf.id, pm.id
-                FROM perfiles pf
-                CROSS JOIN permisos pm
-                WHERE pf.nombre = '{nombre}' AND pm.codigo IN ({codigos})
-                ON CONFLICT DO NOTHING;
+                WITH nuevos AS (
+                    INSERT INTO perfil_permisos (perfil_id, permiso_id)
+                    SELECT pf.id, pm.id
+                    FROM perfiles pf
+                    CROSS JOIN permisos pm
+                    WHERE pf.nombre = '{nombre}' AND pm.codigo IN ({codigos})
+                    ON CONFLICT DO NOTHING
+                    RETURNING perfil_id)
+                {ActualizarSesiones("nuevos")}
                 """);
         }
     }
+
+    /// <summary>
+    /// Revoca las sesiones de los usuarios de los perfiles que devuelve la CTE <paramref name="cte"/>
+    /// (mismo mecanismo que editar permisos desde la pantalla de Perfiles; ver <c>ValidacionSesion</c>).
+    /// </summary>
+    private static string ActualizarSesiones(string cte) =>
+        $"""
+        UPDATE usuarios SET sesion_invalida_antes = now()
+        WHERE perfil_id IN (SELECT DISTINCT perfil_id FROM {cte});
+        """;
 }

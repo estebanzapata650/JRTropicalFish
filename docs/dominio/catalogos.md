@@ -1,8 +1,8 @@
 # Catálogo de productos, precios, centros de acopio y proveedores
 
 Reemplaza el Excel **«JR MAIN STOCK LIST»** (hoja *Listado*) y toma de **«BASES_TROPICAL FISH»**
-las hojas *Centros_acopio* y *Proveedores*. El stock real (lotes, tanques, movimientos) llegará con
-la migración de la app de inventario; mientras tanto el producto lleva su **disponibilidad publicada**.
+las hojas *Centros_acopio* y *Proveedores*. El stock real (lotes, acuarios, movimientos) vive en [`inventario.md`](inventario.md); el producto
+conserva además su **disponibilidad publicada** (lo que ve el cliente en el stocklist).
 
 | Pantalla | Qué contiene |
 |---|---|

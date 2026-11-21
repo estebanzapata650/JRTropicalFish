@@ -29,13 +29,19 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   recálculo en bloque; costo protegido por `catalogos:ver-costos`), **Centros de acopio**, **Proveedores**
   y maestros *Grupos de producto* y *Cuencas*. Importados con `npm run catalogo:importar`. Reglas en
   `docs/dominio/catalogos.md`.
+- **Inventario, compras y pedidos de clientes** (2026-11-21): migrada la app de AppSheet del Excel
+  «BASES». Dashboard (10 indicadores), **Existencias** (ubicar, trasladar, enfermo, aliviado, mortalidad),
+  **Lotes** con kardex, **Acuarios** (mapa), **Necesidades de compra**, **Disponibilidad de proveedores**,
+  **Pedidos a proveedor** con **Recepción** (crea lotes) y **Pedidos de clientes** enlazados a la venta del
+  CRM con picking y despacho. Saldo inicial (63 lotes, 13.528 peces) con `npm run inventario:importar`.
+  Reglas en `docs/dominio/inventario.md`.
 - Transversales listos para usar: auditoría (`auditoria` + `ComparadorAuditoria`), archivos S3
   (`IAlmacenArchivos`, `ClaveArchivo`, `DetectorTipoArchivo`), PDF (`IGeneradorInformePdf`), correo
   (`IServicioCorreo`, proveedores `Disco` / `SendGrid`, modo pruebas), `Resultado<T>`, `IReloj`.
-- Health check con Postgres en `/api/v1/health`. 113 pruebas unitarias en verde.
+- Health check con Postgres en `/api/v1/health`. 149 pruebas unitarias en verde.
 - Producción: `docker-compose.prod.yml` (Caddy, web, api, postgres, backup), Dockerfiles, `.env.prod.example`.
 
-**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: resto de Catálogos (bodegas, tanques, aerolíneas…), Inventario (migrar la app de inventario), Importaciones,
+**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: resto de Catálogos (aerolíneas…), Inventario (conteos, ajustes con aprobación, reservas, PDFs), Importaciones,
 Exportaciones, Reportes. Recuperación de contraseña por correo. CI/CD (fase 2).
 
 ## Descripción del proyecto
@@ -104,6 +110,7 @@ JRTropicalFish/
 │   │   │   ├── Administracion/   Empleado
 │   │   │   ├── Crm/              Cliente, Oportunidad, Venta, TrackingVuelo, Tarea, Metas; EnumsCrm
 │   │   │   ├── Catalogos/        Producto, CentroAcopio, ListaPrecios, PrecioProducto, Proveedor
+│   │   │   ├── Inventario/       Acuario, Lote, Existencia, MovimientoInventario, Oferta/PedidoProveedor, Recepcion, PedidoCliente
 │   │   │   └── Auditoria/        RegistroAuditoria
 │   │   ├── src/JRTropicalFish.Application/
 │   │   │   ├── Abstractions/     interfaces: repositorios, IReloj, IAlmacenArchivos, IServicioCorreo…
@@ -127,7 +134,7 @@ JRTropicalFish/
 │           ├── components/       # AppShell, PageHeader, LoginForm, campos, TemaProvider
 │           └── lib/              # api, session, permisos, navegacion, estilos
 ├── infra/  docker/ · caddy/ · garage/ · backup/
-├── scripts/  stop.mjs · s3-init.mjs · importar-clientes.mjs · importar-catalogo.mjs · lib/xlsx.mjs (Excel → API)
+├── scripts/  stop.mjs · s3-init.mjs · importar-clientes.mjs · importar-catalogo.mjs · importar-inventario.mjs · lib/xlsx.mjs (Excel → API)
 └── docs/  arquitectura/ (+ adr/) · dominio/ · design-thinking/ · temp/ (ignorado)
 ```
 
@@ -175,7 +182,8 @@ permisos (Domain) → `AppDbContext` + migración de esquema **revisada a mano**
 
 1. Constante en `Domain/Seguridad/Permisos.cs` y entrada en `Permisos.Todos`.
 2. Asignarlo en `PerfilesPlantilla.Definicion` (Operativo/Consulta según corresponda; Administrador los recibe todos).
-3. Migración nueva cuyo `Up` llame a `SembradoPermisos.Aplicar(migrationBuilder)`.
+3. Migración nueva cuyo `Up` llame a `SembradoPermisos.Aplicar(migrationBuilder)`. Los usuarios de los perfiles
+   que reciben o pierden permisos quedan con la sesión revocada: vuelven al login y entran con los permisos al día.
 4. Espejo en `apps/web/src/lib/permisos.ts` y uso en `lib/navegacion.ts`.
 5. Retirar uno: moverlo a `Permisos.Retirados` y volver a sembrar.
 
@@ -204,7 +212,9 @@ Separar "registrar" de "aprobar/cerrar" cuando las responsabilidades difieren (e
   historial, y fijarlos da 403. Seguir el patrón de `EmpleadoService` / `ProductoService`.
 - Si la API del usuario está corriendo, compilar con `-c Release` (otra carpeta) en vez de detenerla.
 - Inventario: toda operación que descuente stock debe bloquear la fila (`SELECT ... FOR UPDATE`) dentro del
-  procedimiento y validar que no quede negativo. Nunca calcular el stock en C# y escribirlo.
+  procedimiento y validar que no quede negativo. Nunca calcular el stock en C# y escribirlo. Ya existe la
+  primitiva `sp_inventario_mover_uno` / `sp_inventario_mover` (`JR002` sin stock, `JR003` despacho de más):
+  usarla en vez de escribir `existencias` a mano.
 
 ### API
 
@@ -236,6 +246,9 @@ Separar "registrar" de "aprobar/cerrar" cuando las responsabilidades difieren (e
 
 ### Web
 
+- Desde un componente de cliente, el proxy se llama **`/api/<ruta>` sin `v1`** (`/api/compras/pedidos/…`):
+  el proxy ya antepone `/api/v1/`. Con `/api/v1/…` responde 404. `apiFetch` (servidor) sí usa `/api/v1/…`.
+- Un diálogo que nace abierto (`?id=` en la URL) es seguro: `Dialogo` no pinta hasta hidratar.
 - Binarios por route handlers con streaming, nunca por el proxy `app/api/[...path]` (hace `text()`).
 - Subidas por Server Action + `apiUpload` sin fijar `Content-Type`; límite de Server Actions en
   `next.config.ts` (12 MB).

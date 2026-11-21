@@ -3,6 +3,7 @@ using JRTropicalFish.Domain.Catalogos;
 using JRTropicalFish.Domain.Auditoria;
 using JRTropicalFish.Domain.Comun;
 using JRTropicalFish.Domain.Crm;
+using JRTropicalFish.Domain.Inventario;
 using JRTropicalFish.Domain.Maestros;
 using JRTropicalFish.Domain.Seguridad;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +46,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PrecioProducto> PreciosProducto => Set<PrecioProducto>();
     public DbSet<ParametrosPrecios> ParametrosPrecios => Set<ParametrosPrecios>();
     public DbSet<Proveedor> Proveedores => Set<Proveedor>();
+    public DbSet<Acuario> Acuarios => Set<Acuario>();
+    public DbSet<OfertaProveedor> OfertasProveedor => Set<OfertaProveedor>();
+    public DbSet<PedidoProveedor> PedidosProveedor => Set<PedidoProveedor>();
+    public DbSet<Recepcion> Recepciones => Set<Recepcion>();
+    public DbSet<Lote> Lotes => Set<Lote>();
+    public DbSet<Existencia> Existencias => Set<Existencia>();
+    public DbSet<MovimientoInventario> MovimientosInventario => Set<MovimientoInventario>();
+    public DbSet<PedidoCliente> PedidosCliente => Set<PedidoCliente>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,6 +63,193 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigurarAdministracion(modelBuilder);
         ConfigurarCrm(modelBuilder);
         ConfigurarCatalogos(modelBuilder);
+        ConfigurarInventario(modelBuilder);
+    }
+
+    /// <summary>
+    /// Inventario, compras y pedidos de cliente. El stock vive en <c>existencias</c> (saldo por lote ×
+    /// acuario × condición) y solo cambia por <c>sp_inventario_mover</c>, que escribe el kardex
+    /// (<c>movimientos_inventario</c>, inmutable). Cantidades en piezas enteras.
+    /// </summary>
+    private static void ConfigurarInventario(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Acuario>(entity =>
+        {
+            entity.ToTable("acuarios", t => t.HasCheckConstraint("ck_acuarios_capacidad", "capacidad_litros IS NULL OR capacidad_litros > 0"));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Sector).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.CapacidadLitros).HasPrecision(10, 2);
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+        });
+
+        modelBuilder.Entity<OfertaProveedor>(entity =>
+        {
+            entity.ToTable("ofertas_proveedor", t => t.HasCheckConstraint("ck_ofertas_estado", EnLista("estado", EstadosOferta.Todos)));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Estado).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Observaciones).HasMaxLength(2000);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasOne<Proveedor>().WithMany().HasForeignKey(e => e.ProveedorId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<OfertaProveedorLinea>(entity =>
+        {
+            entity.ToTable("ofertas_proveedor_lineas", t => t.HasCheckConstraint("ck_ofertas_lineas_cantidad", "cantidad > 0"));
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.OfertaId, e.ProductoId }).IsUnique();
+            entity.HasOne<OfertaProveedor>().WithMany().HasForeignKey(e => e.OfertaId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PedidoProveedor>(entity =>
+        {
+            entity.ToTable("pedidos_proveedor", t => t.HasCheckConstraint("ck_pedidos_proveedor_estado", EnLista("estado", EstadosPedidoProveedor.Todos)));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Estado).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Observaciones).HasMaxLength(2000);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasIndex(e => e.Estado);
+            entity.HasOne<Proveedor>().WithMany().HasForeignKey(e => e.ProveedorId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<OfertaProveedor>().WithMany().HasForeignKey(e => e.OfertaId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PedidoProveedorLinea>(entity =>
+        {
+            entity.ToTable("pedidos_proveedor_lineas", t =>
+            {
+                t.HasCheckConstraint("ck_pedidos_proveedor_lineas_cantidad", "cantidad > 0");
+                t.HasCheckConstraint("ck_pedidos_proveedor_lineas_costo", "costo_unitario IS NULL OR costo_unitario >= 0");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CostoUnitario).HasPrecision(14, 2);
+            entity.Property(e => e.Observacion).HasMaxLength(500);
+            entity.HasIndex(e => new { e.PedidoId, e.ProductoId }).IsUnique();
+            entity.HasOne<PedidoProveedor>().WithMany().HasForeignKey(e => e.PedidoId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Recepcion>(entity =>
+        {
+            entity.ToTable("recepciones");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Observaciones).HasMaxLength(2000);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasOne<PedidoProveedor>().WithMany().HasForeignKey(e => e.PedidoProveedorId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Lote>(entity =>
+        {
+            entity.ToTable("lotes", t =>
+            {
+                t.HasCheckConstraint("ck_lotes_origen", "origen IN ('recepcion', 'saldo_inicial')");
+                t.HasCheckConstraint("ck_lotes_cantidades", "recibidos >= 0 AND muertos_llegada >= 0 AND muertos_llegada <= recibidos");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.CostoUnitario).HasPrecision(14, 2);
+            entity.Property(e => e.Origen).HasMaxLength(20).IsRequired();
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasIndex(e => e.ProductoId);
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Proveedor>().WithMany().HasForeignKey(e => e.ProveedorId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<CentroAcopio>().WithMany().HasForeignKey(e => e.CentroAcopioId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<RecepcionLinea>(entity =>
+        {
+            entity.ToTable("recepciones_lineas", t =>
+                t.HasCheckConstraint("ck_recepciones_lineas_cantidades",
+                    "recibida > 0 AND enferma >= 0 AND muerta >= 0 AND enferma + muerta <= recibida AND costo_unitario >= 0"));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CostoUnitario).HasPrecision(14, 2);
+            entity.Property(e => e.CostoTotal).HasPrecision(18, 2).HasComputedColumnSql("recibida * costo_unitario", stored: true);
+            entity.HasIndex(e => e.LoteId).IsUnique();
+            entity.HasOne<Recepcion>().WithMany().HasForeignKey(e => e.RecepcionId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<PedidoProveedorLinea>().WithMany().HasForeignKey(e => e.PedidoLineaId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Lote>().WithMany().HasForeignKey(e => e.LoteId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Existencia>(entity =>
+        {
+            entity.ToTable("existencias", t =>
+            {
+                t.HasCheckConstraint("ck_existencias_condicion", EnLista("condicion", Condiciones.Todos));
+                // La garantía de fondo: el stock nunca queda negativo, pase lo que pase arriba.
+                t.HasCheckConstraint("ck_existencias_no_negativa", "cantidad >= 0");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Condicion).HasMaxLength(10).IsRequired();
+            // Acuario nulo = por ubicar: NULLS NOT DISTINCT para que haya una sola fila "por ubicar" por lote y condición.
+            entity.HasIndex(e => new { e.LoteId, e.AcuarioId, e.Condicion }).IsUnique().AreNullsDistinct(false);
+            entity.HasIndex(e => e.AcuarioId);
+            entity.HasOne<Lote>().WithMany().HasForeignKey(e => e.LoteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Acuario>().WithMany().HasForeignKey(e => e.AcuarioId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PedidoCliente>(entity =>
+        {
+            entity.ToTable("pedidos_cliente", t => t.HasCheckConstraint("ck_pedidos_cliente_estado", EnLista("estado", EstadosPedidoCliente.Todos)));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Ciudad).HasMaxLength(100);
+            entity.Property(e => e.Estado).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Observaciones).HasMaxLength(2000);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasIndex(e => e.VentaId).IsUnique().HasFilter("venta_id IS NOT NULL");
+            entity.HasIndex(e => new { e.Estado, e.ComercialId });
+            entity.HasOne<Cliente>().WithMany().HasForeignKey(e => e.ClienteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.ComercialId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Venta>().WithMany().HasForeignKey(e => e.VentaId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PedidoClienteLinea>(entity =>
+        {
+            entity.ToTable("pedidos_cliente_lineas", t =>
+            {
+                t.HasCheckConstraint("ck_pedidos_cliente_lineas_cantidad", "cantidad > 0");
+                t.HasCheckConstraint("ck_pedidos_cliente_lineas_precio", "precio_unitario IS NULL OR precio_unitario >= 0");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PrecioUnitario).HasPrecision(14, 2);
+            entity.Property(e => e.Observacion).HasMaxLength(500);
+            entity.HasIndex(e => new { e.PedidoId, e.ProductoId }).IsUnique();
+            entity.HasOne<PedidoCliente>().WithMany().HasForeignKey(e => e.PedidoId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MovimientoInventario>(entity =>
+        {
+            entity.ToTable("movimientos_inventario", t =>
+            {
+                t.HasCheckConstraint("ck_movimientos_tipo", EnLista("tipo", TiposMovimiento.Todos));
+                t.HasCheckConstraint("ck_movimientos_cantidad", "cantidad > 0");
+                t.HasCheckConstraint("ck_movimientos_condiciones",
+                    $"({EnLista("condicion_origen", Condiciones.Todos, admiteNulo: true)}) AND ({EnLista("condicion_destino", Condiciones.Todos, admiteNulo: true)})");
+                t.HasCheckConstraint("ck_movimientos_lado", "condicion_origen IS NOT NULL OR condicion_destino IS NOT NULL");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Tipo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.CondicionOrigen).HasMaxLength(10);
+            entity.Property(e => e.CondicionDestino).HasMaxLength(10);
+            entity.Property(e => e.Nota).HasMaxLength(500);
+            entity.Property(e => e.UsuarioNombre).HasMaxLength(200);
+            entity.HasIndex(e => new { e.LoteId, e.Fecha });
+            entity.HasIndex(e => new { e.Tipo, e.Fecha });
+            entity.HasIndex(e => e.PedidoClienteLineaId);
+            entity.HasOne<Lote>().WithMany().HasForeignKey(e => e.LoteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Acuario>().WithMany().HasForeignKey(e => e.AcuarioOrigenId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Acuario>().WithMany().HasForeignKey(e => e.AcuarioDestinoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<PedidoClienteLinea>().WithMany().HasForeignKey(e => e.PedidoClienteLineaId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<RecepcionLinea>().WithMany().HasForeignKey(e => e.RecepcionLineaId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+        });
     }
 
     /// <summary><c>CHECK (columna IN (...))</c> a partir de las constantes de <c>Domain/Crm/EnumsCrm.cs</c>.</summary>

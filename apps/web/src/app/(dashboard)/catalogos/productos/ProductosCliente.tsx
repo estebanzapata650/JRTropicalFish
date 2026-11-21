@@ -267,7 +267,7 @@ export function ProductosCliente({
         ) : null}
       </Dialogo>
       <Dialogo titulo={historialDe ? `Historial de ${historialDe.codigo}` : ""} abierto={historialDe !== null} onCerrar={() => setHistorialDe(null)}>
-        {historialDe ? <HistorialRemoto ruta={`/api/v1/catalogos/productos/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CATALOGO} /> : null}
+        {historialDe ? <HistorialRemoto ruta={`/api/catalogos/productos/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CATALOGO} /> : null}
       </Dialogo>
       <DialogoConfirmacion
         titulo="Eliminar producto"

@@ -7,6 +7,7 @@ using JRTropicalFish.Application.Auditoria;
 using JRTropicalFish.Application.Auth;
 using JRTropicalFish.Application.Catalogos;
 using JRTropicalFish.Application.Crm;
+using JRTropicalFish.Application.Inventario;
 using JRTropicalFish.Application.Informes;
 using JRTropicalFish.Application.Seguridad;
 using JRTropicalFish.Infrastructure.Almacenamiento;
@@ -105,6 +106,14 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ProductoService>();
         services.AddScoped<PrecioService>();
         services.AddScoped<ProveedorService>();
+
+        // Inventario, compras y pedidos de cliente
+        services.AddScoped<IInventarioRepository, InventarioRepository>();
+        services.AddScoped<IComprasRepository, ComprasRepository>();
+        services.AddScoped<IPedidoClienteRepository, PedidoClienteRepository>();
+        services.AddScoped<InventarioService>();
+        services.AddScoped<ComprasService>();
+        services.AddScoped<PedidoClienteService>();
 
         return services;
     }

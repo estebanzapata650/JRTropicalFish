@@ -204,7 +204,7 @@ export function VuelosCliente({
         ) : null}
       </Dialogo>
       <Dialogo titulo={historialDe ? `Historial de ${historialDe.codigo}` : ""} abierto={historialDe !== null} onCerrar={() => setHistorialDe(null)}>
-        {historialDe ? <HistorialRemoto ruta={`/api/v1/crm/tracking/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} /> : null}
+        {historialDe ? <HistorialRemoto ruta={`/api/crm/tracking/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} /> : null}
       </Dialogo>
     </div>
   );

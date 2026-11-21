@@ -1,0 +1,320 @@
+/**
+ * Tipos, etiquetas y reglas de presentación de inventario, compras y pedidos de cliente. Los valores
+ * son los de `apps/api/src/JRTropicalFish.Domain/Inventario/EnumsInventario.cs`; las transiciones
+ * repiten `ReglasPedido` (la API vuelve a validarlas). Mantener sincronizado.
+ */
+import type { TonoEtiqueta } from "@/components/campos";
+
+export const CONDICIONES: Record<string, string> = { sano: "Sano", enfermo: "Enfermo" };
+
+export const TIPOS_MOVIMIENTO: Record<string, string> = {
+  entrada: "Entrada (recepción)",
+  saldo_inicial: "Saldo inicial",
+  ubicacion: "Ubicación",
+  traslado: "Traslado",
+  enfermo: "Enfermo",
+  aliviado: "Aliviado",
+  mortalidad: "Mortalidad",
+  despacho: "Despacho",
+  ajuste: "Ajuste",
+};
+
+export const ESTADOS_OFERTA: Record<string, string> = { abierta: "Abierta", cerrada: "Cerrada" };
+
+export const ESTADOS_PEDIDO_PROVEEDOR: Record<string, string> = {
+  borrador: "Borrador",
+  enviado: "Enviado",
+  en_transito: "En tránsito",
+  recibido_parcial: "Recibido en parte",
+  recibido: "Recibido",
+  cancelado: "Cancelado",
+};
+
+export const ESTADOS_PEDIDO_CLIENTE: Record<string, string> = {
+  borrador: "Borrador",
+  confirmado: "Confirmado",
+  en_preparacion: "En preparación",
+  despachado: "Despachado",
+  cancelado: "Cancelado",
+};
+
+/** Acciones manuales de estado (espejo de ReglasPedido) con el texto del botón. */
+export const ACCIONES_PEDIDO_PROVEEDOR: Record<string, { estado: string; texto: string }[]> = {
+  borrador: [{ estado: "enviado", texto: "Marcar enviado" }, { estado: "cancelado", texto: "Cancelar" }],
+  enviado: [{ estado: "en_transito", texto: "En tránsito" }, { estado: "cancelado", texto: "Cancelar" }],
+  en_transito: [{ estado: "cancelado", texto: "Cancelar" }],
+  recibido_parcial: [{ estado: "recibido", texto: "Cerrar (no llegará el resto)" }],
+};
+
+export const ACCIONES_PEDIDO_CLIENTE: Record<string, { estado: string; texto: string }[]> = {
+  borrador: [{ estado: "confirmado", texto: "Confirmar" }, { estado: "cancelado", texto: "Cancelar" }],
+  confirmado: [
+    { estado: "en_preparacion", texto: "Iniciar preparación" },
+    { estado: "borrador", texto: "Volver a borrador" },
+    { estado: "cancelado", texto: "Cancelar" },
+  ],
+  en_preparacion: [{ estado: "despachado", texto: "Cerrar con faltantes" }],
+};
+
+/** Estados en los que la mercancía viene en camino (se puede recibir). */
+export const PEDIDO_PROVEEDOR_RECIBIBLE = ["enviado", "en_transito", "recibido_parcial"];
+
+export const tonoPedidoProveedor = (e: string): TonoEtiqueta =>
+  e === "recibido" ? "exito" : e === "cancelado" ? "neutro" : e === "borrador" ? "neutro" : e === "recibido_parcial" ? "advertencia" : "info";
+
+export const tonoPedidoCliente = (e: string): TonoEtiqueta =>
+  e === "despachado" ? "exito" : e === "cancelado" ? "neutro" : e === "en_preparacion" ? "advertencia" : e === "confirmado" ? "info" : "neutro";
+
+/** Un lote con más de estos días en bodega se marca (indicador de la app anterior). */
+export const DIAS_LOTE_ANTIGUO = 20;
+
+export const pct = (v: number) => `${v.toLocaleString("es-CO", { maximumFractionDigits: 1 })} %`;
+export const piezas = (v: number) => v.toLocaleString("es-CO");
+
+// --- Tipos de la API ---
+
+export type Acuario = {
+  id: string;
+  codigo: string;
+  sector: string;
+  nivel: number;
+  posicion: number;
+  capacidadLitros: number | null;
+  activo: boolean;
+  sanos: number;
+  enfermos: number;
+  lotes: number;
+};
+
+export type Existencia = {
+  id: string;
+  loteId: string;
+  loteCodigo: string;
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  nombreEspanol: string | null;
+  acuarioId: string | null;
+  acuarioCodigo: string | null;
+  condicion: string;
+  cantidad: number;
+  fechaIngreso: string;
+  diasEnBodega: number;
+  proveedorNombre: string | null;
+  centroNombre: string | null;
+};
+
+export type Lote = {
+  id: string;
+  codigo: string;
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  nombreEspanol: string | null;
+  proveedorId: string | null;
+  proveedorNombre: string | null;
+  centroAcopioId: string | null;
+  centroNombre: string | null;
+  recepcionCodigo: string | null;
+  fechaIngreso: string;
+  diasEnBodega: number;
+  costoUnitario: number | null;
+  recibidos: number;
+  muertosLlegada: number;
+  origen: string;
+  sanos: number;
+  enfermos: number;
+  porUbicar: number;
+  despachados: number;
+  muertos: number;
+  creadoEn: string;
+  disponible: number;
+  porcentajeMuertos: number;
+};
+
+export type Movimiento = {
+  id: string;
+  tipo: string;
+  loteId: string;
+  loteCodigo: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  acuarioOrigenCodigo: string | null;
+  condicionOrigen: string | null;
+  acuarioDestinoCodigo: string | null;
+  condicionDestino: string | null;
+  cantidad: number;
+  pedidoCodigo: string | null;
+  recepcionCodigo: string | null;
+  nota: string | null;
+  usuarioNombre: string | null;
+  fecha: string;
+};
+
+export type Oferta = {
+  id: string;
+  codigo: string;
+  proveedorId: string;
+  proveedorNombre: string;
+  fecha: string;
+  fechaEstimadaLlegada: string | null;
+  estado: string;
+  observaciones: string | null;
+  lineas: number;
+  unidades: number;
+  creadoEn: string;
+};
+
+export type OfertaLinea = {
+  id: string;
+  ofertaId: string;
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  nombreEspanol: string | null;
+  cantidad: number;
+};
+
+export type PedidoProveedor = {
+  id: string;
+  codigo: string;
+  proveedorId: string;
+  proveedorNombre: string;
+  ofertaId: string | null;
+  ofertaCodigo: string | null;
+  fecha: string;
+  fechaEstimadaLlegada: string | null;
+  estado: string;
+  observaciones: string | null;
+  unidades: number;
+  recibidas: number;
+  costoTotal: number | null;
+  creadoEn: string;
+  cumplimiento: number;
+};
+
+export type PedidoProveedorLinea = {
+  id: string;
+  pedidoId: string;
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  nombreEspanol: string | null;
+  cantidad: number;
+  costoUnitario: number | null;
+  observacion: string | null;
+  recibida: number;
+  pendiente: number;
+};
+
+export type Recepcion = {
+  id: string;
+  codigo: string;
+  pedidoProveedorId: string;
+  pedidoCodigo: string;
+  proveedorNombre: string;
+  fecha: string;
+  observaciones: string | null;
+  usuarioNombre: string | null;
+  unidades: number;
+  enfermas: number;
+  muertas: number;
+  costoTotal: number;
+  creadoEn: string;
+};
+
+export type RecepcionLinea = {
+  id: string;
+  recepcionId: string;
+  pedidoLineaId: string;
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  recibida: number;
+  enferma: number;
+  muerta: number;
+  costoUnitario: number;
+  costoTotal: number;
+  loteId: string;
+  loteCodigo: string;
+};
+
+export type PedidoProveedorDetalle = { pedido: PedidoProveedor; lineas: PedidoProveedorLinea[]; recepciones: Recepcion[] };
+
+export type PedidoCliente = {
+  id: string;
+  codigo: string;
+  clienteId: string;
+  clienteNombre: string;
+  comercialId: string;
+  comercialNombre: string;
+  ventaId: string | null;
+  ventaCodigo: string | null;
+  moneda: string | null;
+  fecha: string;
+  ciudad: string | null;
+  estado: string;
+  observaciones: string | null;
+  unidades: number;
+  despachadas: number;
+  total: number | null;
+  creadoEn: string;
+  cumplimiento: number;
+};
+
+export type PedidoClienteLinea = {
+  id: string;
+  pedidoId: string;
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  nombreEspanol: string | null;
+  cantidad: number;
+  precioUnitario: number | null;
+  observacion: string | null;
+  despachada: number;
+  pendiente: number;
+};
+
+export type PedidoClienteDetalle = { pedido: PedidoCliente; lineas: PedidoClienteLinea[] };
+
+export type InventarioProducto = {
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  nombreEspanol: string | null;
+  centroAcopioId: string | null;
+  centroNombre: string | null;
+  sanos: number;
+  porUbicar: number;
+  enfermos: number;
+  pendienteClientes: number;
+  enTransito: number;
+  ultimaOfertaProveedor: string | null;
+  ultimaOfertaCantidad: number | null;
+  ultimaOfertaFecha: string | null;
+  faltante: number;
+  cubierto: boolean;
+};
+
+export type DashboardInventario = {
+  sanos: number;
+  porUbicar: number;
+  enfermos: number;
+  pendienteClientes: number;
+  enTransito: number;
+  lotesActivos: number;
+  lotesAntiguos: number;
+  acuariosOcupados: number;
+  acuariosConEnfermos: number;
+  productos: InventarioProducto[];
+  pedidosPorLlegar: PedidoProveedor[];
+  lotesConMasDeVeinteDias: Lote[];
+  existenciasEnfermas: Existencia[];
+  masVendidas: { productoId: string; productoCodigo: string; nombreCientifico: string; cantidad: number }[];
+  proveedores: { proveedorId: string; proveedorNombre: string; recepciones: number; unidades: number; costoTotal: number | null; pedidas: number; cumplimiento: number }[];
+  pedidosClientePendientes: PedidoCliente[];
+};
+
+/** Producto para los selectores de líneas: "AP005 · Crenicara Punctulatum". */
+export type ProductoOpcion = { id: string; codigo: string; nombre: string };

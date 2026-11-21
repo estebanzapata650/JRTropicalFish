@@ -1350,6 +1350,761 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Acuario", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal?>("CapacidadLitros")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("capacidad_litros");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<int>("Nivel")
+                        .HasColumnType("integer")
+                        .HasColumnName("nivel");
+
+                    b.Property<int>("Posicion")
+                        .HasColumnType("integer")
+                        .HasColumnName("posicion");
+
+                    b.Property<string>("Sector")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("sector");
+
+                    b.HasKey("Id")
+                        .HasName("pk_acuarios");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_acuarios_codigo");
+
+                    b.ToTable("acuarios", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_acuarios_capacidad", "capacidad_litros IS NULL OR capacidad_litros > 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Existencia", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<Guid?>("AcuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acuario_id");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer")
+                        .HasColumnName("cantidad");
+
+                    b.Property<string>("Condicion")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("condicion");
+
+                    b.Property<Guid>("LoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lote_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_existencias");
+
+                    b.HasIndex("AcuarioId")
+                        .HasDatabaseName("ix_existencias_acuario_id");
+
+                    b.HasIndex("LoteId", "AcuarioId", "Condicion")
+                        .IsUnique()
+                        .HasDatabaseName("ix_existencias_lote_id_acuario_id_condicion");
+
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("LoteId", "AcuarioId", "Condicion"), false);
+
+                    b.ToTable("existencias", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_existencias_condicion", "condicion IN ('sano', 'enfermo')");
+
+                            t.HasCheckConstraint("ck_existencias_no_negativa", "cantidad >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Lote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<Guid?>("CentroAcopioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centro_acopio_id");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<decimal?>("CostoUnitario")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("costo_unitario");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateOnly>("FechaIngreso")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_ingreso");
+
+                    b.Property<int>("MuertosLlegada")
+                        .HasColumnType("integer")
+                        .HasColumnName("muertos_llegada");
+
+                    b.Property<string>("Origen")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("origen");
+
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.Property<Guid?>("ProveedorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("proveedor_id");
+
+                    b.Property<Guid?>("RecepcionLineaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recepcion_linea_id");
+
+                    b.Property<int>("Recibidos")
+                        .HasColumnType("integer")
+                        .HasColumnName("recibidos");
+
+                    b.HasKey("Id")
+                        .HasName("pk_lotes");
+
+                    b.HasIndex("CentroAcopioId")
+                        .HasDatabaseName("ix_lotes_centro_acopio_id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_lotes_codigo");
+
+                    b.HasIndex("ProductoId")
+                        .HasDatabaseName("ix_lotes_producto_id");
+
+                    b.HasIndex("ProveedorId")
+                        .HasDatabaseName("ix_lotes_proveedor_id");
+
+                    b.ToTable("lotes", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_lotes_cantidades", "recibidos >= 0 AND muertos_llegada >= 0 AND muertos_llegada <= recibidos");
+
+                            t.HasCheckConstraint("ck_lotes_origen", "origen IN ('recepcion', 'saldo_inicial')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.MovimientoInventario", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AcuarioDestinoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acuario_destino_id");
+
+                    b.Property<Guid?>("AcuarioOrigenId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acuario_origen_id");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer")
+                        .HasColumnName("cantidad");
+
+                    b.Property<string>("CondicionDestino")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("condicion_destino");
+
+                    b.Property<string>("CondicionOrigen")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("condicion_origen");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha");
+
+                    b.Property<Guid>("LoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lote_id");
+
+                    b.Property<string>("Nota")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("nota");
+
+                    b.Property<Guid?>("PedidoClienteLineaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pedido_cliente_linea_id");
+
+                    b.Property<Guid?>("RecepcionLineaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recepcion_linea_id");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tipo");
+
+                    b.Property<Guid?>("UsuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<string>("UsuarioNombre")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("usuario_nombre");
+
+                    b.HasKey("Id")
+                        .HasName("pk_movimientos_inventario");
+
+                    b.HasIndex("AcuarioDestinoId")
+                        .HasDatabaseName("ix_movimientos_inventario_acuario_destino_id");
+
+                    b.HasIndex("AcuarioOrigenId")
+                        .HasDatabaseName("ix_movimientos_inventario_acuario_origen_id");
+
+                    b.HasIndex("PedidoClienteLineaId")
+                        .HasDatabaseName("ix_movimientos_inventario_pedido_cliente_linea_id");
+
+                    b.HasIndex("RecepcionLineaId")
+                        .HasDatabaseName("ix_movimientos_inventario_recepcion_linea_id");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_movimientos_inventario_usuario_id");
+
+                    b.HasIndex("LoteId", "Fecha")
+                        .HasDatabaseName("ix_movimientos_inventario_lote_id_fecha");
+
+                    b.HasIndex("Tipo", "Fecha")
+                        .HasDatabaseName("ix_movimientos_inventario_tipo_fecha");
+
+                    b.ToTable("movimientos_inventario", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_movimientos_cantidad", "cantidad > 0");
+
+                            t.HasCheckConstraint("ck_movimientos_condiciones", "(condicion_origen IS NULL OR condicion_origen IN ('sano', 'enfermo')) AND (condicion_destino IS NULL OR condicion_destino IN ('sano', 'enfermo'))");
+
+                            t.HasCheckConstraint("ck_movimientos_lado", "condicion_origen IS NOT NULL OR condicion_destino IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_movimientos_tipo", "tipo IN ('entrada', 'saldo_inicial', 'ubicacion', 'traslado', 'enfermo', 'aliviado', 'mortalidad', 'despacho', 'ajuste')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.OfertaProveedor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha");
+
+                    b.Property<DateOnly?>("FechaEstimadaLlegada")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_estimada_llegada");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("observaciones");
+
+                    b.Property<Guid>("ProveedorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("proveedor_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ofertas_proveedor");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ofertas_proveedor_codigo");
+
+                    b.HasIndex("ProveedorId")
+                        .HasDatabaseName("ix_ofertas_proveedor_proveedor_id");
+
+                    b.ToTable("ofertas_proveedor", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_ofertas_estado", "estado IN ('abierta', 'cerrada')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.OfertaProveedorLinea", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer")
+                        .HasColumnName("cantidad");
+
+                    b.Property<Guid>("OfertaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("oferta_id");
+
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ofertas_proveedor_lineas");
+
+                    b.HasIndex("ProductoId")
+                        .HasDatabaseName("ix_ofertas_proveedor_lineas_producto_id");
+
+                    b.HasIndex("OfertaId", "ProductoId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ofertas_proveedor_lineas_oferta_id_producto_id");
+
+                    b.ToTable("ofertas_proveedor_lineas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_ofertas_lineas_cantidad", "cantidad > 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.PedidoCliente", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Ciudad")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ciudad");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cliente_id");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<Guid>("ComercialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("comercial_id");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("observaciones");
+
+                    b.Property<Guid?>("VentaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("venta_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pedidos_cliente");
+
+                    b.HasIndex("ClienteId")
+                        .HasDatabaseName("ix_pedidos_cliente_cliente_id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pedidos_cliente_codigo");
+
+                    b.HasIndex("ComercialId")
+                        .HasDatabaseName("ix_pedidos_cliente_comercial_id");
+
+                    b.HasIndex("VentaId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pedidos_cliente_venta_id")
+                        .HasFilter("venta_id IS NOT NULL");
+
+                    b.HasIndex("Estado", "ComercialId")
+                        .HasDatabaseName("ix_pedidos_cliente_estado_comercial_id");
+
+                    b.ToTable("pedidos_cliente", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pedidos_cliente_estado", "estado IN ('borrador', 'confirmado', 'en_preparacion', 'despachado', 'cancelado')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.PedidoClienteLinea", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer")
+                        .HasColumnName("cantidad");
+
+                    b.Property<string>("Observacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("observacion");
+
+                    b.Property<Guid>("PedidoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pedido_id");
+
+                    b.Property<decimal?>("PrecioUnitario")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("precio_unitario");
+
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pedidos_cliente_lineas");
+
+                    b.HasIndex("ProductoId")
+                        .HasDatabaseName("ix_pedidos_cliente_lineas_producto_id");
+
+                    b.HasIndex("PedidoId", "ProductoId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pedidos_cliente_lineas_pedido_id_producto_id");
+
+                    b.ToTable("pedidos_cliente_lineas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pedidos_cliente_lineas_cantidad", "cantidad > 0");
+
+                            t.HasCheckConstraint("ck_pedidos_cliente_lineas_precio", "precio_unitario IS NULL OR precio_unitario >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.PedidoProveedor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha");
+
+                    b.Property<DateOnly?>("FechaEstimadaLlegada")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_estimada_llegada");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("observaciones");
+
+                    b.Property<Guid?>("OfertaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("oferta_id");
+
+                    b.Property<Guid>("ProveedorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("proveedor_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pedidos_proveedor");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pedidos_proveedor_codigo");
+
+                    b.HasIndex("Estado")
+                        .HasDatabaseName("ix_pedidos_proveedor_estado");
+
+                    b.HasIndex("OfertaId")
+                        .HasDatabaseName("ix_pedidos_proveedor_oferta_id");
+
+                    b.HasIndex("ProveedorId")
+                        .HasDatabaseName("ix_pedidos_proveedor_proveedor_id");
+
+                    b.ToTable("pedidos_proveedor", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pedidos_proveedor_estado", "estado IN ('borrador', 'enviado', 'en_transito', 'recibido_parcial', 'recibido', 'cancelado')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.PedidoProveedorLinea", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer")
+                        .HasColumnName("cantidad");
+
+                    b.Property<decimal?>("CostoUnitario")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("costo_unitario");
+
+                    b.Property<string>("Observacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("observacion");
+
+                    b.Property<Guid>("PedidoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pedido_id");
+
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pedidos_proveedor_lineas");
+
+                    b.HasIndex("ProductoId")
+                        .HasDatabaseName("ix_pedidos_proveedor_lineas_producto_id");
+
+                    b.HasIndex("PedidoId", "ProductoId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pedidos_proveedor_lineas_pedido_id_producto_id");
+
+                    b.ToTable("pedidos_proveedor_lineas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pedidos_proveedor_lineas_cantidad", "cantidad > 0");
+
+                            t.HasCheckConstraint("ck_pedidos_proveedor_lineas_costo", "costo_unitario IS NULL OR costo_unitario >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Recepcion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("observaciones");
+
+                    b.Property<Guid>("PedidoProveedorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pedido_proveedor_id");
+
+                    b.Property<Guid?>("UsuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recepciones");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_recepciones_codigo");
+
+                    b.HasIndex("PedidoProveedorId")
+                        .HasDatabaseName("ix_recepciones_pedido_proveedor_id");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_recepciones_usuario_id");
+
+                    b.ToTable("recepciones", (string)null);
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.RecepcionLinea", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("CostoTotal")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("costo_total")
+                        .HasComputedColumnSql("recibida * costo_unitario", true);
+
+                    b.Property<decimal>("CostoUnitario")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("costo_unitario");
+
+                    b.Property<int>("Enferma")
+                        .HasColumnType("integer")
+                        .HasColumnName("enferma");
+
+                    b.Property<Guid>("LoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lote_id");
+
+                    b.Property<int>("Muerta")
+                        .HasColumnType("integer")
+                        .HasColumnName("muerta");
+
+                    b.Property<Guid>("PedidoLineaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pedido_linea_id");
+
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.Property<Guid>("RecepcionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recepcion_id");
+
+                    b.Property<int>("Recibida")
+                        .HasColumnType("integer")
+                        .HasColumnName("recibida");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recepciones_lineas");
+
+                    b.HasIndex("LoteId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_recepciones_lineas_lote_id");
+
+                    b.HasIndex("PedidoLineaId")
+                        .HasDatabaseName("ix_recepciones_lineas_pedido_linea_id");
+
+                    b.HasIndex("ProductoId")
+                        .HasDatabaseName("ix_recepciones_lineas_producto_id");
+
+                    b.HasIndex("RecepcionId")
+                        .HasDatabaseName("ix_recepciones_lineas_recepcion_id");
+
+                    b.ToTable("recepciones_lineas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_recepciones_lineas_cantidades", "recibida > 0 AND enferma >= 0 AND muerta >= 0 AND enferma + muerta <= recibida AND costo_unitario >= 0");
+                        });
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Maestros.Area", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2050,6 +2805,231 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OportunidadId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_ventas_oportunidades_oportunidad_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Existencia", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Acuario", null)
+                        .WithMany()
+                        .HasForeignKey("AcuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_existencias_acuarios_acuario_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Lote", null)
+                        .WithMany()
+                        .HasForeignKey("LoteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_existencias_lotes_lote_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Lote", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.CentroAcopio", null)
+                        .WithMany()
+                        .HasForeignKey("CentroAcopioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_lotes_centros_acopio_centro_acopio_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_lotes_productos_producto_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Proveedor", null)
+                        .WithMany()
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_lotes_proveedores_proveedor_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.MovimientoInventario", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Acuario", null)
+                        .WithMany()
+                        .HasForeignKey("AcuarioDestinoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_movimientos_inventario_acuarios_acuario_destino_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Acuario", null)
+                        .WithMany()
+                        .HasForeignKey("AcuarioOrigenId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_movimientos_inventario_acuarios_acuario_origen_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Lote", null)
+                        .WithMany()
+                        .HasForeignKey("LoteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_movimientos_inventario_lotes_lote_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Inventario.PedidoClienteLinea", null)
+                        .WithMany()
+                        .HasForeignKey("PedidoClienteLineaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_movimientos_inventario_pedidos_cliente_lineas_pedido_client");
+
+                    b.HasOne("JRTropicalFish.Domain.Inventario.RecepcionLinea", null)
+                        .WithMany()
+                        .HasForeignKey("RecepcionLineaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_movimientos_inventario_recepciones_lineas_recepcion_linea_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_movimientos_inventario_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.OfertaProveedor", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Proveedor", null)
+                        .WithMany()
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_ofertas_proveedor_proveedores_proveedor_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.OfertaProveedorLinea", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.OfertaProveedor", null)
+                        .WithMany()
+                        .HasForeignKey("OfertaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_ofertas_proveedor_lineas_ofertas_proveedor_oferta_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_ofertas_proveedor_lineas_productos_producto_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.PedidoCliente", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Crm.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_pedidos_cliente_clientes_cliente_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("ComercialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_pedidos_cliente_usuarios_comercial_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Crm.Venta", null)
+                        .WithMany()
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_pedidos_cliente_ventas_venta_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.PedidoClienteLinea", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.PedidoCliente", null)
+                        .WithMany()
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_pedidos_cliente_lineas_pedidos_cliente_pedido_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_pedidos_cliente_lineas_productos_producto_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.PedidoProveedor", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.OfertaProveedor", null)
+                        .WithMany()
+                        .HasForeignKey("OfertaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_pedidos_proveedor_ofertas_proveedor_oferta_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Proveedor", null)
+                        .WithMany()
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_pedidos_proveedor_proveedores_proveedor_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.PedidoProveedorLinea", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.PedidoProveedor", null)
+                        .WithMany()
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_pedidos_proveedor_lineas_pedidos_proveedor_pedido_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_pedidos_proveedor_lineas_productos_producto_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Recepcion", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.PedidoProveedor", null)
+                        .WithMany()
+                        .HasForeignKey("PedidoProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_recepciones_pedidos_proveedor_pedido_proveedor_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_recepciones_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.RecepcionLinea", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Lote", null)
+                        .WithMany()
+                        .HasForeignKey("LoteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_recepciones_lineas_lotes_lote_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Inventario.PedidoProveedorLinea", null)
+                        .WithMany()
+                        .HasForeignKey("PedidoLineaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_recepciones_lineas_pedidos_proveedor_lineas_pedido_linea_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_recepciones_lineas_productos_producto_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Recepcion", null)
+                        .WithMany()
+                        .HasForeignKey("RecepcionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_recepciones_lineas_recepciones_recepcion_id");
                 });
 
             modelBuilder.Entity("JRTropicalFish.Domain.Seguridad.Usuario", b =>

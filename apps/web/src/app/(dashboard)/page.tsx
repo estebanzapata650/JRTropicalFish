@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, Handshake, PackageCheck, PlaneLanding, PlaneTakeoff } from "lucide-react";
+import { Boxes, Handshake, PackageCheck, PlaneLanding, PlaneTakeoff, ShoppingCart } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { PERMISOS, type Permiso } from "@/lib/permisos";
 import { obtenerUsuarioActual } from "@/lib/usuario-actual";
@@ -8,7 +8,8 @@ import { obtenerUsuarioActual } from "@/lib/usuario-actual";
 const MODULOS: { titulo: string; detalle: string; Icono: typeof Boxes; href?: string; permiso?: Permiso }[] = [
   { titulo: "Comercial", detalle: "Dashboard, pipeline, ventas, vuelos y tareas", Icono: Handshake, href: "/crm", permiso: PERMISOS.METAS_LEER },
   { titulo: "Catálogos", detalle: "Productos, listas de precios, centros de acopio y proveedores", Icono: Boxes, href: "/catalogos/productos", permiso: PERMISOS.CATALOGOS_LEER },
-  { titulo: "Inventario", detalle: "Tanques, lotes, movimientos y mortalidad", Icono: PackageCheck },
+  { titulo: "Inventario", detalle: "Existencias, lotes, acuarios, enfermos y mortalidad", Icono: PackageCheck, href: "/inventario", permiso: PERMISOS.INVENTARIO_LEER },
+  { titulo: "Compras", detalle: "Necesidades, disponibilidad de proveedores, pedidos y recepciones", Icono: ShoppingCart, href: "/compras/necesidades", permiso: PERMISOS.INVENTARIO_LEER },
   { titulo: "Importaciones", detalle: "Compras al exterior, recepción y cuarentena", Icono: PlaneLanding },
   { titulo: "Exportaciones", detalle: "Pedidos, proformas, packing list y despacho", Icono: PlaneTakeoff },
 ];

@@ -101,7 +101,7 @@ Documentos relacionados:
 - **Estado** (2026-11-21): implementados **Productos** (catálogo / stock list), **Listas de precios**
   con reglas y recálculo, **Centros de acopio**, **Proveedores** y los maestros *Grupos de producto* y
   *Cuencas*; importados del Excel «JR MAIN STOCK LIST» y «BASES». Detalle en
-  [`catalogos.md`](catalogos.md). Pendientes de esta lista: Bodega, Tanque (llegan con Inventario),
+  [`catalogos.md`](catalogos.md). Los acuarios llegaron con Inventario. Pendientes de esta lista:
   AgenteCarga/Aerolínea, Aeropuerto, CausaMortalidad, ConceptoCosto, TipoDocumento, TipoCaja, y datos
   extra de Especie (CITES, cuarentena, densidad por talla).
 - **Entidades principales**: Familia, Especie (nombre científico, nombres comunes, indicador CITES y
@@ -125,30 +125,33 @@ Documentos relacionados:
 
 - **Depende de**: Seguridad.
 
-### 3. Inventario
+### 3. Inventario, compras y pedidos de clientes (implementado)
 
-- **Propósito**: stock vivo por especie, talla, lote y tanque; movimientos, mortalidad, cuarentena, conteos
-  físicos y alertas. Detalle en [`inventario.md`](inventario.md).
-- **Entidades principales**: Lote, Existencia, MovimientoInventario, SolicitudAjuste, ConteoFisico,
-  Reserva, Alerta.
+- **Propósito**: stock vivo por lote, acuario y condición (sano / enfermo / por ubicar), con kardex
+  inmutable; compras a proveedores nacionales (disponibilidad, pedido, recepción que crea lotes) y
+  pedidos de clientes enlazados a la venta del CRM, con picking y despacho. Migrado de la app de
+  AppSheet («BASES_TROPICAL FISH»). Detalle en [`inventario.md`](inventario.md).
+- **Estado** (2026-11-21): implementados Dashboard (10 indicadores), Existencias, Lotes (trazabilidad),
+  Acuarios (mapa + CRUD), Necesidades de compra, Disponibilidad de proveedores, Pedidos a proveedor,
+  Recepciones y Pedidos de clientes con despacho. Saldo inicial importado con
+  `npm run inventario:importar`. Pendientes: conteos físicos, ajustes con aprobación, reservas,
+  valorización y PDFs.
+- **Entidades**: Acuario, OfertaProveedor, PedidoProveedor, Recepcion, Lote, Existencia,
+  MovimientoInventario, PedidoCliente.
 - **Permisos**:
 
 | Código | Descripción |
 |---|---|
-| `inventario:leer` | Consultar stock, lotes, tanques y movimientos (sin costos) |
-| `inventario:ver-costos` | Ver costos unitarios y valorización del inventario |
-| `inventario:ingresar` | Registrar entradas manuales (producción propia, compra local, carga inicial) |
-| `inventario:trasladar` | Registrar traslados entre tanques |
-| `inventario:registrar-mortalidad` | Registrar mortalidad con causa |
-| `inventario:reclasificar` | Registrar reclasificación de talla |
-| `inventario:ajustar` | Registrar solicitudes de ajuste |
-| `inventario:aprobar-ajuste` | Aprobar o rechazar ajustes |
-| `inventario:liberar-cuarentena` | Liberar o bloquear lotes (cuarentena/bloqueado a disponible) |
-| `inventario:contar` | Registrar conteos físicos |
-| `inventario:cerrar-conteo` | Cerrar conteos y generar los ajustes resultantes |
-| `inventario:configurar` | Configurar stock mínimo, umbrales y alertas |
+| `inventario:leer` | Existencias, lotes, acuarios, movimientos, dashboard, ofertas y pedidos (existe) |
+| `inventario:operar` | Ubicar, trasladar, enfermo, aliviado y mortalidad (existe) |
+| `inventario:ajustar` | Ajustes con motivo, saldo inicial y acuarios (existe) |
+| `compras:gestionar` | Disponibilidad de proveedores y pedidos a proveedor (existe) |
+| `compras:recibir` | Recepciones; crean los lotes (existe) |
+| `pedidos:gestionar` | Crear y editar pedidos de clientes (existe) |
+| `pedidos:despachar` | Picking y despacho (existe) |
+| `inventario:aprobar-ajuste` · `inventario:contar` | Pendientes: ajustes con aprobación y conteos físicos |
 
-- **Depende de**: Catálogos, Seguridad.
+- **Depende de**: Catálogos, CRM (clientes y ventas), Seguridad.
 
 ### 4. Importaciones
 
@@ -276,7 +279,7 @@ el servicio de archivos existente; no se dibujan para no recargar el diagrama.
 ## Perfiles sugeridos
 
 Los perfiles son editables; esta es una propuesta inicial **por validar** con el negocio. Hoy existen
-Administrador, Operativo y Consulta.
+Administrador, Operativo, Consulta, Comercial y Bodega.
 
 | Perfil | Permisos de negocio principales |
 |---|---|

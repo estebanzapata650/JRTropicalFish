@@ -135,6 +135,34 @@ indicadas (`null`/0 quita el precio). El recálculo lo hace C# (`ReglasPrecio`) 
 `sp_precios_guardar_lote` solo escribe. La auditoría registra cada precio como campo
 `Precio {Lista} ({CODIGO})`; el código entre paréntesis permite quitar los de costo del historial.
 
+### Endpoints de inventario, compras y pedidos de cliente
+
+Reglas en [`../dominio/inventario.md`](../dominio/inventario.md). Costos solo con `catalogos:ver-costos`.
+
+| Método y ruta | Permiso |
+|---|---|
+| `GET /inventario/{dashboard, existencias, lotes[/{id}], movimientos, necesidades, acuarios}` | `inventario:leer` |
+| `POST /inventario/operaciones` (lista de operaciones, todo o nada; `ajuste` exige `inventario:ajustar`) | `inventario:operar` |
+| `POST /inventario/saldo-inicial` · `POST` · `PUT /{id}` en `/inventario/acuarios` | `inventario:ajustar` |
+| `GET /compras/{ofertas, pedidos, recepciones}[/{id}]` | `inventario:leer` |
+| `POST` · `PUT /{id}` en `/compras/ofertas` y `/compras/pedidos`; `PUT /compras/pedidos/{id}/estado` | `compras:gestionar` |
+| `POST /compras/recepciones` (crea un lote por línea) | `compras:recibir` |
+| `GET /pedidos[/{id}[/historial]]` · `GET /pedidos/por-venta/{ventaId}` (204 si no hay) | `inventario:leer` (+ alcance del CRM) |
+| `POST` · `PUT /{id}` · `PUT /{id}/estado` en `/pedidos` | `pedidos:gestionar` |
+| `POST /pedidos/{id}/despachar` | `pedidos:despachar` |
+
+**Motor de stock**: toda operación termina en `sp_inventario_mover_uno`, que bloquea la existencia de
+origen (`FOR UPDATE`) y nunca la deja negativa. SQLSTATE propios, traducidos por
+`RepositorioInventario.EjecutarConFallaAsync` y `FallasInventario.AError`:
+
+| SQLSTATE | Significado | HTTP |
+|---|---|---|
+| `JR001` | El estado cambió entretanto («comparar y escribir») | 409 |
+| `JR002` | No hay suficiente stock en el origen | 409 |
+| `JR003` | El despacho supera lo pendiente de la línea | 400 |
+
+Los consecutivos de inventario (`DISP`, `PP`, `REC`, `LOT`, `PC`) usan 4 dígitos; los del CRM, 3.
+
 ## Transversales disponibles
 
 | Pieza | Para qué | Dónde |

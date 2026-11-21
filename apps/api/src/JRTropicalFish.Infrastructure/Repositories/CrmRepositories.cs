@@ -15,6 +15,9 @@ namespace JRTropicalFish.Infrastructure.Repositories;
 /// </summary>
 public abstract class RepositorioCrm(PostgresConnectionFactory conexiones)
 {
+    /// <summary>Para operaciones que necesitan una transacción explícita con varios comandos.</summary>
+    protected Task<NpgsqlConnection> AbrirConexionAsync(CancellationToken ct) => conexiones.AbrirAsync(ct);
+
     protected async Task<IReadOnlyList<T>> ListarAsync<T>(string sql, object? parametros, CancellationToken ct)
     {
         await using var connection = await conexiones.AbrirAsync(ct);

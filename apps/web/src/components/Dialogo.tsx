@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
@@ -38,10 +38,12 @@ export function Dialogo({
     return () => document.removeEventListener("keydown", alPresionar);
   }, [abierto, onCerrar]);
 
-  // El portal necesita `document`, que en el render del servidor no existe. No hace falta un
-  // estado de "ya montado" —que además ESLint prohíbe, por los renders en cascada—: todos los
-  // diálogos del sitio nacen cerrados, así que en el servidor este componente no pinta nada.
-  if (!abierto || typeof document === "undefined") return null;
+  // El portal necesita `document`, que en el servidor no existe. Un diálogo que nace abierto (p. ej.
+  // `?id=` en la URL) no puede pintarse en la hidratación: el HTML del servidor no lo trae y React
+  // fallaría (#418). `useSyncExternalStore` da `false` en el servidor y al hidratar, y `true` justo
+  // después, sin estado ni efecto (que ESLint prohíbe por los renders en cascada).
+  const enCliente = useSyncExternalStore(suscribirNada, () => true, () => false);
+  if (!abierto || !enCliente) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
@@ -77,3 +79,5 @@ export function Dialogo({
     document.body,
   );
 }
+
+const suscribirNada = () => () => {};

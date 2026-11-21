@@ -233,7 +233,7 @@ export function FichaCliente({
         ) : null}
 
         {pestana === "historial" ? (
-          <HistorialRemoto ruta={`/api/v1/crm/clientes/${cliente.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} />
+          <HistorialRemoto ruta={`/api/crm/clientes/${cliente.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} />
         ) : null}
       </div>
 

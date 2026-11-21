@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { History, Plus, Search } from "lucide-react";
+import { History, PackageOpen, Plus, Search } from "lucide-react";
 import { Dialogo } from "@/components/Dialogo";
 import { HistorialRemoto } from "@/components/HistorialCambios";
 import { PageHeader } from "@/components/PageHeader";
@@ -31,6 +31,7 @@ export function VentasCliente({
   comerciales,
   puedeGestionar,
   puedeAsignar,
+  verPedidos,
   hoy,
 }: {
   ventas: Venta[];
@@ -38,6 +39,8 @@ export function VentasCliente({
   comerciales: Comercial[];
   puedeGestionar: boolean;
   puedeAsignar: boolean;
+  /** Con `inventario:leer`: enlace al pedido de bodega de cada venta. */
+  verPedidos: boolean;
   hoy: string;
 }) {
   const router = useRouter();
@@ -182,6 +185,16 @@ export function VentasCliente({
               </td>
               <td className="px-4 py-3">
                 <div className="flex justify-end">
+                  {verPedidos ? (
+                    <Link
+                      href={`/crm/pedidos?venta=${v.id}`}
+                      title={`Pedido de bodega de ${v.codigo}`}
+                      aria-label={`Pedido de bodega de ${v.codigo}`}
+                      className="rounded-md p-2 text-texto-suave transition-colors hover:bg-acento-suave hover:text-texto"
+                    >
+                      <PackageOpen className="size-4" aria-hidden />
+                    </Link>
+                  ) : null}
                   <BotonIcono accion="otra" icono={History} etiqueta={`Historial de ${v.codigo}`} onClick={() => setHistorialDe(v)} />
                   {puedeGestionar ? <BotonIcono accion="editar" etiqueta={`Editar ${v.codigo}`} onClick={() => setEditando(v)} /> : null}
                 </div>
@@ -216,7 +229,7 @@ export function VentasCliente({
         />
       </Dialogo>
       <Dialogo titulo={historialDe ? `Historial de ${historialDe.codigo}` : ""} abierto={historialDe !== null} onCerrar={() => setHistorialDe(null)}>
-        {historialDe ? <HistorialRemoto ruta={`/api/v1/crm/ventas/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} /> : null}
+        {historialDe ? <HistorialRemoto ruta={`/api/crm/ventas/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} /> : null}
       </Dialogo>
     </div>
   );

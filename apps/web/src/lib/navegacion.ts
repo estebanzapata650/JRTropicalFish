@@ -37,10 +37,33 @@ export function construirNavegacion(): ItemNavegacion[] {
         { href: "/crm", label: "Dashboard", permiso: PERMISOS.METAS_LEER },
         { href: "/crm/pipeline", label: "Pipeline", permiso: PERMISOS.CRM_LEER },
         { href: "/crm/ventas", label: "Ventas", permiso: PERMISOS.CRM_LEER },
+        { href: "/crm/pedidos", label: "Pedidos de clientes", permiso: PERMISOS.INVENTARIO_LEER },
         { href: "/crm/vuelos", label: "Torre de vuelos", permiso: PERMISOS.CRM_LEER },
         { href: "/crm/tareas", label: "Tareas", permiso: PERMISOS.CRM_LEER },
         { href: "/crm/clientes", label: "Clientes", permiso: PERMISOS.CLIENTES_LEER },
         { href: "/crm/metas", label: "Metas", permiso: PERMISOS.METAS_EDITAR },
+      ],
+    },
+    {
+      href: "/inventario",
+      label: "Inventario",
+      icono: "inventario",
+      hijos: [
+        { href: "/inventario", label: "Dashboard", permiso: PERMISOS.INVENTARIO_LEER },
+        { href: "/inventario/existencias", label: "Existencias", permiso: PERMISOS.INVENTARIO_LEER },
+        { href: "/inventario/lotes", label: "Lotes", permiso: PERMISOS.INVENTARIO_LEER },
+        { href: "/inventario/acuarios", label: "Acuarios", permiso: PERMISOS.INVENTARIO_LEER },
+      ],
+    },
+    {
+      href: "/compras",
+      label: "Compras",
+      icono: "importaciones",
+      hijos: [
+        { href: "/compras/necesidades", label: "Necesidades", permiso: PERMISOS.INVENTARIO_LEER },
+        { href: "/compras/ofertas", label: "Disponibilidad proveedores", permiso: PERMISOS.INVENTARIO_LEER },
+        { href: "/compras/pedidos", label: "Pedidos a proveedor", permiso: PERMISOS.INVENTARIO_LEER },
+        { href: "/compras/recepciones", label: "Recepciones", permiso: PERMISOS.INVENTARIO_LEER },
       ],
     },
     {

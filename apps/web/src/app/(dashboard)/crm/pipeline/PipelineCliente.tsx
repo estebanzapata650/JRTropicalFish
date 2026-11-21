@@ -250,7 +250,7 @@ export function PipelineCliente({
 
       <Dialogo titulo={dialogo?.tipo === "historial" ? `Historial de ${dialogo.o.codigo}` : ""} abierto={dialogo?.tipo === "historial"} onCerrar={cerrar}>
         {dialogo?.tipo === "historial" ? (
-          <HistorialRemoto ruta={`/api/v1/crm/oportunidades/${dialogo.o.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} />
+          <HistorialRemoto ruta={`/api/crm/oportunidades/${dialogo.o.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} />
         ) : null}
       </Dialogo>
 

@@ -149,7 +149,7 @@ export function PreciosCliente({
       </Dialogo>
       <Dialogo titulo={historialDe ? `Historial de ${historialDe.nombre}` : ""} abierto={historialDe !== null} onCerrar={() => setHistorialDe(null)}>
         {historialDe ? (
-          <HistorialRemoto ruta={`/api/v1/catalogos/precios/listas/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CATALOGO} />
+          <HistorialRemoto ruta={`/api/catalogos/precios/listas/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CATALOGO} />
         ) : null}
       </Dialogo>
       <DialogoConfirmacion

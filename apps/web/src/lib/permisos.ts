@@ -31,6 +31,13 @@ export const PERMISOS = {
   PRECIOS_EDITAR: "precios:editar",
   PROVEEDORES_LEER: "proveedores:leer",
   PROVEEDORES_EDITAR: "proveedores:editar",
+  INVENTARIO_LEER: "inventario:leer",
+  INVENTARIO_OPERAR: "inventario:operar",
+  INVENTARIO_AJUSTAR: "inventario:ajustar",
+  COMPRAS_GESTIONAR: "compras:gestionar",
+  COMPRAS_RECIBIR: "compras:recibir",
+  PEDIDOS_GESTIONAR: "pedidos:gestionar",
+  PEDIDOS_DESPACHAR: "pedidos:despachar",
   // Catálogos, Inventario, Importaciones y Exportaciones se agregan con cada módulo
   // (ver docs/dominio/modulos.md).
 } as const;
@@ -60,6 +67,9 @@ export const ETIQUETAS_MODULO: Record<string, string> = {
   catalogos: "Catálogo de productos",
   precios: "Listas de precios",
   proveedores: "Proveedores",
+  inventario: "Inventario",
+  compras: "Compras",
+  pedidos: "Pedidos de clientes",
 };
 
 export const etiquetaModulo = (modulo: string) =>
