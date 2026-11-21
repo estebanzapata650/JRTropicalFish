@@ -1,4 +1,5 @@
 using JRTropicalFish.Domain.Administracion;
+using JRTropicalFish.Domain.Catalogos;
 using JRTropicalFish.Domain.Auditoria;
 using JRTropicalFish.Domain.Comun;
 using JRTropicalFish.Domain.Crm;
@@ -36,6 +37,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<MetaComercial> MetasComerciales => Set<MetaComercial>();
     public DbSet<ParametrosComerciales> ParametrosComerciales => Set<ParametrosComerciales>();
     public DbSet<Consecutivo> Consecutivos => Set<Consecutivo>();
+    public DbSet<GrupoProducto> GruposProducto => Set<GrupoProducto>();
+    public DbSet<Cuenca> Cuencas => Set<Cuenca>();
+    public DbSet<Producto> Productos => Set<Producto>();
+    public DbSet<CentroAcopio> CentrosAcopio => Set<CentroAcopio>();
+    public DbSet<ListaPrecios> ListasPrecios => Set<ListaPrecios>();
+    public DbSet<PrecioProducto> PreciosProducto => Set<PrecioProducto>();
+    public DbSet<ParametrosPrecios> ParametrosPrecios => Set<ParametrosPrecios>();
+    public DbSet<Proveedor> Proveedores => Set<Proveedor>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +53,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigurarMaestros(modelBuilder);
         ConfigurarAdministracion(modelBuilder);
         ConfigurarCrm(modelBuilder);
+        ConfigurarCatalogos(modelBuilder);
     }
 
     /// <summary><c>CHECK (columna IN (...))</c> a partir de las constantes de <c>Domain/Crm/EnumsCrm.cs</c>.</summary>
@@ -242,6 +252,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigurarCatalogo<Cargo>(modelBuilder, "cargos");
         ConfigurarCatalogo<Area>(modelBuilder, "areas");
         ConfigurarCatalogo<TipoContrato>(modelBuilder, "tipos_contrato");
+        ConfigurarCatalogo<GrupoProducto>(modelBuilder, "grupos_producto");
+        ConfigurarCatalogo<Cuenca>(modelBuilder, "cuencas");
     }
 
     /// <summary>
@@ -287,6 +299,121 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasOne<Cargo>().WithMany().HasForeignKey(e => e.CargoId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Area>().WithMany().HasForeignKey(e => e.AreaId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<TipoContrato>().WithMany().HasForeignKey(e => e.TipoContratoId).OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    /// <summary>
+    /// Catálogo de productos, centros de acopio, listas de precios y proveedores. Los precios son una
+    /// matriz producto × lista (sin fila = sin precio); las tablas puente borran en cascada.
+    /// </summary>
+    private static void ConfigurarCatalogos(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CentroAcopio>(entity =>
+        {
+            entity.ToTable("centros_acopio");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => e.Nombre).IsUnique().HasFilter("eliminado_en IS NULL");
+            entity.HasOne<Cuenca>().WithMany().HasForeignKey(e => e.CuencaId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Producto>(entity =>
+        {
+            entity.ToTable("productos", t =>
+            {
+                t.HasCheckConstraint("ck_productos_tipo", EnLista("tipo", TiposProducto.Todos));
+                t.HasCheckConstraint("ck_productos_talla", "talla_min_cm IS NULL OR talla_max_cm IS NULL OR talla_min_cm <= talla_max_cm");
+                t.HasCheckConstraint("ck_productos_bolsa", "bolsa_min IS NULL OR bolsa_max IS NULL OR bolsa_min <= bolsa_max");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Tipo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.NombreCientifico).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.NombreComun).HasMaxLength(300);
+            entity.Property(e => e.NombreEspanol).HasMaxLength(300);
+            entity.Property(e => e.TallaMinCm).HasPrecision(6, 2);
+            entity.Property(e => e.TallaMaxCm).HasPrecision(6, 2);
+            entity.Property(e => e.TallaEtiqueta).HasMaxLength(30);
+            entity.Property(e => e.Disponibilidad).HasMaxLength(50);
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.Notas).HasMaxLength(2000);
+            entity.HasIndex(e => e.Codigo).IsUnique().HasFilter("eliminado_en IS NULL");
+            entity.HasIndex(e => e.GrupoId);
+            entity.HasOne<GrupoProducto>().WithMany().HasForeignKey(e => e.GrupoId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProductoCentroAcopio>(entity =>
+        {
+            entity.ToTable("producto_centros_acopio", t => t.HasCheckConstraint("ck_producto_centros_orden", "orden BETWEEN 1 AND 3"));
+            entity.HasKey(e => new { e.ProductoId, e.CentroAcopioId });
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<CentroAcopio>().WithMany().HasForeignKey(e => e.CentroAcopioId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ListaPrecios>(entity =>
+        {
+            entity.ToTable("listas_precios", t =>
+            {
+                t.HasCheckConstraint("ck_listas_moneda", EnLista("moneda", Monedas.Todos));
+                t.HasCheckConstraint("ck_listas_redondeo", "redondeo > 0");
+                t.HasCheckConstraint("ck_listas_base", "lista_base_id IS NULL OR lista_base_id <> id");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Moneda).HasMaxLength(3).IsRequired();
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.FactorSalvaje).HasPrecision(8, 4);
+            entity.Property(e => e.FactorCriadero).HasPrecision(8, 4);
+            entity.Property(e => e.FactorEspecial).HasPrecision(8, 4);
+            entity.Property(e => e.Redondeo).HasPrecision(12, 2);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasIndex(e => e.Nombre).IsUnique();
+            entity.HasOne<Cliente>().WithMany().HasForeignKey(e => e.ClienteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ListaPrecios>().WithMany().HasForeignKey(e => e.ListaBaseId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PrecioProducto>(entity =>
+        {
+            entity.ToTable("precios_producto", t => t.HasCheckConstraint("ck_precios_positivo", "precio > 0"));
+            entity.HasKey(e => new { e.ProductoId, e.ListaPreciosId });
+            entity.Property(e => e.Precio).HasPrecision(14, 2);
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<ListaPrecios>().WithMany().HasForeignKey(e => e.ListaPreciosId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ParametrosPrecios>(entity =>
+        {
+            entity.ToTable("parametros_precios", t => t.HasCheckConstraint("ck_parametros_precios_fila_unica", "id = 1"));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Iva).HasPrecision(5, 2);
+            entity.Property(e => e.Pasarela).HasPrecision(5, 2);
+            entity.Property(e => e.TrmReferencia).HasPrecision(12, 2);
+        });
+
+        modelBuilder.Entity<Proveedor>(entity =>
+        {
+            entity.ToTable("proveedores");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Nombre).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.NumeroIdentificacion).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.Telefono).HasMaxLength(40);
+            entity.Property(e => e.Contacto).HasMaxLength(150);
+            entity.Property(e => e.Email).HasMaxLength(320);
+            entity.Property(e => e.Notas).HasMaxLength(2000);
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => new { e.TipoIdentificacionId, e.NumeroIdentificacion }).IsUnique().HasFilter("eliminado_en IS NULL");
+            entity.HasOne<TipoIdentificacion>().WithMany().HasForeignKey(e => e.TipoIdentificacionId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProveedorCentroAcopio>(entity =>
+        {
+            entity.ToTable("proveedor_centros_acopio");
+            entity.HasKey(e => new { e.ProveedorId, e.CentroAcopioId });
+            entity.HasOne<Proveedor>().WithMany().HasForeignKey(e => e.ProveedorId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<CentroAcopio>().WithMany().HasForeignKey(e => e.CentroAcopioId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 

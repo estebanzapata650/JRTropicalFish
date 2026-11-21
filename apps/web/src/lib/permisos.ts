@@ -24,6 +24,13 @@ export const PERMISOS = {
   TRACKING_GESTIONAR: "tracking:gestionar",
   METAS_LEER: "metas:leer",
   METAS_EDITAR: "metas:editar",
+  CATALOGOS_LEER: "catalogos:leer",
+  CATALOGOS_EDITAR: "catalogos:editar",
+  CATALOGOS_VER_COSTOS: "catalogos:ver-costos",
+  PRECIOS_LEER: "precios:leer",
+  PRECIOS_EDITAR: "precios:editar",
+  PROVEEDORES_LEER: "proveedores:leer",
+  PROVEEDORES_EDITAR: "proveedores:editar",
   // Catálogos, Inventario, Importaciones y Exportaciones se agregan con cada módulo
   // (ver docs/dominio/modulos.md).
 } as const;
@@ -50,6 +57,9 @@ export const ETIQUETAS_MODULO: Record<string, string> = {
   ventas: "Ventas",
   tracking: "Tracking de vuelos",
   metas: "Metas y comisiones",
+  catalogos: "Catálogo de productos",
+  precios: "Listas de precios",
+  proveedores: "Proveedores",
 };
 
 export const etiquetaModulo = (modulo: string) =>

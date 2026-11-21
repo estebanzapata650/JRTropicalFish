@@ -19,7 +19,8 @@
     "prod:build": "docker compose -f docker-compose.prod.yml --env-file .env.prod build",
     "prod:up": "docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --wait",
     "prod:migrar": "docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm api --migrar",
-    "crm:importar-clientes": "node scripts/importar-clientes.mjs"
+    "crm:importar-clientes": "node scripts/importar-clientes.mjs",
+    "catalogo:importar": "node scripts/importar-catalogo.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

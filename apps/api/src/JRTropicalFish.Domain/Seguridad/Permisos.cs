@@ -55,6 +55,22 @@ public static class Permisos
     public const string MetasLeer = "metas:leer";
     public const string MetasEditar = "metas:editar";
 
+    // --- Catálogos ---
+    /// <summary>Consultar productos, centros de acopio y grupos.</summary>
+    public const string CatalogosLeer = "catalogos:leer";
+    public const string CatalogosEditar = "catalogos:editar";
+
+    /// <summary>Ver y editar las listas de costo (costo de compra). Sin él, no viajan en ninguna respuesta.</summary>
+    public const string CatalogosVerCostos = "catalogos:ver-costos";
+
+    public const string PreciosLeer = "precios:leer";
+
+    /// <summary>Editar precios, listas, sus reglas y parámetros, y recalcular en bloque.</summary>
+    public const string PreciosEditar = "precios:editar";
+
+    public const string ProveedoresLeer = "proveedores:leer";
+    public const string ProveedoresEditar = "proveedores:editar";
+
     // Módulos de negocio (Catálogos, Inventario, Importaciones, Exportaciones): sus permisos se
     // agregan con cada módulo. El mapa previsto está en docs/dominio/modulos.md.
 
@@ -85,6 +101,13 @@ public static class Permisos
         [TrackingGestionar] = "Editar el seguimiento de vuelos y el DOA",
         [MetasLeer] = "Ver el dashboard comercial, metas y comisiones",
         [MetasEditar] = "Editar metas y parámetros comerciales",
+        [CatalogosLeer] = "Consultar el catálogo de productos y centros de acopio",
+        [CatalogosEditar] = "Crear y editar productos y centros de acopio",
+        [CatalogosVerCostos] = "Ver y editar el costo de compra de los productos",
+        [PreciosLeer] = "Consultar las listas de precios",
+        [PreciosEditar] = "Editar precios, listas de precios y recalcular",
+        [ProveedoresLeer] = "Consultar proveedores",
+        [ProveedoresEditar] = "Crear y editar proveedores",
     };
 
     /// <summary>
@@ -110,17 +133,19 @@ public static class PerfilesPlantilla
             [Operativo] =
             [
                 Permisos.ClientesLeer, Permisos.CrmLeer, Permisos.VentasGestionar, Permisos.TrackingGestionar,
-                Permisos.MetasLeer,
+                Permisos.MetasLeer, Permisos.CatalogosLeer, Permisos.PreciosLeer, Permisos.ProveedoresLeer,
             ],
             [Consulta] =
             [
                 Permisos.UsuariosLeer, Permisos.PerfilesLeer, Permisos.MaestrosLeer, Permisos.EmpleadosLeer,
-                Permisos.ClientesLeer, Permisos.CrmLeer, Permisos.MetasLeer,
+                Permisos.ClientesLeer, Permisos.CrmLeer, Permisos.MetasLeer, Permisos.CatalogosLeer, Permisos.PreciosLeer,
+                Permisos.ProveedoresLeer,
             ],
             // Comercial: ve y gestiona solo lo suyo (sin crm:ver-todo).
             [Comercial] =
             [
                 Permisos.ClientesLeer, Permisos.ClientesEditar, Permisos.CrmLeer, Permisos.CrmVender, Permisos.MetasLeer,
+                Permisos.CatalogosLeer, Permisos.PreciosLeer,
             ],
         };
 }

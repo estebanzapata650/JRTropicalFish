@@ -95,9 +95,15 @@ Documentos relacionados:
   `ventas:gestionar`, `tracking:gestionar`, `metas:leer`, `metas:editar` (tabla en
   [`crm.md`](crm.md#permisos)). `clientes:*` ya existe: la tabla del módulo 2 los conserva.
 
-### 2. Catálogos / Maestros
+### 2. Catálogos / Maestros (primera parte implementada)
 
 - **Propósito**: datos de referencia compartidos por todos los módulos de negocio.
+- **Estado** (2026-11-21): implementados **Productos** (catálogo / stock list), **Listas de precios**
+  con reglas y recálculo, **Centros de acopio**, **Proveedores** y los maestros *Grupos de producto* y
+  *Cuencas*; importados del Excel «JR MAIN STOCK LIST» y «BASES». Detalle en
+  [`catalogos.md`](catalogos.md). Pendientes de esta lista: Bodega, Tanque (llegan con Inventario),
+  AgenteCarga/Aerolínea, Aeropuerto, CausaMortalidad, ConceptoCosto, TipoDocumento, TipoCaja, y datos
+  extra de Especie (CITES, cuarentena, densidad por talla).
 - **Entidades principales**: Familia, Especie (nombre científico, nombres comunes, indicador CITES y
   apéndice, días mínimos de cuarentena, densidad por bolsa por talla), Talla, Bodega, Tanque (tipo,
   capacidad), Proveedor (país, moneda, incoterm, ventana de reclamo), Cliente (país, aeropuerto destino,
@@ -107,14 +113,15 @@ Documentos relacionados:
 
 | Código | Descripción |
 |---|---|
-| `catalogos:leer` | Consultar catálogos técnicos (especies, tallas, tanques, causas, conceptos, etc.) |
-| `catalogos:editar` | Crear, editar y desactivar catálogos técnicos |
-| `proveedores:leer` | Consultar proveedores |
-| `proveedores:editar` | Crear, editar y desactivar proveedores |
+| `catalogos:leer` | Consultar catálogos técnicos (productos, centros de acopio…) (existe) |
+| `catalogos:editar` | Crear, editar y desactivar catálogos técnicos (existe) |
+| `catalogos:ver-costos` | Ver y editar el costo de compra (existe) |
+| `proveedores:leer` | Consultar proveedores (existe) |
+| `proveedores:editar` | Crear, editar y desactivar proveedores (existe) |
 | `clientes:leer` | Consultar clientes (existe, creado con el CRM) |
 | `clientes:editar` | Crear, editar y desactivar clientes (existe, creado con el CRM) |
-| `precios:leer` | Consultar listas de precios de venta |
-| `precios:editar` | Crear y modificar listas de precios de venta |
+| `precios:leer` | Consultar listas de precios (existe) |
+| `precios:editar` | Editar precios, listas, reglas y recalcular (existe) |
 
 - **Depende de**: Seguridad.
 
@@ -301,8 +308,8 @@ porque ambos módulos solo dependen de Inventario.
 ## Preguntas abiertas
 
 1. ¿Hay una sola bodega o varias? ¿Hay estanques externos o granjas de producción propia?
-2. ¿Además de importar, se compra a acopiadores o pescadores nacionales? Si es así, Importaciones podría
-   generalizarse a "Compras" con origen nacional o internacional.
+2. ~~¿Se compra a acopiadores o pescadores nacionales?~~ Sí: hay 77 proveedores nacionales por centro de
+   acopio (catálogo). Importaciones probablemente se generalice a "Compras" nacional/internacional.
 3. ~~¿Hay ventas locales además de exportaciones?~~ Sí: el CRM maneja ventas nacionales y de exportación.
 4. ¿La misma persona maneja importaciones y exportaciones? Esto define si conviene un solo perfil de
    "comercio exterior".

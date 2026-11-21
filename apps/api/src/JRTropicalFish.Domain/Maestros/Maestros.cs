@@ -17,3 +17,9 @@ public class Area : CatalogoSimple;
 
 /// <summary>Tipo de contrato laboral.</summary>
 public class TipoContrato : CatalogoSimple;
+
+/// <summary>Grupo de productos del catálogo. El código es el prefijo del código de producto (AP, CO, TE…).</summary>
+public class GrupoProducto : CatalogoSimple;
+
+/// <summary>Cuenca de origen de un centro de acopio (Orinoco, Amazonas, Magdalena…).</summary>
+public class Cuenca : CatalogoSimple;

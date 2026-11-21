@@ -116,6 +116,25 @@ afectó filas, lanza `SQLSTATE JR001`; `RepositorioCrm.EjecutarSiNoCambioAsync` 
 **Columnas generadas**: `ventas.total_cop` y `tracking_vuelos.porcentaje_doa` las calcula Postgres
 (`HasComputedColumnSql(..., stored: true)`); nunca se escriben desde C#.
 
+### Endpoints del catálogo
+
+Todo bajo `api/v1/catalogos`. Reglas en [`../dominio/catalogos.md`](../dominio/catalogos.md).
+
+| Método y ruta | Permiso |
+|---|---|
+| `GET /productos[/{id}[/historial]]` (precios solo con `precios:leer`; costo solo con `catalogos:ver-costos`) | `catalogos:leer` |
+| `POST` · `PUT /{id}` · `DELETE /{id}` en `/productos` (enviar `precios` exige `precios:editar`) | `catalogos:editar` |
+| `GET /precios/listas[/{id}/historial]` · `GET /precios/parametros` | `precios:leer` |
+| `POST` · `PUT /{id}` en `/precios/listas`; `POST /precios/listas/{id}/recalcular`; `PUT /precios/parametros` | `precios:editar` |
+| `GET /centros-acopio` | `catalogos:leer` o `proveedores:leer` |
+| `POST` · `PUT /{id}` · `DELETE /{id}` en `/centros-acopio` | `catalogos:editar` |
+| `GET /proveedores[/{id}[/historial]]` · escritura | `proveedores:leer` · `proveedores:editar` |
+
+**Precios del producto**: `sp_producto_guardar` recibe los precios como `jsonb` y solo toca las listas
+indicadas (`null`/0 quita el precio). El recálculo lo hace C# (`ReglasPrecio`) y
+`sp_precios_guardar_lote` solo escribe. La auditoría registra cada precio como campo
+`Precio {Lista} ({CODIGO})`; el código entre paréntesis permite quitar los de costo del historial.
+
 ## Transversales disponibles
 
 | Pieza | Para qué | Dónde |
@@ -178,7 +197,7 @@ Patrón para los próximos módulos con documentos:
 ## Pruebas
 
 - `apps/api/tests/JRTropicalFish.Tests`: xUnit, una carpeta por área, fakes escritos a mano
-  (`SeguridadEnMemoria`, `AdministracionEnMemoria`, `CrmEnMemoria`), nombres de prueba en español que se leen como regla
+  (`SeguridadEnMemoria`, `AdministracionEnMemoria`, `CrmEnMemoria`, `CatalogosEnMemoria`), nombres de prueba en español que se leen como regla
   (`Un_usuario_inactivo_no_inicia_sesion`).
 - Se prueban las reglas puras y los servicios. El SQL se verifica ejecutando la API contra la base local.
 - `npm test` (raíz) ejecuta `dotnet test` sobre la solución.

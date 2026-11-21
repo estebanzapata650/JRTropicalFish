@@ -198,6 +198,454 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                     b.ToTable("auditoria", (string)null);
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.CentroAcopio", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<Guid>("CuencaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cuenca_id");
+
+                    b.Property<DateTime?>("EliminadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("eliminado_en");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.HasKey("Id")
+                        .HasName("pk_centros_acopio");
+
+                    b.HasIndex("CuencaId")
+                        .HasDatabaseName("ix_centros_acopio_cuenca_id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("ix_centros_acopio_nombre")
+                        .HasFilter("eliminado_en IS NULL");
+
+                    b.ToTable("centros_acopio", (string)null);
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.ListaPrecios", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<bool>("AplicaImpuestos")
+                        .HasColumnType("boolean")
+                        .HasColumnName("aplica_impuestos");
+
+                    b.Property<Guid?>("ClienteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cliente_id");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<bool>("EsCosto")
+                        .HasColumnType("boolean")
+                        .HasColumnName("es_costo");
+
+                    b.Property<decimal?>("FactorCriadero")
+                        .HasPrecision(8, 4)
+                        .HasColumnType("numeric(8,4)")
+                        .HasColumnName("factor_criadero");
+
+                    b.Property<decimal?>("FactorEspecial")
+                        .HasPrecision(8, 4)
+                        .HasColumnType("numeric(8,4)")
+                        .HasColumnName("factor_especial");
+
+                    b.Property<decimal?>("FactorSalvaje")
+                        .HasPrecision(8, 4)
+                        .HasColumnType("numeric(8,4)")
+                        .HasColumnName("factor_salvaje");
+
+                    b.Property<Guid?>("ListaBaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lista_base_id");
+
+                    b.Property<string>("Moneda")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("moneda");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer")
+                        .HasColumnName("orden");
+
+                    b.Property<decimal>("Redondeo")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("redondeo");
+
+                    b.HasKey("Id")
+                        .HasName("pk_listas_precios");
+
+                    b.HasIndex("ClienteId")
+                        .HasDatabaseName("ix_listas_precios_cliente_id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_listas_precios_codigo");
+
+                    b.HasIndex("ListaBaseId")
+                        .HasDatabaseName("ix_listas_precios_lista_base_id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("ix_listas_precios_nombre");
+
+                    b.ToTable("listas_precios", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_listas_base", "lista_base_id IS NULL OR lista_base_id <> id");
+
+                            t.HasCheckConstraint("ck_listas_moneda", "moneda IN ('USD', 'COP')");
+
+                            t.HasCheckConstraint("ck_listas_redondeo", "redondeo > 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.ParametrosPrecios", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal>("Iva")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("iva");
+
+                    b.Property<decimal>("Pasarela")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("pasarela");
+
+                    b.Property<decimal>("TrmReferencia")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("trm_referencia");
+
+                    b.HasKey("Id")
+                        .HasName("pk_parametros_precios");
+
+                    b.ToTable("parametros_precios", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_parametros_precios_fila_unica", "id = 1");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.PrecioProducto", b =>
+                {
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.Property<Guid>("ListaPreciosId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lista_precios_id");
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal>("Precio")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("precio");
+
+                    b.HasKey("ProductoId", "ListaPreciosId")
+                        .HasName("pk_precios_producto");
+
+                    b.HasIndex("ListaPreciosId")
+                        .HasDatabaseName("ix_precios_producto_lista_precios_id");
+
+                    b.ToTable("precios_producto", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_precios_positivo", "precio > 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.Producto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<int?>("BolsaMax")
+                        .HasColumnType("integer")
+                        .HasColumnName("bolsa_max");
+
+                    b.Property<int?>("BolsaMin")
+                        .HasColumnType("integer")
+                        .HasColumnName("bolsa_min");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Disponibilidad")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("disponibilidad");
+
+                    b.Property<DateTime?>("EliminadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("eliminado_en");
+
+                    b.Property<Guid>("GrupoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("grupo_id");
+
+                    b.Property<string>("NombreCientifico")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre_cientifico");
+
+                    b.Property<string>("NombreComun")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("nombre_comun");
+
+                    b.Property<string>("NombreEspanol")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("nombre_espanol");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notas");
+
+                    b.Property<string>("TallaEtiqueta")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("talla_etiqueta");
+
+                    b.Property<decimal?>("TallaMaxCm")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("talla_max_cm");
+
+                    b.Property<decimal?>("TallaMinCm")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("talla_min_cm");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tipo");
+
+                    b.HasKey("Id")
+                        .HasName("pk_productos");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_productos_codigo")
+                        .HasFilter("eliminado_en IS NULL");
+
+                    b.HasIndex("GrupoId")
+                        .HasDatabaseName("ix_productos_grupo_id");
+
+                    b.ToTable("productos", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_productos_bolsa", "bolsa_min IS NULL OR bolsa_max IS NULL OR bolsa_min <= bolsa_max");
+
+                            t.HasCheckConstraint("ck_productos_talla", "talla_min_cm IS NULL OR talla_max_cm IS NULL OR talla_min_cm <= talla_max_cm");
+
+                            t.HasCheckConstraint("ck_productos_tipo", "tipo IN ('salvaje', 'criadero', 'especial')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.ProductoCentroAcopio", b =>
+                {
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.Property<Guid>("CentroAcopioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centro_acopio_id");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer")
+                        .HasColumnName("orden");
+
+                    b.HasKey("ProductoId", "CentroAcopioId")
+                        .HasName("pk_producto_centros_acopio");
+
+                    b.HasIndex("CentroAcopioId")
+                        .HasDatabaseName("ix_producto_centros_acopio_centro_acopio_id");
+
+                    b.ToTable("producto_centros_acopio", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_producto_centros_orden", "orden BETWEEN 1 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.Proveedor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Contacto")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("contacto");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateTime?>("EliminadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("eliminado_en");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notas");
+
+                    b.Property<string>("NumeroIdentificacion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("numero_identificacion");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("telefono");
+
+                    b.Property<Guid>("TipoIdentificacionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tipo_identificacion_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_proveedores");
+
+                    b.HasIndex("TipoIdentificacionId", "NumeroIdentificacion")
+                        .IsUnique()
+                        .HasDatabaseName("ix_proveedores_tipo_identificacion_id_numero_identificacion")
+                        .HasFilter("eliminado_en IS NULL");
+
+                    b.ToTable("proveedores", (string)null);
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.ProveedorCentroAcopio", b =>
+                {
+                    b.Property<Guid>("ProveedorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("proveedor_id");
+
+                    b.Property<Guid>("CentroAcopioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centro_acopio_id");
+
+                    b.HasKey("ProveedorId", "CentroAcopioId")
+                        .HasName("pk_proveedor_centros_acopio");
+
+                    b.HasIndex("CentroAcopioId")
+                        .HasDatabaseName("ix_proveedor_centros_acopio_centro_acopio_id");
+
+                    b.ToTable("proveedor_centros_acopio", (string)null);
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Crm.Cliente", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1008,6 +1456,112 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                     b.ToTable("cargos", (string)null);
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Maestros.Cuenca", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateTime?>("EliminadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("eliminado_en");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nombre");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cuencas");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cuencas_codigo")
+                        .HasFilter("eliminado_en IS NULL");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cuencas_nombre")
+                        .HasFilter("eliminado_en IS NULL");
+
+                    b.ToTable("cuencas", (string)null);
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Maestros.GrupoProducto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateTime?>("EliminadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("eliminado_en");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nombre");
+
+                    b.HasKey("Id")
+                        .HasName("pk_grupos_producto");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_grupos_producto_codigo")
+                        .HasFilter("eliminado_en IS NULL");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("ix_grupos_producto_nombre")
+                        .HasFilter("eliminado_en IS NULL");
+
+                    b.ToTable("grupos_producto", (string)null);
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Maestros.TipoContrato", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1304,6 +1858,102 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_empleados_tipos_identificacion_tipo_identificacion_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.CentroAcopio", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Maestros.Cuenca", null)
+                        .WithMany()
+                        .HasForeignKey("CuencaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_centros_acopio_cuencas_cuenca_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.ListaPrecios", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Crm.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_listas_precios_clientes_cliente_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.ListaPrecios", null)
+                        .WithMany()
+                        .HasForeignKey("ListaBaseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_listas_precios_listas_precios_lista_base_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.PrecioProducto", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.ListaPrecios", null)
+                        .WithMany()
+                        .HasForeignKey("ListaPreciosId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_precios_producto_listas_precios_lista_precios_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_precios_producto_productos_producto_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.Producto", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Maestros.GrupoProducto", null)
+                        .WithMany()
+                        .HasForeignKey("GrupoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_productos_grupos_producto_grupo_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.ProductoCentroAcopio", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.CentroAcopio", null)
+                        .WithMany()
+                        .HasForeignKey("CentroAcopioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_producto_centros_acopio_centros_acopio_centro_acopio_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_producto_centros_acopio_productos_producto_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.Proveedor", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Maestros.TipoIdentificacion", null)
+                        .WithMany()
+                        .HasForeignKey("TipoIdentificacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_proveedores_tipos_identificacion_tipo_identificacion_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.ProveedorCentroAcopio", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.CentroAcopio", null)
+                        .WithMany()
+                        .HasForeignKey("CentroAcopioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_proveedor_centros_acopio_centros_acopio_centro_acopio_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Proveedor", null)
+                        .WithMany()
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_proveedor_centros_acopio_proveedores_proveedor_id");
                 });
 
             modelBuilder.Entity("JRTropicalFish.Domain.Crm.MetaComercial", b =>

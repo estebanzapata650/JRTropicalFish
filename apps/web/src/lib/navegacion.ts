@@ -44,6 +44,17 @@ export function construirNavegacion(): ItemNavegacion[] {
       ],
     },
     {
+      href: "/catalogos",
+      label: "Catálogos",
+      icono: "catalogos",
+      hijos: [
+        { href: "/catalogos/productos", label: "Productos", permiso: PERMISOS.CATALOGOS_LEER },
+        { href: "/catalogos/precios", label: "Listas de precios", permiso: PERMISOS.PRECIOS_LEER },
+        { href: "/catalogos/centros-acopio", label: "Centros de acopio", permiso: PERMISOS.CATALOGOS_LEER },
+        { href: "/catalogos/proveedores", label: "Proveedores", permiso: PERMISOS.PROVEEDORES_LEER },
+      ],
+    },
+    {
       href: "/administracion",
       label: "Administración",
       icono: "administracion",

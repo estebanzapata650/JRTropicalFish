@@ -21,6 +21,8 @@ public static class RegistroMaestros
     public const string Cargos = "cargos";
     public const string Areas = "areas";
     public const string TiposContrato = "tipos-contrato";
+    public const string GruposProducto = "grupos-producto";
+    public const string Cuencas = "cuencas";
 
     public static readonly IReadOnlyList<DefinicionMaestro> Todos =
     [
@@ -29,6 +31,9 @@ public static class RegistroMaestros
         new(Cargos, "cargos", "Cargos", "cargo", "Cargos que ocupan los empleados."),
         new(Areas, "areas", "Áreas", "área", "Áreas o dependencias de la empresa."),
         new(TiposContrato, "tipos_contrato", "Tipos de contrato", "tipo de contrato", "Modalidades de contrato laboral."),
+        new(GruposProducto, "grupos_producto", "Grupos de producto", "grupo de producto",
+            "Agrupan el catálogo. El código es el prefijo del código de producto (AP, CO, TE…)."),
+        new(Cuencas, "cuencas", "Cuencas", "cuenca", "Cuenca de origen de los centros de acopio (Orinoco, Amazonas…)."),
     ];
 
     public static DefinicionMaestro? Buscar(string? clave) =>

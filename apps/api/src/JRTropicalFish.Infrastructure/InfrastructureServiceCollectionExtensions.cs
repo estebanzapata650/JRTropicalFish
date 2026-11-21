@@ -5,6 +5,7 @@ using JRTropicalFish.Application.Administracion;
 using JRTropicalFish.Application.Maestros;
 using JRTropicalFish.Application.Auditoria;
 using JRTropicalFish.Application.Auth;
+using JRTropicalFish.Application.Catalogos;
 using JRTropicalFish.Application.Crm;
 using JRTropicalFish.Application.Informes;
 using JRTropicalFish.Application.Seguridad;
@@ -94,6 +95,16 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<TrackingService>();
         services.AddScoped<TareaService>();
         services.AddScoped<MetricasService>();
+
+        // Catálogos: productos, precios, centros de acopio y proveedores
+        services.AddScoped<ICentroAcopioRepository, CentroAcopioRepository>();
+        services.AddScoped<IProductoRepository, ProductoRepository>();
+        services.AddScoped<IPrecioRepository, PrecioRepository>();
+        services.AddScoped<IProveedorRepository, ProveedorRepository>();
+        services.AddScoped<CentroAcopioService>();
+        services.AddScoped<ProductoService>();
+        services.AddScoped<PrecioService>();
+        services.AddScoped<ProveedorService>();
 
         return services;
     }

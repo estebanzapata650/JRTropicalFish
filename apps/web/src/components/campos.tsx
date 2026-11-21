@@ -135,7 +135,7 @@ export type TonoEtiqueta = keyof typeof tonos;
 
 export function Etiqueta({ texto, tono }: { texto: string; tono: TonoEtiqueta }) {
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${tonos[tono]}`}>
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${tonos[tono]}`}>
       {texto}
     </span>
   );
