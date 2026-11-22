@@ -8,6 +8,7 @@ using JRTropicalFish.Application.Auth;
 using JRTropicalFish.Application.Catalogos;
 using JRTropicalFish.Application.Crm;
 using JRTropicalFish.Application.Exportaciones;
+using JRTropicalFish.Application.Sanidad;
 using JRTropicalFish.Application.Inventario;
 using JRTropicalFish.Application.Informes;
 using JRTropicalFish.Application.Seguridad;
@@ -121,6 +122,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<EmbarqueService>();
         services.AddScoped<ComprasService>();
         services.AddScoped<PedidoClienteService>();
+
+        // Sanidad: medicación, cuarentena, alimentación y reservas de despacho
+        services.AddScoped<ISanidadMaestrosRepository, SanidadMaestrosRepository>();
+        services.AddScoped<ISanidadRepository, SanidadRepository>();
+        services.AddScoped<SanidadMaestrosService>();
+        services.AddScoped<SanidadService>();
 
         return services;
     }

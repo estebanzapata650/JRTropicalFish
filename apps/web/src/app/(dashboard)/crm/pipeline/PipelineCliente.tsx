@@ -23,7 +23,7 @@ import {
 import { botonPrimarioClass, casillaClass, inputClass, selectClass } from "@/lib/estilos";
 import { diasDesde, dinero, fecha } from "@/lib/formato";
 import { cambiarEtapaAction, eliminarOportunidadAction, ganarOportunidadAction, guardarOportunidadAction } from "../actions";
-import { Tablero } from "../comun";
+import { Tablero } from "@/components/Tablero";
 import { FormularioGanar, FormularioOportunidad, FormularioPerdida, type ClienteOpcion } from "./DialogosOportunidad";
 
 type EstadoDialogo =

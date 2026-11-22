@@ -186,6 +186,19 @@ Documentos relacionados:
 - **Permisos**: `exportaciones:leer`, `exportaciones:gestionar`, `exportaciones:empacar`, `exportaciones:configurar` (existen).
 - **Depende de**: CRM (venta, tracking, cliente), Inventario (pedido de cliente), Catálogos (productos, listas).
 
+### 5b. Sanidad: medicación, cuarentena y alimentación (fase 1 implementada)
+
+- **Propósito**: decirle a cada operario qué medicar (con la dosis calculada por litraje), qué alimentar y qué no
+  (ayuno de llegada, de tratamiento y **48 h antes del vuelo**), y bloquear el despacho de acuarios en tratamiento.
+  Detalle en [`sanidad.md`](sanidad.md).
+- **Estado** (2026-11-22): fase 1 (maestros, tratamientos, reservas, Mi día, tablero). Fase 2: planificador
+  semanal e importación del PDF de fichas.
+- **Entidades**: Medicamento (+ incompatibles), Alimento, Dieta, FichaTecnica, Protocolo + ProtocoloPaso,
+  Tratamiento + TratamientoAplicacion, RegistroAlimentacion, ReservaDespacho, ParametrosSanidad; `acuarios.responsable_id`.
+- **Permisos**: `sanidad:leer`, `sanidad:operar`, `sanidad:gestionar`, `sanidad:aprobar-protocolo` (existen).
+- **Depende de**: Inventario (acuarios, lotes, existencias, pedidos de cliente), Exportaciones (hora del vuelo),
+  Catálogos (productos, grupos, centros de acopio).
+
 ### 6. Reportes
 
 - **Propósito**: consultas consolidadas y PDFs de inventario, importaciones y exportaciones; indicadores

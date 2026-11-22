@@ -2241,6 +2241,10 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("posicion");
 
+                    b.Property<Guid?>("ResponsableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("responsable_id");
+
                     b.Property<string>("Sector")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -2253,6 +2257,9 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                     b.HasIndex("Codigo")
                         .IsUnique()
                         .HasDatabaseName("ix_acuarios_codigo");
+
+                    b.HasIndex("ResponsableId")
+                        .HasDatabaseName("ix_acuarios_responsable_id");
 
                     b.ToTable("acuarios", null, t =>
                         {
@@ -3274,6 +3281,842 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                     b.ToTable("tipos_identificacion", (string)null);
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.Alimento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("nombre");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tipo");
+
+                    b.Property<string>("Unidad")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("unidad");
+
+                    b.HasKey("Id")
+                        .HasName("pk_alimentos");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_alimentos_codigo");
+
+                    b.ToTable("alimentos", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_alimentos_tipo", "tipo IN ('seco', 'vivo', 'congelado', 'papilla')");
+
+                            t.HasCheckConstraint("ck_alimentos_unidad", "unidad IN ('g', 'ml', 'cubo')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.Dieta", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<Guid>("AlimentoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("alimento_id");
+
+                    b.Property<decimal>("CantidadPor100")
+                        .HasPrecision(10, 3)
+                        .HasColumnType("numeric(10,3)")
+                        .HasColumnName("cantidad_por100");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<Guid?>("GrupoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("grupo_id");
+
+                    b.Property<string>("Nota")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("nota");
+
+                    b.Property<Guid?>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.Property<int>("VecesDia")
+                        .HasColumnType("integer")
+                        .HasColumnName("veces_dia");
+
+                    b.HasKey("Id")
+                        .HasName("pk_dietas");
+
+                    b.HasIndex("AlimentoId")
+                        .HasDatabaseName("ix_dietas_alimento_id");
+
+                    b.HasIndex("GrupoId", "AlimentoId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_dietas_grupo_id_alimento_id")
+                        .HasFilter("grupo_id IS NOT NULL");
+
+                    b.HasIndex("ProductoId", "AlimentoId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_dietas_producto_id_alimento_id")
+                        .HasFilter("producto_id IS NOT NULL");
+
+                    b.ToTable("dietas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_dietas_destino", "(grupo_id IS NULL) <> (producto_id IS NULL)");
+
+                            t.HasCheckConstraint("ck_dietas_valores", "veces_dia BETWEEN 1 AND 12 AND cantidad_por100 > 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.FichaTecnica", b =>
+                {
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<int>("AyunoLlegadaHoras")
+                        .HasColumnType("integer")
+                        .HasColumnName("ayuno_llegada_horas");
+
+                    b.Property<string>("Caracteristicas")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("caracteristicas");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Dimorfismo")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("dimorfismo");
+
+                    b.Property<string>("Empaque")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("empaque");
+
+                    b.Property<string>("Etologia")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("etologia");
+
+                    b.Property<decimal?>("GhMax")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("gh_max");
+
+                    b.Property<decimal?>("GhMin")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("gh_min");
+
+                    b.Property<decimal?>("PhMax")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("numeric(4,2)")
+                        .HasColumnName("ph_max");
+
+                    b.Property<decimal?>("PhMin")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("numeric(4,2)")
+                        .HasColumnName("ph_min");
+
+                    b.Property<string>("Procedencia")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("procedencia");
+
+                    b.Property<string>("SensibilidadQuimica")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("sensibilidad_quimica");
+
+                    b.Property<decimal?>("TemperaturaMax")
+                        .HasPrecision(4, 1)
+                        .HasColumnType("numeric(4,1)")
+                        .HasColumnName("temperatura_max");
+
+                    b.Property<decimal?>("TemperaturaMin")
+                        .HasPrecision(4, 1)
+                        .HasColumnType("numeric(4,1)")
+                        .HasColumnName("temperatura_min");
+
+                    b.HasKey("ProductoId")
+                        .HasName("pk_fichas_tecnicas");
+
+                    b.ToTable("fichas_tecnicas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_fichas_tecnicas_rangos", "(ph_min IS NULL OR ph_max IS NULL OR ph_min <= ph_max) AND (gh_min IS NULL OR gh_max IS NULL OR gh_min <= gh_max) AND (temperatura_min IS NULL OR temperatura_max IS NULL OR temperatura_min <= temperatura_max) AND ayuno_llegada_horas BETWEEN 0 AND 168");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.Medicamento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<string>("Contraindicaciones")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("contraindicaciones");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<int>("DiasRetiro")
+                        .HasColumnType("integer")
+                        .HasColumnName("dias_retiro");
+
+                    b.Property<decimal>("DosisBase")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("dosis_base");
+
+                    b.Property<decimal>("DosisCantidad")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("dosis_cantidad");
+
+                    b.Property<decimal?>("DosisMaxima")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("dosis_maxima");
+
+                    b.Property<int?>("ExposicionMinutos")
+                        .HasColumnType("integer")
+                        .HasColumnName("exposicion_minutos");
+
+                    b.Property<string>("Fuente")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("fuente");
+
+                    b.Property<string>("Indicaciones")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("indicaciones");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("nombre");
+
+                    b.Property<string>("Presentacion")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("presentacion");
+
+                    b.Property<string>("PrincipioActivo")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("principio_activo");
+
+                    b.Property<bool>("RequiereAyuno")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requiere_ayuno");
+
+                    b.Property<string>("TipoDosis")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tipo_dosis");
+
+                    b.Property<string>("Unidad")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("unidad");
+
+                    b.HasKey("Id")
+                        .HasName("pk_medicamentos");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_medicamentos_codigo");
+
+                    b.ToTable("medicamentos", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_medicamentos_dosis", "dosis_cantidad > 0 AND dosis_base > 0 AND (dosis_maxima IS NULL OR dosis_maxima >= dosis_cantidad) AND dias_retiro >= 0 AND (exposicion_minutos IS NULL OR exposicion_minutos > 0)");
+
+                            t.HasCheckConstraint("ck_medicamentos_tipo_dosis", "tipo_dosis IN ('por_volumen', 'por_alimento', 'fija')");
+
+                            t.HasCheckConstraint("ck_medicamentos_unidad", "unidad IN ('ml', 'g', 'mg', 'gotas', 'tableta')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.MedicamentoIncompatible", b =>
+                {
+                    b.Property<Guid>("MedicamentoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("medicamento_id");
+
+                    b.Property<Guid>("IncompatibleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("incompatible_id");
+
+                    b.HasKey("MedicamentoId", "IncompatibleId")
+                        .HasName("pk_medicamentos_incompatibles");
+
+                    b.HasIndex("IncompatibleId")
+                        .HasDatabaseName("ix_medicamentos_incompatibles_incompatible_id");
+
+                    b.ToTable("medicamentos_incompatibles", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_medicamentos_incompatibles_par", "medicamento_id < incompatible_id");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.ParametrosSanidad", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<int>("HorasAyunoVuelo")
+                        .HasColumnType("integer")
+                        .HasColumnName("horas_ayuno_vuelo");
+
+                    b.HasKey("Id")
+                        .HasName("pk_parametros_sanidad");
+
+                    b.ToTable("parametros_sanidad", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_parametros_sanidad_ayuno", "horas_ayuno_vuelo BETWEEN 48 AND 120");
+
+                            t.HasCheckConstraint("ck_parametros_sanidad_fila_unica", "id = 1");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.Protocolo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<DateTime?>("AprobadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("aprobado_en");
+
+                    b.Property<Guid?>("AprobadoPorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("aprobado_por_id");
+
+                    b.Property<int>("AyunoInicialHoras")
+                        .HasColumnType("integer")
+                        .HasColumnName("ayuno_inicial_horas");
+
+                    b.Property<Guid?>("CentroAcopioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centro_acopio_id");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<Guid?>("CuencaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cuenca_id");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("descripcion");
+
+                    b.Property<int?>("DiasCuarentena")
+                        .HasColumnType("integer")
+                        .HasColumnName("dias_cuarentena");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<Guid?>("GrupoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("grupo_id");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nombre");
+
+                    b.Property<Guid?>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_protocolos");
+
+                    b.HasIndex("AprobadoPorId")
+                        .HasDatabaseName("ix_protocolos_aprobado_por_id");
+
+                    b.HasIndex("CentroAcopioId")
+                        .HasDatabaseName("ix_protocolos_centro_acopio_id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_protocolos_codigo");
+
+                    b.HasIndex("CuencaId")
+                        .HasDatabaseName("ix_protocolos_cuenca_id");
+
+                    b.HasIndex("GrupoId")
+                        .HasDatabaseName("ix_protocolos_grupo_id");
+
+                    b.HasIndex("ProductoId")
+                        .HasDatabaseName("ix_protocolos_producto_id");
+
+                    b.ToTable("protocolos", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_protocolos_dias", "(dias_cuarentena IS NULL OR dias_cuarentena BETWEEN 1 AND 120) AND ayuno_inicial_horas BETWEEN 0 AND 168 AND (estado <> 'aprobado' OR (dias_cuarentena IS NOT NULL AND aprobado_en IS NOT NULL))");
+
+                            t.HasCheckConstraint("ck_protocolos_estado", "estado IN ('borrador', 'aprobado', 'inactivo')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.ProtocoloPaso", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("accion");
+
+                    b.Property<int>("Dia")
+                        .HasColumnType("integer")
+                        .HasColumnName("dia");
+
+                    b.Property<Guid?>("MedicamentoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("medicamento_id");
+
+                    b.Property<string>("Nota")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("nota");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer")
+                        .HasColumnName("orden");
+
+                    b.Property<int?>("PorcentajeAgua")
+                        .HasColumnType("integer")
+                        .HasColumnName("porcentaje_agua");
+
+                    b.Property<Guid>("ProtocoloId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("protocolo_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_protocolo_pasos");
+
+                    b.HasIndex("MedicamentoId")
+                        .HasDatabaseName("ix_protocolo_pasos_medicamento_id");
+
+                    b.HasIndex("ProtocoloId", "Dia", "Orden")
+                        .HasDatabaseName("ix_protocolo_pasos_protocolo_id_dia_orden");
+
+                    b.ToTable("protocolo_pasos", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_protocolo_pasos_accion", "accion IN ('medicar', 'cambio_agua', 'ayuno', 'observacion')");
+
+                            t.HasCheckConstraint("ck_protocolo_pasos_valores", "dia BETWEEN 1 AND 120 AND (accion <> 'medicar' OR medicamento_id IS NOT NULL) AND (porcentaje_agua IS NULL OR porcentaje_agua BETWEEN 1 AND 100)");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.RegistroAlimentacion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AcuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acuario_id");
+
+                    b.Property<Guid?>("AlimentoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("alimento_id");
+
+                    b.Property<decimal?>("Cantidad")
+                        .HasPrecision(10, 3)
+                        .HasColumnType("numeric(10,3)")
+                        .HasColumnName("cantidad");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha");
+
+                    b.Property<Guid?>("UsuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<string>("UsuarioNombre")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("usuario_nombre");
+
+                    b.HasKey("Id")
+                        .HasName("pk_registros_alimentacion");
+
+                    b.HasIndex("AlimentoId")
+                        .HasDatabaseName("ix_registros_alimentacion_alimento_id");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_registros_alimentacion_usuario_id");
+
+                    b.HasIndex("AcuarioId", "Fecha")
+                        .HasDatabaseName("ix_registros_alimentacion_acuario_id_fecha");
+
+                    b.ToTable("registros_alimentacion", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_registros_alimentacion_cantidad", "cantidad IS NULL OR cantidad >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.ReservaDespacho", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AcuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acuario_id");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer")
+                        .HasColumnName("cantidad");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<Guid?>("CreadoPorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creado_por_id");
+
+                    b.Property<Guid>("LoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lote_id");
+
+                    b.Property<Guid>("PedidoClienteLineaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pedido_cliente_linea_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_reservas_despacho");
+
+                    b.HasIndex("AcuarioId")
+                        .HasDatabaseName("ix_reservas_despacho_acuario_id");
+
+                    b.HasIndex("CreadoPorId")
+                        .HasDatabaseName("ix_reservas_despacho_creado_por_id");
+
+                    b.HasIndex("LoteId", "AcuarioId")
+                        .HasDatabaseName("ix_reservas_despacho_lote_id_acuario_id");
+
+                    b.HasIndex("PedidoClienteLineaId", "LoteId", "AcuarioId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_reservas_despacho_pedido_cliente_linea_id_lote_id_acuario_id");
+
+                    b.ToTable("reservas_despacho", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_reservas_despacho_cantidad", "cantidad > 0");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.Tratamiento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<Guid>("AcuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acuario_id");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<Guid?>("CreadoPorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creado_por_id");
+
+                    b.Property<string>("Diagnostico")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("diagnostico");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateOnly>("FechaFin")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_fin");
+
+                    b.Property<DateOnly>("FechaInicio")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_inicio");
+
+                    b.Property<DateOnly>("FechaLiberacion")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_liberacion");
+
+                    b.Property<decimal?>("Litros")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("litros");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("motivo");
+
+                    b.Property<string>("Nota")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("nota");
+
+                    b.Property<Guid?>("ProtocoloId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("protocolo_id");
+
+                    b.Property<string>("ReporteClave")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("reporte_clave");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tratamientos");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tratamientos_codigo");
+
+                    b.HasIndex("CreadoPorId")
+                        .HasDatabaseName("ix_tratamientos_creado_por_id");
+
+                    b.HasIndex("ProtocoloId")
+                        .HasDatabaseName("ix_tratamientos_protocolo_id");
+
+                    b.HasIndex("AcuarioId", "Estado")
+                        .HasDatabaseName("ix_tratamientos_acuario_id_estado");
+
+                    b.ToTable("tratamientos", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tratamientos_estado", "estado IN ('activo', 'terminado', 'cancelado')");
+
+                            t.HasCheckConstraint("ck_tratamientos_fechas", "fecha_fin >= fecha_inicio AND fecha_liberacion >= fecha_fin");
+
+                            t.HasCheckConstraint("ck_tratamientos_motivo", "motivo IN ('profilaxis_llegada', 'prescripcion', 'otro')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.TratamientoAplicacion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("accion");
+
+                    b.Property<decimal?>("CantidadAplicada")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("cantidad_aplicada");
+
+                    b.Property<decimal?>("CantidadCalculada")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("cantidad_calculada");
+
+                    b.Property<int>("Dia")
+                        .HasColumnType("integer")
+                        .HasColumnName("dia");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha");
+
+                    b.Property<Guid?>("MedicamentoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("medicamento_id");
+
+                    b.Property<string>("Nota")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("nota");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer")
+                        .HasColumnName("orden");
+
+                    b.Property<int?>("PorcentajeAgua")
+                        .HasColumnType("integer")
+                        .HasColumnName("porcentaje_agua");
+
+                    b.Property<DateTime?>("RegistradoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("registrado_en");
+
+                    b.Property<Guid>("TratamientoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tratamiento_id");
+
+                    b.Property<string>("Unidad")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("unidad");
+
+                    b.Property<Guid?>("UsuarioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<string>("UsuarioNombre")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("usuario_nombre");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tratamiento_aplicaciones");
+
+                    b.HasIndex("MedicamentoId")
+                        .HasDatabaseName("ix_tratamiento_aplicaciones_medicamento_id");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_tratamiento_aplicaciones_usuario_id");
+
+                    b.HasIndex("Fecha", "Estado")
+                        .HasDatabaseName("ix_tratamiento_aplicaciones_fecha_estado");
+
+                    b.HasIndex("TratamientoId", "Fecha", "Orden")
+                        .HasDatabaseName("ix_tratamiento_aplicaciones_tratamiento_id_fecha_orden");
+
+                    b.ToTable("tratamiento_aplicaciones", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tratamiento_aplicaciones_accion", "accion IN ('medicar', 'cambio_agua', 'ayuno', 'observacion')");
+
+                            t.HasCheckConstraint("ck_tratamiento_aplicaciones_estado", "estado IN ('pendiente', 'aplicada', 'omitida')");
+
+                            t.HasCheckConstraint("ck_tratamiento_aplicaciones_valores", "(cantidad_calculada IS NULL OR cantidad_calculada >= 0) AND (cantidad_aplicada IS NULL OR cantidad_aplicada >= 0) AND (accion <> 'medicar' OR medicamento_id IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Seguridad.Perfil", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3770,6 +4613,15 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_embarque_envios_embarques_embarque_id");
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Acuario", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("ResponsableId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_acuarios_usuarios_responsable_id");
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Existencia", b =>
                 {
                     b.HasOne("JRTropicalFish.Domain.Inventario.Acuario", null)
@@ -3993,6 +4845,200 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_recepciones_lineas_recepciones_recepcion_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.Dieta", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Alimento", null)
+                        .WithMany()
+                        .HasForeignKey("AlimentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_dietas_alimentos_alimento_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Maestros.GrupoProducto", null)
+                        .WithMany()
+                        .HasForeignKey("GrupoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_dietas_grupos_producto_grupo_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_dietas_productos_producto_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.FichaTecnica", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithOne()
+                        .HasForeignKey("JRTropicalFish.Domain.Sanidad.FichaTecnica", "ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_fichas_tecnicas_productos_producto_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.MedicamentoIncompatible", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Medicamento", null)
+                        .WithMany()
+                        .HasForeignKey("IncompatibleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_medicamentos_incompatibles_medicamentos_incompatible_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Medicamento", null)
+                        .WithMany()
+                        .HasForeignKey("MedicamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_medicamentos_incompatibles_medicamentos_medicamento_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.Protocolo", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("AprobadoPorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_protocolos_usuarios_aprobado_por_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.CentroAcopio", null)
+                        .WithMany()
+                        .HasForeignKey("CentroAcopioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_protocolos_centros_acopio_centro_acopio_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Maestros.Cuenca", null)
+                        .WithMany()
+                        .HasForeignKey("CuencaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_protocolos_cuencas_cuenca_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Maestros.GrupoProducto", null)
+                        .WithMany()
+                        .HasForeignKey("GrupoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_protocolos_grupos_producto_grupo_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_protocolos_productos_producto_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.ProtocoloPaso", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Medicamento", null)
+                        .WithMany()
+                        .HasForeignKey("MedicamentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_protocolo_pasos_medicamentos_medicamento_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Protocolo", null)
+                        .WithMany()
+                        .HasForeignKey("ProtocoloId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_protocolo_pasos_protocolos_protocolo_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.RegistroAlimentacion", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Acuario", null)
+                        .WithMany()
+                        .HasForeignKey("AcuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_registros_alimentacion_acuarios_acuario_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Alimento", null)
+                        .WithMany()
+                        .HasForeignKey("AlimentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_registros_alimentacion_alimentos_alimento_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_registros_alimentacion_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.ReservaDespacho", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Acuario", null)
+                        .WithMany()
+                        .HasForeignKey("AcuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservas_despacho_acuarios_acuario_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_reservas_despacho_usuarios_creado_por_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Lote", null)
+                        .WithMany()
+                        .HasForeignKey("LoteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservas_despacho_lotes_lote_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Inventario.PedidoClienteLinea", null)
+                        .WithMany()
+                        .HasForeignKey("PedidoClienteLineaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservas_despacho_pedidos_cliente_lineas_pedido_cliente_lin");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.Tratamiento", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Inventario.Acuario", null)
+                        .WithMany()
+                        .HasForeignKey("AcuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tratamientos_acuarios_acuario_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_tratamientos_usuarios_creado_por_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Protocolo", null)
+                        .WithMany()
+                        .HasForeignKey("ProtocoloId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_tratamientos_protocolos_protocolo_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Sanidad.TratamientoAplicacion", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Medicamento", null)
+                        .WithMany()
+                        .HasForeignKey("MedicamentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_tratamiento_aplicaciones_medicamentos_medicamento_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Tratamiento", null)
+                        .WithMany()
+                        .HasForeignKey("TratamientoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tratamiento_aplicaciones_tratamientos_tratamiento_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Seguridad.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_tratamiento_aplicaciones_usuarios_usuario_id");
                 });
 
             modelBuilder.Entity("JRTropicalFish.Domain.Seguridad.Usuario", b =>

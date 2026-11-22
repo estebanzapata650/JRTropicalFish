@@ -6,6 +6,7 @@ export type IconoNavegacion =
   | "inventario"
   | "importaciones"
   | "exportaciones"
+  | "sanidad"
   | "administracion"
   | "comercial"
   | "seguridad";
@@ -53,6 +54,21 @@ export function construirNavegacion(): ItemNavegacion[] {
         { href: "/inventario/existencias", label: "Existencias", permiso: PERMISOS.INVENTARIO_LEER },
         { href: "/inventario/lotes", label: "Trazabilidad", permiso: PERMISOS.INVENTARIO_LEER },
         { href: "/inventario/acuarios", label: "Acuarios", permiso: PERMISOS.INVENTARIO_LEER },
+      ],
+    },
+    {
+      href: "/sanidad",
+      label: "Sanidad",
+      icono: "sanidad",
+      hijos: [
+        { href: "/sanidad", label: "Mi día", permiso: PERMISOS.SANIDAD_LEER },
+        { href: "/sanidad/tablero", label: "Tablero de acuarios", permiso: PERMISOS.SANIDAD_LEER },
+        { href: "/sanidad/tratamientos", label: "Tratamientos", permiso: PERMISOS.SANIDAD_LEER },
+        { href: "/sanidad/protocolos", label: "Protocolos", permiso: PERMISOS.SANIDAD_LEER },
+        { href: "/sanidad/medicamentos", label: "Medicamentos", permiso: PERMISOS.SANIDAD_LEER },
+        { href: "/sanidad/alimentacion", label: "Alimentos y dietas", permiso: PERMISOS.SANIDAD_LEER },
+        { href: "/sanidad/fichas", label: "Fichas técnicas", permiso: PERMISOS.SANIDAD_LEER },
+        { href: "/sanidad/configuracion", label: "Configuración", permiso: PERMISOS.SANIDAD_GESTIONAR },
       ],
     },
     {

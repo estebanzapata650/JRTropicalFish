@@ -6,6 +6,7 @@ using JRTropicalFish.Domain.Crm;
 using JRTropicalFish.Domain.Exportaciones;
 using JRTropicalFish.Domain.Inventario;
 using JRTropicalFish.Domain.Maestros;
+using JRTropicalFish.Domain.Sanidad;
 using JRTropicalFish.Domain.Seguridad;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,6 +57,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<MovimientoInventario> MovimientosInventario => Set<MovimientoInventario>();
     public DbSet<PedidoCliente> PedidosCliente => Set<PedidoCliente>();
     public DbSet<Embarque> Embarques => Set<Embarque>();
+    public DbSet<Medicamento> Medicamentos => Set<Medicamento>();
+    public DbSet<Tratamiento> Tratamientos => Set<Tratamiento>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -67,6 +70,233 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigurarCatalogos(modelBuilder);
         ConfigurarInventario(modelBuilder);
         ConfigurarExportaciones(modelBuilder);
+        ConfigurarSanidad(modelBuilder);
+    }
+
+    /// <summary>
+    /// Sanidad: medicamentos, alimentos y dietas, fichas técnicas, protocolos, tratamientos por acuario con
+    /// sus aplicaciones, registro de alimentación y reservas de despacho (lo que alimenta el ayuno pre-vuelo).
+    /// </summary>
+    private static void ConfigurarSanidad(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Medicamento>(entity =>
+        {
+            entity.ToTable("medicamentos", t =>
+            {
+                t.HasCheckConstraint("ck_medicamentos_tipo_dosis", EnLista("tipo_dosis", TiposDosis.Todos));
+                t.HasCheckConstraint("ck_medicamentos_unidad", EnLista("unidad", UnidadesSanidad.Medicamento));
+                t.HasCheckConstraint(
+                    "ck_medicamentos_dosis",
+                    "dosis_cantidad > 0 AND dosis_base > 0 AND (dosis_maxima IS NULL OR dosis_maxima >= dosis_cantidad) "
+                    + "AND dias_retiro >= 0 AND (exposicion_minutos IS NULL OR exposicion_minutos > 0)");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Nombre).HasMaxLength(120).IsRequired();
+            entity.Property(e => e.PrincipioActivo).HasMaxLength(120);
+            entity.Property(e => e.Presentacion).HasMaxLength(120);
+            entity.Property(e => e.Unidad).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.TipoDosis).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.DosisCantidad).HasPrecision(12, 4);
+            entity.Property(e => e.DosisMaxima).HasPrecision(12, 4);
+            entity.Property(e => e.DosisBase).HasPrecision(12, 4);
+            entity.Property(e => e.Indicaciones).HasMaxLength(1000);
+            entity.Property(e => e.Contraindicaciones).HasMaxLength(1000);
+            entity.Property(e => e.Fuente).HasMaxLength(300);
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+        });
+
+        modelBuilder.Entity<MedicamentoIncompatible>(entity =>
+        {
+            entity.ToTable("medicamentos_incompatibles", t => t.HasCheckConstraint("ck_medicamentos_incompatibles_par", "medicamento_id < incompatible_id"));
+            entity.HasKey(e => new { e.MedicamentoId, e.IncompatibleId });
+            entity.HasOne<Medicamento>().WithMany().HasForeignKey(e => e.MedicamentoId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Medicamento>().WithMany().HasForeignKey(e => e.IncompatibleId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Alimento>(entity =>
+        {
+            entity.ToTable("alimentos", t =>
+            {
+                t.HasCheckConstraint("ck_alimentos_tipo", EnLista("tipo", TiposAlimento.Todos));
+                t.HasCheckConstraint("ck_alimentos_unidad", EnLista("unidad", UnidadesSanidad.Alimento));
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Nombre).HasMaxLength(120).IsRequired();
+            entity.Property(e => e.Tipo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Unidad).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+        });
+
+        modelBuilder.Entity<Dieta>(entity =>
+        {
+            entity.ToTable("dietas", t =>
+            {
+                t.HasCheckConstraint("ck_dietas_destino", "(grupo_id IS NULL) <> (producto_id IS NULL)");
+                t.HasCheckConstraint("ck_dietas_valores", "veces_dia BETWEEN 1 AND 12 AND cantidad_por100 > 0");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CantidadPor100).HasPrecision(10, 3);
+            entity.Property(e => e.Nota).HasMaxLength(300);
+            entity.HasIndex(e => new { e.GrupoId, e.AlimentoId }).IsUnique().HasFilter("grupo_id IS NOT NULL");
+            entity.HasIndex(e => new { e.ProductoId, e.AlimentoId }).IsUnique().HasFilter("producto_id IS NOT NULL");
+            entity.HasOne<GrupoProducto>().WithMany().HasForeignKey(e => e.GrupoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Alimento>().WithMany().HasForeignKey(e => e.AlimentoId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<FichaTecnica>(entity =>
+        {
+            entity.ToTable("fichas_tecnicas", t => t.HasCheckConstraint(
+                "ck_fichas_tecnicas_rangos",
+                "(ph_min IS NULL OR ph_max IS NULL OR ph_min <= ph_max) AND (gh_min IS NULL OR gh_max IS NULL OR gh_min <= gh_max) "
+                + "AND (temperatura_min IS NULL OR temperatura_max IS NULL OR temperatura_min <= temperatura_max) "
+                + "AND ayuno_llegada_horas BETWEEN 0 AND 168"));
+            entity.HasKey(e => e.ProductoId);
+            entity.Property(e => e.Procedencia).HasMaxLength(500);
+            entity.Property(e => e.Caracteristicas).HasMaxLength(2000);
+            entity.Property(e => e.Dimorfismo).HasMaxLength(1000);
+            entity.Property(e => e.PhMin).HasPrecision(4, 2);
+            entity.Property(e => e.PhMax).HasPrecision(4, 2);
+            entity.Property(e => e.GhMin).HasPrecision(5, 2);
+            entity.Property(e => e.GhMax).HasPrecision(5, 2);
+            entity.Property(e => e.TemperaturaMin).HasPrecision(4, 1);
+            entity.Property(e => e.TemperaturaMax).HasPrecision(4, 1);
+            entity.Property(e => e.Etologia).HasMaxLength(2000);
+            entity.Property(e => e.Empaque).HasMaxLength(500);
+            entity.Property(e => e.SensibilidadQuimica).HasMaxLength(1000);
+            entity.HasOne<Producto>().WithOne().HasForeignKey<FichaTecnica>(e => e.ProductoId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Protocolo>(entity =>
+        {
+            entity.ToTable("protocolos", t =>
+            {
+                t.HasCheckConstraint("ck_protocolos_estado", EnLista("estado", EstadosProtocolo.Todos));
+                t.HasCheckConstraint(
+                    "ck_protocolos_dias",
+                    "(dias_cuarentena IS NULL OR dias_cuarentena BETWEEN 1 AND 120) AND ayuno_inicial_horas BETWEEN 0 AND 168 "
+                    + "AND (estado <> 'aprobado' OR (dias_cuarentena IS NOT NULL AND aprobado_en IS NOT NULL))");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Nombre).HasMaxLength(150).IsRequired();
+            entity.Property(e => e.Descripcion).HasMaxLength(2000);
+            entity.Property(e => e.Estado).HasMaxLength(20).IsRequired();
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasOne<Producto>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<GrupoProducto>().WithMany().HasForeignKey(e => e.GrupoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<CentroAcopio>().WithMany().HasForeignKey(e => e.CentroAcopioId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Cuenca>().WithMany().HasForeignKey(e => e.CuencaId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.AprobadoPorId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProtocoloPaso>(entity =>
+        {
+            entity.ToTable("protocolo_pasos", t =>
+            {
+                t.HasCheckConstraint("ck_protocolo_pasos_accion", EnLista("accion", AccionesSanidad.Todas));
+                t.HasCheckConstraint(
+                    "ck_protocolo_pasos_valores",
+                    "dia BETWEEN 1 AND 120 AND (accion <> 'medicar' OR medicamento_id IS NOT NULL) "
+                    + "AND (porcentaje_agua IS NULL OR porcentaje_agua BETWEEN 1 AND 100)");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Accion).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Nota).HasMaxLength(500);
+            entity.HasIndex(e => new { e.ProtocoloId, e.Dia, e.Orden });
+            entity.HasOne<Protocolo>().WithMany().HasForeignKey(e => e.ProtocoloId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Medicamento>().WithMany().HasForeignKey(e => e.MedicamentoId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Tratamiento>(entity =>
+        {
+            entity.ToTable("tratamientos", t =>
+            {
+                t.HasCheckConstraint("ck_tratamientos_estado", EnLista("estado", EstadosTratamiento.Todos));
+                t.HasCheckConstraint("ck_tratamientos_motivo", EnLista("motivo", MotivosTratamiento.Todos));
+                t.HasCheckConstraint("ck_tratamientos_fechas", "fecha_fin >= fecha_inicio AND fecha_liberacion >= fecha_fin");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Motivo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Diagnostico).HasMaxLength(1000);
+            entity.Property(e => e.Litros).HasPrecision(10, 2);
+            entity.Property(e => e.Estado).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.ReporteClave).HasMaxLength(300);
+            entity.Property(e => e.Nota).HasMaxLength(1000);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasIndex(e => new { e.AcuarioId, e.Estado });
+            entity.HasOne<Acuario>().WithMany().HasForeignKey(e => e.AcuarioId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Protocolo>().WithMany().HasForeignKey(e => e.ProtocoloId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.CreadoPorId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TratamientoAplicacion>(entity =>
+        {
+            entity.ToTable("tratamiento_aplicaciones", t =>
+            {
+                t.HasCheckConstraint("ck_tratamiento_aplicaciones_accion", EnLista("accion", AccionesSanidad.Todas));
+                t.HasCheckConstraint("ck_tratamiento_aplicaciones_estado", EnLista("estado", EstadosAplicacion.Todos));
+                t.HasCheckConstraint(
+                    "ck_tratamiento_aplicaciones_valores",
+                    "(cantidad_calculada IS NULL OR cantidad_calculada >= 0) AND (cantidad_aplicada IS NULL OR cantidad_aplicada >= 0) "
+                    + "AND (accion <> 'medicar' OR medicamento_id IS NOT NULL)");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Accion).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.CantidadCalculada).HasPrecision(12, 4);
+            entity.Property(e => e.CantidadAplicada).HasPrecision(12, 4);
+            entity.Property(e => e.Unidad).HasMaxLength(10);
+            entity.Property(e => e.Estado).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Nota).HasMaxLength(500);
+            entity.Property(e => e.UsuarioNombre).HasMaxLength(200);
+            entity.HasIndex(e => new { e.TratamientoId, e.Fecha, e.Orden });
+            entity.HasIndex(e => new { e.Fecha, e.Estado });
+            entity.HasOne<Tratamiento>().WithMany().HasForeignKey(e => e.TratamientoId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Medicamento>().WithMany().HasForeignKey(e => e.MedicamentoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<RegistroAlimentacion>(entity =>
+        {
+            entity.ToTable("registros_alimentacion", t => t.HasCheckConstraint("ck_registros_alimentacion_cantidad", "cantidad IS NULL OR cantidad >= 0"));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Cantidad).HasPrecision(10, 3);
+            entity.Property(e => e.UsuarioNombre).HasMaxLength(200);
+            entity.HasIndex(e => new { e.AcuarioId, e.Fecha });
+            entity.HasOne<Acuario>().WithMany().HasForeignKey(e => e.AcuarioId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Alimento>().WithMany().HasForeignKey(e => e.AlimentoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ReservaDespacho>(entity =>
+        {
+            entity.ToTable("reservas_despacho", t => t.HasCheckConstraint("ck_reservas_despacho_cantidad", "cantidad > 0"));
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.PedidoClienteLineaId, e.LoteId, e.AcuarioId }).IsUnique();
+            entity.HasIndex(e => new { e.LoteId, e.AcuarioId });
+            entity.HasIndex(e => e.AcuarioId);
+            entity.HasOne<PedidoClienteLinea>().WithMany().HasForeignKey(e => e.PedidoClienteLineaId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Lote>().WithMany().HasForeignKey(e => e.LoteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Acuario>().WithMany().HasForeignKey(e => e.AcuarioId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.CreadoPorId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ParametrosSanidad>(entity =>
+        {
+            entity.ToTable("parametros_sanidad", t =>
+            {
+                t.HasCheckConstraint("ck_parametros_sanidad_fila_unica", "id = 1");
+                // Regla de negocio firme: nunca menos de 48 h de ayuno antes del vuelo.
+                t.HasCheckConstraint("ck_parametros_sanidad_ayuno", "horas_ayuno_vuelo BETWEEN 48 AND 120");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
     }
 
     /// <summary>
@@ -287,6 +517,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.CapacidadLitros).HasPrecision(10, 2);
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.HasOne<Usuario>().WithMany().HasForeignKey(e => e.ResponsableId).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<OfertaProveedor>(entity =>

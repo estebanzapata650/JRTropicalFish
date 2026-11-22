@@ -22,7 +22,8 @@ import {
 import { botonPrimarioClass, botonSecundarioClass, casillaClass, inputClass, selectClass, textareaClass } from "@/lib/estilos";
 import { fecha } from "@/lib/formato";
 import { cambiarEstadoTareaAction, eliminarTareaAction, guardarTareaAction } from "../actions";
-import { SelectMapa, Tablero } from "../comun";
+import { Tablero } from "@/components/Tablero";
+import { SelectMapa } from "../comun";
 import type { ClienteOpcion } from "../pipeline/DialogosOportunidad";
 
 type OportunidadOpcion = { id: string; codigo: string; clienteId: string };

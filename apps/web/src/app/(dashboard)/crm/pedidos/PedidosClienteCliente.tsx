@@ -24,6 +24,8 @@ import { dinero, fecha } from "@/lib/formato";
 import { EditorLineas, aNumero, nuevaLinea, type LineaEditable } from "../../inventario/comun";
 import { cambiarEstadoPedidoClienteAction, despacharPedidoAction, guardarPedidoClienteAction } from "../../inventario/actions";
 import { useDetalle } from "../../compras/useDetalle";
+import { fijarReservaAction } from "../../sanidad/actions";
+import type { Reserva } from "@/lib/sanidad";
 
 type Opcion = { id: string; nombre: string };
 export type VentaOrigen = { id: string; codigo: string; clienteNombre: string; comercialNombre: string; ciudad: string | null };
@@ -512,16 +514,51 @@ function FormularioDespacho({
   onDespachar: (salidas: Record<string, unknown>[]) => void;
   onCancelar: () => void;
 }) {
+  const router = useRouter();
   const pendientes = detalle.lineas.filter((l) => l.pendiente > 0);
   const [cantidades, setCantidades] = useState<Record<string, string>>({});
   const [avisoLocal, setAvisoLocal] = useState<string | null>(null);
+  const [okReserva, setOkReserva] = useState<string | null>(null);
+  const [versionReservas, setVersionReservas] = useState(0);
+  const [reservando, iniciarReserva] = useTransition();
+  const reservas = useDetalle<Reserva[]>(`/api/sanidad/reservas/pedido/${detalle.pedido.id}`, versionReservas);
+
+  /** Lo reservado de una línea en un lote y acuario (0 si nada). */
+  const reservado = (lineaId: string, e: Existencia) =>
+    reservas.datos?.find((r) => r.lineaId === lineaId && r.loteId === e.loteId && r.acuarioId === e.acuarioId)?.cantidad ?? 0;
+  /** Lo escrito, o lo reservado mientras no se escriba nada: el picking parte de la reserva. */
+  const valor = (lineaId: string, e: Existencia) => cantidades[`${lineaId}|${e.id}`] ?? (reservado(lineaId, e) ? String(reservado(lineaId, e)) : "");
+
+  /** Fija las reservas que cambiaron (0 = quitar). Reservar es lo que pone el acuario en ayuno antes del vuelo. */
+  const reservar = (stock: Record<string, Existencia[]>) =>
+    iniciarReserva(async () => {
+      setAvisoLocal(null);
+      setOkReserva(null);
+      const errores: string[] = [];
+      let cambios = 0;
+      for (const l of pendientes) {
+        for (const e of stock[l.productoId] ?? []) {
+          const n = aNumero(valor(l.id, e)) ?? 0;
+          if (n === reservado(l.id, e) || !e.acuarioId) continue;
+          cambios++;
+          const r = await fijarReservaAction(l.id, e.loteId, e.acuarioId, n);
+          if (r.error) errores.push(`${e.acuarioCodigo}: ${r.error}`);
+        }
+      }
+      if (cambios === 0) setAvisoLocal("No hay cambios en las reservas.");
+      else if (errores.length) setAvisoLocal(errores.join(" "));
+      else setOkReserva("Reservas guardadas. Si el pedido sale en un vuelo, esos acuarios entran en ayuno 48 h antes.");
+      setCantidades({});
+      setVersionReservas((v) => v + 1);
+      router.refresh();
+    });
 
   const enviar = (stock: Record<string, Existencia[]>) => {
     const salidas: Record<string, unknown>[] = [];
     for (const l of pendientes) {
       let suma = 0;
       for (const e of stock[l.productoId] ?? []) {
-        const n = aNumero(cantidades[`${l.id}|${e.id}`] ?? "") ?? 0;
+        const n = aNumero(valor(l.id, e)) ?? 0;
         if (n <= 0) continue;
         suma += n;
         salidas.push({ lineaId: l.id, loteId: e.loteId, acuarioId: e.acuarioId, cantidad: n });
@@ -549,10 +586,13 @@ function FormularioDespacho({
           }}
           className="flex flex-col gap-5"
         >
-          <p className="text-sm text-texto-suave">Solo aparece el stock sano y ubicado en acuario. Escribe cuántos salen de cada lote y acuario.</p>
+          <p className="text-sm text-texto-suave">
+            Solo aparece el stock sano y ubicado en acuario. Escribe cuántos salen de cada lote y acuario. <strong>Reservar</strong> aparta esos peces
+            para el pedido (bodega los ve en Mi día y, si salen en un vuelo, el acuario entra en ayuno); <strong>Despachar</strong> los descuenta.
+          </p>
           {pendientes.map((l) => {
             const opciones = stock[l.productoId] ?? [];
-            const suma = opciones.reduce((s, e) => s + (aNumero(cantidades[`${l.id}|${e.id}`] ?? "") ?? 0), 0);
+            const suma = opciones.reduce((s, e) => s + (aNumero(valor(l.id, e)) ?? 0), 0);
             return (
               <fieldset key={l.id} className="flex flex-col gap-2 rounded-md border border-borde p-3">
                 <legend className="px-1 text-sm text-texto">
@@ -574,6 +614,7 @@ function FormularioDespacho({
                           <span className="font-mono">{e.acuarioCodigo}</span> · {e.loteCodigo}
                           <span className="block text-xs text-texto-suave">
                             {piezas(e.cantidad)} disponibles · {e.diasEnBodega} días
+                            {reservado(l.id, e) ? <span className="font-medium text-info-texto"> · {piezas(reservado(l.id, e))} reservados</span> : null}
                           </span>
                         </span>
                         <input
@@ -582,7 +623,7 @@ function FormularioDespacho({
                           inputMode="numeric"
                           min={0}
                           max={e.cantidad}
-                          value={cantidades[`${l.id}|${e.id}`] ?? ""}
+                          value={valor(l.id, e)}
                           onChange={(ev) => setCantidades((c) => ({ ...c, [`${l.id}|${e.id}`]: ev.target.value }))}
                           className={inputClass}
                         />
@@ -594,9 +635,13 @@ function FormularioDespacho({
             );
           })}
           {avisoLocal || error ? <p className="text-sm text-peligro">{avisoLocal ?? error}</p> : null}
+          {okReserva ? <p className="rounded-md bg-exito-fondo px-3 py-2 text-sm text-exito-texto">{okReserva}</p> : null}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" onClick={onCancelar} className={botonSecundarioClass}>
               Volver
+            </button>
+            <button type="button" disabled={reservando || cargando || reservas.cargando} onClick={() => reservar(stock)} className={botonSecundarioClass}>
+              {reservando ? "Reservando…" : "Reservar acuarios"}
             </button>
             <button type="submit" disabled={guardando || cargando} className={`${botonPrimarioClass} gap-2`}>
               <Truck className="size-4" aria-hidden /> {guardando ? "Despachando…" : "Despachar"}

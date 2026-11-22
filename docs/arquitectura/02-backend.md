@@ -184,6 +184,28 @@ filas de totales, tablas compactas, hoja horizontal y pie propio; todo opcional 
 La factura emitida se guarda en S3 (`embarque_documentos`) y se sirve tal cual. En el web, los PDF y el logo van
 por route handlers con streaming (`app/archivos/exportaciones/...`), nunca por el proxy.
 
+### Endpoints de sanidad
+
+Todo bajo `api/v1/sanidad`. Reglas en [`../dominio/sanidad.md`](../dominio/sanidad.md).
+
+| Método y ruta | Permiso |
+|---|---|
+| `GET /{medicamentos, alimentos, dietas, fichas, fichas/{productoId}, protocolos, protocolos/{id}, parametros, acuarios}` · `GET /mi-dia` · `GET /tablero` · `GET /tratamientos[?vigentes=true]` · `GET /tratamientos/{id}[/reporte]` · `GET /historial/{entidad}/{id}` | `sanidad:leer` |
+| `POST/PUT /{medicamentos, alimentos, dietas, protocolos}` · `DELETE /dietas/{id}` · `PUT /fichas/{productoId}` · `PUT /parametros` · `PUT /acuarios/{id}/responsable` · `POST /tratamientos/{id}/reporte` | `sanidad:gestionar` |
+| `PUT /protocolos/{id}/estado` | `gestionar`; aprobar exige además `sanidad:aprobar-protocolo` |
+| `POST /tratamientos` (desde protocolo aprobado; sin protocolo exige `gestionar`) · `PUT /tratamientos/{id}/estado` · `PUT /aplicaciones/{id}/{aplicar, omitir}` · `POST /alimentacion` | `sanidad:operar` |
+| `GET /reservas/pedido/{pedidoId}` | `inventario:leer` |
+| `PUT /reservas` (fija lo reservado de una línea en un lote y acuario; 0 = quitar) | `pedidos:despachar` |
+
+**Nuevo SQLSTATE `JR004`**: acuario en tratamiento o en tiempo de retiro (409). Lo lanzan `sp_reserva_fijar` y
+`sp_pedido_cliente_despachar`, que la migración `FuncionesSanidad` rehízo con la misma firma: además respeta lo
+reservado para otros pedidos y consume la reserva de la línea. Los `RAISE EXCEPTION` sin código (P0001) de los
+procedimientos de sanidad llegan como validación (400) por `RepositorioSanidad.EjecutarValidandoAsync`.
+
+El tablero y Mi día se calculan en C# (`SanidadService` + `ReglasSanidad`) a partir de cuatro lecturas planas
+(`fn_sanidad_acuarios`, `fn_sanidad_existencias`, `fn_sanidad_tratamientos_vigentes`, `fn_sanidad_reservas`), para
+que las reglas de estado y ayuno estén probadas sin base de datos.
+
 ## Transversales disponibles
 
 | Pieza | Para qué | Dónde |

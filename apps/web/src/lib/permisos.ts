@@ -42,6 +42,10 @@ export const PERMISOS = {
   EXPORTACIONES_GESTIONAR: "exportaciones:gestionar",
   EXPORTACIONES_EMPACAR: "exportaciones:empacar",
   EXPORTACIONES_CONFIGURAR: "exportaciones:configurar",
+  SANIDAD_LEER: "sanidad:leer",
+  SANIDAD_OPERAR: "sanidad:operar",
+  SANIDAD_GESTIONAR: "sanidad:gestionar",
+  SANIDAD_APROBAR_PROTOCOLO: "sanidad:aprobar-protocolo",
   // Catálogos, Inventario, Importaciones y Exportaciones se agregan con cada módulo
   // (ver docs/dominio/modulos.md).
 } as const;

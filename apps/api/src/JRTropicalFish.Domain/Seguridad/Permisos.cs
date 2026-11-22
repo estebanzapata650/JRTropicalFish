@@ -99,6 +99,19 @@ public static class Permisos
     /// <summary>Datos de la empresa, tipos de caja y bolsa, cargos y tarifas de flete.</summary>
     public const string ExportacionesConfigurar = "exportaciones:configurar";
 
+    // --- Sanidad: medicación, cuarentena y alimentación ---
+    /// <summary>Mi día, tablero de acuarios, tratamientos y maestros de sanidad (solo lectura).</summary>
+    public const string SanidadLeer = "sanidad:leer";
+
+    /// <summary>Aplicar dosis, registrar alimentación e iniciar la profilaxis sugerida (operario de bodega).</summary>
+    public const string SanidadOperar = "sanidad:operar";
+
+    /// <summary>Medicamentos, alimentos, dietas, fichas técnicas, protocolos en borrador y tratamientos manuales.</summary>
+    public const string SanidadGestionar = "sanidad:gestionar";
+
+    /// <summary>Aprobar protocolos (veterinario o gerencia): solo un protocolo aprobado se sugiere al recibir.</summary>
+    public const string SanidadAprobarProtocolo = "sanidad:aprobar-protocolo";
+
     // Módulos de negocio (Catálogos, Inventario, Importaciones, Exportaciones): sus permisos se
     // agregan con cada módulo. El mapa previsto está en docs/dominio/modulos.md.
 
@@ -147,6 +160,10 @@ public static class Permisos
         [ExportacionesGestionar] = "Preinvoice, factura, nota crédito y envío de documentos al cliente",
         [ExportacionesEmpacar] = "Registrar el empaque real de un embarque (cajas y bolsas)",
         [ExportacionesConfigurar] = "Datos de la empresa, cajas, bolsas, cargos y tarifas de flete",
+        [SanidadLeer] = "Consultar sanidad: mi día, tablero de acuarios, tratamientos y maestros",
+        [SanidadOperar] = "Aplicar dosis, registrar alimentación e iniciar profilaxis",
+        [SanidadGestionar] = "Medicamentos, alimentos, dietas, fichas técnicas, protocolos y tratamientos",
+        [SanidadAprobarProtocolo] = "Aprobar protocolos de cuarentena y profilaxis (veterinario o gerencia)",
     };
 
     /// <summary>
@@ -176,25 +193,27 @@ public static class PerfilesPlantilla
                 Permisos.MetasLeer, Permisos.CatalogosLeer, Permisos.PreciosLeer, Permisos.ProveedoresLeer,
                 Permisos.InventarioLeer, Permisos.InventarioOperar, Permisos.ComprasGestionar, Permisos.ComprasRecibir,
                 Permisos.PedidosDespachar, Permisos.ExportacionesLeer, Permisos.ExportacionesGestionar, Permisos.ExportacionesEmpacar,
+                Permisos.SanidadLeer, Permisos.SanidadOperar, Permisos.SanidadGestionar,
             ],
             [Consulta] =
             [
                 Permisos.UsuariosLeer, Permisos.PerfilesLeer, Permisos.MaestrosLeer, Permisos.EmpleadosLeer,
                 Permisos.ClientesLeer, Permisos.CrmLeer, Permisos.MetasLeer, Permisos.CatalogosLeer, Permisos.PreciosLeer,
-                Permisos.ProveedoresLeer, Permisos.InventarioLeer, Permisos.ExportacionesLeer,
+                Permisos.ProveedoresLeer, Permisos.InventarioLeer, Permisos.ExportacionesLeer, Permisos.SanidadLeer,
             ],
             // Comercial: ve y gestiona solo lo suyo (sin crm:ver-todo).
             [Comercial] =
             [
                 Permisos.ClientesLeer, Permisos.ClientesEditar, Permisos.CrmLeer, Permisos.CrmVender, Permisos.MetasLeer,
                 Permisos.CatalogosLeer, Permisos.PreciosLeer, Permisos.InventarioLeer, Permisos.PedidosGestionar,
-                Permisos.ExportacionesLeer, Permisos.ExportacionesGestionar,
+                Permisos.ExportacionesLeer, Permisos.ExportacionesGestionar, Permisos.SanidadLeer,
             ],
             // Bodega (rol del Excel de inventario): recibe, ubica, registra novedades y despacha.
             [Bodega] =
             [
                 Permisos.CatalogosLeer, Permisos.InventarioLeer, Permisos.InventarioOperar, Permisos.ComprasRecibir,
                 Permisos.PedidosDespachar, Permisos.ExportacionesLeer, Permisos.ExportacionesEmpacar,
+                Permisos.SanidadLeer, Permisos.SanidadOperar,
             ],
         };
 }

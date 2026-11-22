@@ -125,6 +125,7 @@ public static class FallasInventario
         "JR001" => Error.Conflicto("Otra persona cambió este registro mientras tanto. Recarga la página."),
         "JR002" => Error.Conflicto($"No hay suficiente stock: {falla.Mensaje}"),
         "JR003" => Error.Validacion(falla.Mensaje),
+        "JR004" => Error.Conflicto(falla.Mensaje),
         _ => Error.Validacion(falla.Mensaje),
     };
 }

@@ -145,6 +145,15 @@ export function FichaEmbarque({
             {e.comercialNombre}
             {e.facturaNumero ? ` · factura ${e.facturaNumero}` : ""}
           </p>
+          {e.pedidoClienteId && !e.facturaNumero ? (
+            <p className="text-xs text-texto-suave">
+              Los acuarios que salen se reservan en el{" "}
+              <Link href={`/crm/pedidos?id=${e.pedidoClienteId}`} className="text-acento hover:underline">
+                picking del pedido
+              </Link>
+              : desde {e.salidaVuelo ? "48 h antes del vuelo" : "las 00:00 del despacho (falta la hora del vuelo)"} quedan en ayuno.
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           {acciones.map((a) => (

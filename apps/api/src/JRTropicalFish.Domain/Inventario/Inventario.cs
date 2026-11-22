@@ -13,7 +13,11 @@ public class Acuario : EntidadBase
 
     public int Posicion { get; set; }
 
+    /// <summary>Litros de agua: base del cálculo de dosis de los baños.</summary>
     public decimal? CapacidadLitros { get; set; }
+
+    /// <summary>Operario responsable (aparece en el tablero de sanidad).</summary>
+    public Guid? ResponsableId { get; set; }
 
     public bool Activo { get; set; } = true;
 }

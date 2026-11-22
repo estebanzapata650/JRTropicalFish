@@ -17,6 +17,7 @@ import {
   PlaneLanding,
   PlaneTakeoff,
   ShieldCheck,
+  Stethoscope,
   UserRound,
   X,
 } from "lucide-react";
@@ -29,6 +30,7 @@ const iconos: Record<IconoNavegacion, typeof LayoutDashboard> = {
   inventario: PackageCheck,
   importaciones: PlaneLanding,
   exportaciones: PlaneTakeoff,
+  sanidad: Stethoscope,
   administracion: Briefcase,
   comercial: Handshake,
   seguridad: ShieldCheck,
