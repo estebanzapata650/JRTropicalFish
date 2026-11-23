@@ -1,13 +1,14 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useMemo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { ProductoOpcion } from "@/lib/inventario";
+import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { botonSecundarioClass, inputClass } from "@/lib/estilos";
 
 /**
- * Elegir una especie entre ~800 escribiendo su código o nombre (datalist nativo: funciona igual en
- * móvil y no necesita librería). El valor es el id del producto; el texto visible es "CÓDIGO · nombre".
+ * Elegir una especie entre ~800 escribiendo su código, su nombre o las iniciales: la lista se acorta mientras
+ * se escribe. El valor es el id del producto.
  */
 export function SelectorProducto({
   productos,
@@ -20,32 +21,19 @@ export function SelectorProducto({
   onChange: (id: string) => void;
   etiqueta: string;
 }) {
-  const lista = useId();
-  const textoDe = (p: ProductoOpcion) => `${p.codigo} · ${p.nombre}`;
-  const actual = productos.find((p) => p.id === valor);
-  const [texto, setTexto] = useState(actual ? textoDe(actual) : "");
-
+  const opciones = useMemo(
+    () =>
+      productos.map((p) => ({ id: p.id, nombre: `${p.codigo} · ${p.nombre}` })),
+    [productos],
+  );
   return (
-    <>
-      <input
-        aria-label={etiqueta}
-        list={lista}
-        value={texto}
-        placeholder="Código o nombre de la especie…"
-        onChange={(e) => {
-          setTexto(e.target.value);
-          const codigo = e.target.value.split("·")[0].trim().toUpperCase();
-          const elegido = productos.find((p) => p.codigo === codigo);
-          onChange(elegido?.id ?? "");
-        }}
-        className={`${inputClass} ${texto && !valor ? "border-peligro" : ""}`}
-      />
-      <datalist id={lista}>
-        {productos.map((p) => (
-          <option key={p.id} value={textoDe(p)} />
-        ))}
-      </datalist>
-    </>
+    <SelectorBuscable
+      opciones={opciones}
+      valor={valor}
+      onChange={onChange}
+      etiqueta={etiqueta}
+      placeholder="Código o nombre de la especie…"
+    />
   );
 }
 
@@ -60,7 +48,9 @@ export type LineaEditable = {
   minimo?: number;
 };
 
-export const nuevaLinea = (parcial: Partial<LineaEditable> = {}): LineaEditable => ({
+export const nuevaLinea = (
+  parcial: Partial<LineaEditable> = {},
+): LineaEditable => ({
   clave: crypto.randomUUID(),
   productoId: "",
   cantidad: "",
@@ -94,8 +84,16 @@ export function EditorLineas({
     <div className="flex flex-col gap-3">
       <ul className="flex flex-col gap-3">
         {lineas.map((l, i) => (
-          <li key={l.clave} className="grid grid-cols-1 gap-2 rounded-md border border-borde p-3 md:grid-cols-[2fr_7rem_8rem_1.5fr_auto] md:items-center md:border-0 md:p-0">
-            <SelectorProducto productos={productos} valor={l.productoId} onChange={(id) => cambiar(l.clave, { productoId: id })} etiqueta={`Especie de la línea ${i + 1}`} />
+          <li
+            key={l.clave}
+            className="grid grid-cols-1 gap-2 rounded-md border border-borde p-3 md:grid-cols-[2fr_7rem_8rem_1.5fr_auto] md:items-center md:border-0 md:p-0"
+          >
+            <SelectorProducto
+              productos={productos}
+              valor={l.productoId}
+              onChange={(id) => cambiar(l.clave, { productoId: id })}
+              etiqueta={`Especie de la línea ${i + 1}`}
+            />
             <input
               aria-label={`Cantidad de la línea ${i + 1}`}
               type="number"
@@ -128,7 +126,9 @@ export function EditorLineas({
                 placeholder="Observación (opcional)"
                 maxLength={500}
                 value={l.observacion}
-                onChange={(e) => cambiar(l.clave, { observacion: e.target.value })}
+                onChange={(e) =>
+                  cambiar(l.clave, { observacion: e.target.value })
+                }
                 className={inputClass}
               />
             ) : (
@@ -136,19 +136,33 @@ export function EditorLineas({
             )}
             <button
               type="button"
-              onClick={() => onChange(lineas.filter((x) => x.clave !== l.clave))}
+              onClick={() =>
+                onChange(lineas.filter((x) => x.clave !== l.clave))
+              }
               disabled={(l.minimo ?? 0) > 0}
-              title={(l.minimo ?? 0) > 0 ? "Tiene despachos: no se puede quitar" : "Quitar"}
+              title={
+                (l.minimo ?? 0) > 0
+                  ? "Tiene despachos: no se puede quitar"
+                  : "Quitar"
+              }
               aria-label={`Quitar la línea ${i + 1}`}
               className="inline-flex size-11 items-center justify-center justify-self-end rounded-md text-peligro hover:bg-acento-suave disabled:opacity-30"
             >
               <Trash2 className="size-4" aria-hidden />
             </button>
-            {(l.minimo ?? 0) > 0 ? <p className="text-xs text-texto-suave md:col-span-5">Ya despachados: {l.minimo} (mínimo).</p> : null}
+            {(l.minimo ?? 0) > 0 ? (
+              <p className="text-xs text-texto-suave md:col-span-5">
+                Ya despachados: {l.minimo} (mínimo).
+              </p>
+            ) : null}
           </li>
         ))}
       </ul>
-      <button type="button" onClick={() => onChange([...lineas, nuevaLinea()])} className={`${botonSecundarioClass} w-fit gap-2`}>
+      <button
+        type="button"
+        onClick={() => onChange([...lineas, nuevaLinea()])}
+        className={`${botonSecundarioClass} w-fit gap-2`}
+      >
         <Plus className="size-4" aria-hidden /> Agregar especie
       </button>
     </div>
@@ -156,4 +170,5 @@ export function EditorLineas({
 }
 
 /** Líneas del editor → cuerpo para la API. */
-export const aNumero = (t: string) => (t.trim() === "" ? null : Number(t.replace(",", ".")));
+export const aNumero = (t: string) =>
+  t.trim() === "" ? null : Number(t.replace(",", "."));

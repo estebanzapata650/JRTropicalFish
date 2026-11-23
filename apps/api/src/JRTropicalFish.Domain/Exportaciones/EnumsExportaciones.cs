@@ -50,7 +50,20 @@ public static class TiposDocumentoEmbarque
     public const string NotaCredito = "nota_credito";
     public const string Balance = "balance";
 
-    public static readonly IReadOnlyList<string> Todos = [Preinvoice, Flete, OrdenCargue, Empaque, Factura, NotaCredito, Balance];
+    /// <summary>Solicitud de permiso a la AUNAP (proforma): lo pedido, por especie AUNAP, con cantidades y precios reales.</summary>
+    public const string SolicitudAunap = "solicitud_aunap";
+
+    /// <summary>Packing list para aduana y aeropuerto: el empaque real, caja por caja, con el código y nombre AUNAP.</summary>
+    public const string PackingAduana = "packing_aduana";
+
+    /// <summary>Custom invoice: la factura real agrupada por especie AUNAP (mismos totales).</summary>
+    public const string FacturaAduana = "factura_aduana";
+
+    public static readonly IReadOnlyList<string> Todos =
+        [Preinvoice, Flete, OrdenCargue, Empaque, Factura, NotaCredito, Balance, SolicitudAunap, PackingAduana, FacturaAduana];
+
+    /// <summary>Documentos para autoridades: salen de lo real y exigen que cada especie tenga código AUNAP.</summary>
+    public static readonly IReadOnlyList<string> Autoridades = [SolicitudAunap, PackingAduana, FacturaAduana];
 }
 
 /// <summary>Cargos fijos del despacho (hoja Parametros del Excel). Los códigos son estables.</summary>

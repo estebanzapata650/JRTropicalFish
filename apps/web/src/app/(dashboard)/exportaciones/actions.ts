@@ -107,3 +107,16 @@ export async function subirLogoAction(formData: FormData): Promise<EstadoFormula
   revalidatePath("/exportaciones", "layout");
   return { ok: true };
 }
+
+// --- AUNAP ---
+export async function enlazarProductoAunapAction(productoId: string, especieAunapId: string | null) {
+  return ejecutar(`${base}/aunap/productos/${productoId}`, "PUT", { especieAunapId }, "No se pudo enlazar el producto.");
+}
+
+export async function enlazarAunapAutomaticoAction() {
+  return ejecutar<{ enlazados: number }>(`${base}/aunap/productos/enlazar-automatico`, "POST", null, "No se pudo enlazar.");
+}
+
+export async function guardarPermisoAunapAction(embarqueId: string, datos: Cuerpo) {
+  return ejecutar(`${base}/embarques/${embarqueId}/aunap/permiso`, "PUT", datos, "No se pudo guardar el permiso.");
+}

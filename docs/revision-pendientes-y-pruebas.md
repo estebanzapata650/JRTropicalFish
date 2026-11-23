@@ -13,7 +13,9 @@
 
 | ✔ | Hueco | Qué pasa hoy | Qué se necesita |
 |---|---|---|---|
-| ☐ | **Documentos para autoridades**: proforma AUNAP (solicitud de permiso), lista de empaque del aeropuerto, custom invoice, informe AUNAP y resumen para Siigo | No existen en el sistema. En el despacho real 12186 esos documentos declaraban **4.578 peces** contra **6.174 facturados**, y la proforma iba a ≈ 40 % del precio | La regla de gerencia. El sistema los generará **solo desde la lista de empaque real** (nunca con cantidades o valores menores). Además se necesita el catálogo AUNAP (575 especies) y el código AUNAP de cada producto |
+| ☐ | **Productos sin código AUNAP** (383 de 794) | La solicitud AUNAP, el packing list de aduana y la custom invoice ya existen y salen de lo real. Un producto sin código no se puede declarar | Revisar sinónimos en Exportaciones → AUNAP. Para las especies que no están en la Resolución 1924, decidir si se retiran de la exportación o se tramita su autorización |
+| ☐ | **Grupos de códigos AUNAP** 600–611, 700–739 y 1*–24* | Se importaron tal cual | Confirmar qué implica cada grupo (¿restricciones, especies exóticas, especies peligrosas?) |
+| ☐ | **Informe AUNAP posterior y resumen para Siigo** | No existen | Definir el formato; saldrán de los mismos datos reales |
 | ☐ | **Columnas ADD y FINAL** de la factura JRCH | Se suman al DOA para la nota crédito, igual que en el Excel | Confirmar qué significa cada una |
 | ☐ | **Hoja «Parametros agua»** del libro de formatos | Está rota en el Excel; no se migró | Saber si se usa y con qué datos |
 

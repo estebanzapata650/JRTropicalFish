@@ -1,19 +1,45 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { useRouter } from "next/navigation";
 import { Calculator, History, Plus } from "lucide-react";
 import { Dialogo } from "@/components/Dialogo";
 import { DialogoConfirmacion } from "@/components/DialogoConfirmacion";
 import { HistorialRemoto } from "@/components/HistorialCambios";
 import { PageHeader } from "@/components/PageHeader";
-import { BotonIcono, Campo, CampoAncho, Casilla, EncabezadoTabla, Etiqueta, RejillaCampos, Seccion, TablaResponsive } from "@/components/campos";
-import { ETIQUETAS_HISTORIAL_CATALOGO, textoRegla, type ListaPrecios, type ParametrosPrecios } from "@/lib/catalogos";
-import { botonPrimarioClass, botonSecundarioClass, inputClass, selectClass } from "@/lib/estilos";
-import { guardarListaAction, guardarParametrosPreciosAction, recalcularListaAction } from "../actions";
+import {
+  BotonIcono,
+  Campo,
+  CampoAncho,
+  Casilla,
+  EncabezadoTabla,
+  Etiqueta,
+  RejillaCampos,
+  Seccion,
+  TablaResponsive,
+} from "@/components/campos";
+import {
+  ETIQUETAS_HISTORIAL_CATALOGO,
+  textoRegla,
+  type ListaPrecios,
+  type ParametrosPrecios,
+} from "@/lib/catalogos";
+import {
+  botonPrimarioClass,
+  botonSecundarioClass,
+  inputClass,
+  selectClass,
+} from "@/lib/estilos";
+import {
+  guardarListaAction,
+  guardarParametrosPreciosAction,
+  recalcularListaAction,
+} from "../actions";
 
 type Opcion = { id: string; nombre: string };
-const numero = (t: string) => (t.trim() === "" ? null : Number(t.replace(",", ".")));
+const numero = (t: string) =>
+  t.trim() === "" ? null : Number(t.replace(",", "."));
 const texto = (v: number | null | undefined) => (v == null ? "" : String(v));
 
 /**
@@ -70,7 +96,9 @@ export function PreciosCliente({
       }
       setAviso(
         `«${recalculando.nombre}»: ${r.datos.cambiados} precios actualizados de ${r.datos.calculados} calculados` +
-          (r.datos.sinBase ? `; ${r.datos.sinBase} productos sin precio base quedaron igual.` : "."),
+          (r.datos.sinBase
+            ? `; ${r.datos.sinBase} productos sin precio base quedaron igual.`
+            : "."),
       );
       cerrar();
       router.refresh();
@@ -83,48 +111,97 @@ export function PreciosCliente({
         descripcion="Cada producto tiene un precio por lista. Las listas con regla se pueden recalcular desde su lista base."
         acciones={
           puedeEditar ? (
-            <button type="button" onClick={() => setCreando(true)} className={`${botonPrimarioClass} gap-2`}>
+            <button
+              type="button"
+              onClick={() => setCreando(true)}
+              className={`${botonPrimarioClass} gap-2`}
+            >
               <Plus className="size-4" aria-hidden /> Nueva lista
             </button>
           ) : null
         }
       />
 
-      {aviso ? <p role="status" className="rounded-md bg-exito-fondo px-3 py-2 text-sm text-exito-texto">{aviso}</p> : null}
+      {aviso ? (
+        <p
+          role="status"
+          className="rounded-md bg-exito-fondo px-3 py-2 text-sm text-exito-texto"
+        >
+          {aviso}
+        </p>
+      ) : null}
 
       <TablaResponsive compactaEnMovil>
         <EncabezadoTabla>
           <tr className="text-texto-suave">
             <th className="px-4 py-3 font-medium">Lista</th>
-            <th className="hidden px-4 py-3 font-medium md:table-cell">Regla</th>
-            <th className="hidden px-4 py-3 text-right font-medium sm:table-cell">Productos</th>
+            <th className="hidden px-4 py-3 font-medium md:table-cell">
+              Regla
+            </th>
+            <th className="hidden px-4 py-3 text-right font-medium sm:table-cell">
+              Productos
+            </th>
             <th className="px-4 py-3 text-right font-medium">Acciones</th>
           </tr>
         </EncabezadoTabla>
         <tbody>
           {listas.map((l) => (
-            <tr key={l.id} className={`border-b border-borde last:border-0 ${l.activo ? "" : "opacity-60"}`}>
+            <tr
+              key={l.id}
+              className={`border-b border-borde last:border-0 ${l.activo ? "" : "opacity-60"}`}
+            >
               <td className="px-4 py-3">
                 <p className="font-medium text-texto">
-                  {l.nombre} <span className="text-xs font-normal text-texto-suave">{l.moneda}</span>
+                  {l.nombre}{" "}
+                  <span className="text-xs font-normal text-texto-suave">
+                    {l.moneda}
+                  </span>
                 </p>
                 <p className="flex flex-wrap items-center gap-1.5 text-xs text-texto-suave">
                   <span className="font-mono">{l.codigo}</span>
-                  {l.esCosto ? <Etiqueta texto="Costo (reservado)" tono="advertencia" /> : null}
-                  {l.clienteNombre ? <span>· Cliente: {l.clienteNombre}</span> : null}
-                  {!l.activo ? <Etiqueta texto="Inactiva" tono="neutro" /> : null}
+                  {l.esCosto ? (
+                    <Etiqueta texto="Costo (reservado)" tono="advertencia" />
+                  ) : null}
+                  {l.clienteNombre ? (
+                    <span>· Cliente: {l.clienteNombre}</span>
+                  ) : null}
+                  {!l.activo ? (
+                    <Etiqueta texto="Inactiva" tono="neutro" />
+                  ) : null}
                 </p>
-                <p className="text-xs text-texto-suave md:hidden">{textoRegla(l)}</p>
+                <p className="text-xs text-texto-suave md:hidden">
+                  {textoRegla(l)}
+                </p>
               </td>
-              <td className="hidden px-4 py-3 text-texto md:table-cell">{textoRegla(l)}</td>
-              <td className="hidden px-4 py-3 text-right tabular-nums text-texto sm:table-cell">{l.productos}</td>
+              <td className="hidden px-4 py-3 text-texto md:table-cell">
+                {textoRegla(l)}
+              </td>
+              <td className="hidden px-4 py-3 text-right tabular-nums text-texto sm:table-cell">
+                {l.productos}
+              </td>
               <td className="px-4 py-3">
                 <div className="flex justify-end">
                   {puedeEditar && l.listaBaseId ? (
-                    <BotonIcono accion="otra" icono={Calculator} etiqueta={`Recalcular ${l.nombre}`} onClick={() => setRecalculando(l)} />
+                    <BotonIcono
+                      accion="otra"
+                      icono={Calculator}
+                      etiqueta={`Recalcular ${l.nombre}`}
+                      onClick={() => setRecalculando(l)}
+                    />
                   ) : null}
-                  <BotonIcono accion="otra" icono={History} etiqueta={`Historial de ${l.nombre}`} onClick={() => setHistorialDe(l)} />
-                  {puedeEditar ? <BotonIcono accion="editar" etiqueta={`Editar ${l.nombre}`} onClick={() => setEditando(l)} /> : null}
+                  <BotonIcono
+                    accion="otra"
+                    icono={History}
+                    etiqueta={`Historial de ${l.nombre}`}
+                    onClick={() => setHistorialDe(l)}
+                  />
+                  {puedeEditar ? (
+                    <BotonIcono
+                      accion="editar"
+                      etiqueta={`Editar ${l.nombre}`}
+                      onClick={() => setEditando(l)}
+                    />
+                  ) : null}
                 </div>
               </td>
             </tr>
@@ -134,7 +211,14 @@ export function PreciosCliente({
 
       <FormularioParametros parametros={parametros} puedeEditar={puedeEditar} />
 
-      <Dialogo titulo={editando ? `Editar ${editando.nombre}` : "Nueva lista de precios"} abierto={creando || editando !== null} onCerrar={cerrar} ancho="max-w-4xl">
+      <Dialogo
+        titulo={
+          editando ? `Editar ${editando.nombre}` : "Nueva lista de precios"
+        }
+        abierto={creando || editando !== null}
+        onCerrar={cerrar}
+        ancho="max-w-4xl"
+      >
         <FormularioLista
           key={editando?.id ?? "nueva"}
           lista={editando}
@@ -147,9 +231,16 @@ export function PreciosCliente({
           onCancelar={cerrar}
         />
       </Dialogo>
-      <Dialogo titulo={historialDe ? `Historial de ${historialDe.nombre}` : ""} abierto={historialDe !== null} onCerrar={() => setHistorialDe(null)}>
+      <Dialogo
+        titulo={historialDe ? `Historial de ${historialDe.nombre}` : ""}
+        abierto={historialDe !== null}
+        onCerrar={() => setHistorialDe(null)}
+      >
         {historialDe ? (
-          <HistorialRemoto ruta={`/api/catalogos/precios/listas/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CATALOGO} />
+          <HistorialRemoto
+            ruta={`/api/catalogos/precios/listas/${historialDe.id}/historial`}
+            etiquetas={ETIQUETAS_HISTORIAL_CATALOGO}
+          />
         ) : null}
       </Dialogo>
       <DialogoConfirmacion
@@ -157,9 +248,11 @@ export function PreciosCliente({
         mensaje={
           recalculando ? (
             <>
-              Se recalculará <strong>{recalculando.nombre}</strong> con su regla: {textoRegla(recalculando)}. Los precios de los
-              productos que tienen precio en «{recalculando.listaBaseNombre}» se reemplazan; los demás quedan igual. Cada cambio
-              queda en el historial.
+              Se recalculará <strong>{recalculando.nombre}</strong> con su
+              regla: {textoRegla(recalculando)}. Los precios de los productos
+              que tienen precio en «{recalculando.listaBaseNombre}» se
+              reemplazan; los demás quedan igual. Cada cambio queda en el
+              historial.
             </>
           ) : null
         }
@@ -198,7 +291,9 @@ function FormularioLista({
   const [moneda, setMoneda] = useState(lista?.moneda ?? "USD");
   const [esCosto, setEsCosto] = useState(lista?.esCosto ?? false);
   const [clienteId, setClienteId] = useState(lista?.clienteId ?? "");
-  const [orden, setOrden] = useState(texto(lista?.orden ?? listas.length * 10 + 10));
+  const [orden, setOrden] = useState(
+    texto(lista?.orden ?? listas.length * 10 + 10),
+  );
   const [activo, setActivo] = useState(lista?.activo ?? true);
   const [baseId, setBaseId] = useState(lista?.listaBaseId ?? "");
   const [fs, setFs] = useState(texto(lista?.factorSalvaje));
@@ -211,7 +306,10 @@ function FormularioLista({
   const bases = listas.filter((l) => l.id !== lista?.id && l.moneda === moneda);
   const opcionesCliente =
     lista?.clienteId && !clientes.some((c) => c.id === lista.clienteId)
-      ? [...clientes, { id: lista.clienteId, nombre: lista.clienteNombre ?? "—" }]
+      ? [
+          ...clientes,
+          { id: lista.clienteId, nombre: lista.clienteNombre ?? "—" },
+        ]
       : clientes;
 
   return (
@@ -238,41 +336,87 @@ function FormularioLista({
     >
       <Seccion titulo="Lista">
         <RejillaCampos>
-          <Campo label="Código" htmlFor="codigoLista" hint={lista ? "No cambia." : "Mayúsculas sin espacios, ej. CLIENTE_JAPON."}>
+          <Campo
+            label="Código"
+            htmlFor="codigoLista"
+            hint={
+              lista
+                ? "No cambia."
+                : "Mayúsculas sin espacios, ej. CLIENTE_JAPON."
+            }
+          >
             <input
               id="codigoLista"
               value={codigo}
-              onChange={(e) => setCodigo(e.target.value.toUpperCase().replace(/\s+/g, "_"))}
+              onChange={(e) =>
+                setCodigo(e.target.value.toUpperCase().replace(/\s+/g, "_"))
+              }
               readOnly={!!lista}
               maxLength={30}
               className={`${inputClass} font-mono read-only:bg-superficie-alterna`}
             />
           </Campo>
           <Campo label="Nombre" htmlFor="nombreLista">
-            <input id="nombreLista" value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={100} className={inputClass} />
+            <input
+              id="nombreLista"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              maxLength={100}
+              className={inputClass}
+            />
           </Campo>
-          <Campo label="Moneda" htmlFor="monedaLista" hint={lista ? "No cambia." : undefined}>
-            <select id="monedaLista" value={moneda} onChange={(e) => { setMoneda(e.target.value); setBaseId(""); }} disabled={!!lista} className={selectClass}>
+          <Campo
+            label="Moneda"
+            htmlFor="monedaLista"
+            hint={lista ? "No cambia." : undefined}
+          >
+            <select
+              id="monedaLista"
+              value={moneda}
+              onChange={(e) => {
+                setMoneda(e.target.value);
+                setBaseId("");
+              }}
+              disabled={!!lista}
+              className={selectClass}
+            >
               <option value="USD">USD</option>
               <option value="COP">COP</option>
             </select>
           </Campo>
-          <Campo label="Cliente (opcional)" htmlFor="clienteLista" hint="Para listas especiales de un cliente.">
-            <select id="clienteLista" value={clienteId} onChange={(e) => setClienteId(e.target.value)} className={selectClass}>
-              <option value="">Ninguno</option>
-              {opcionesCliente.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}
-                </option>
-              ))}
-            </select>
+          <Campo
+            label="Cliente (opcional)"
+            htmlFor="clienteLista"
+            hint="Para listas especiales de un cliente."
+          >
+            <SelectorBuscable
+              id="clienteLista"
+              opciones={opcionesCliente}
+              valor={clienteId}
+              onChange={setClienteId}
+              vacio="Ninguno"
+            />
           </Campo>
           <Campo label="Orden" htmlFor="ordenLista">
-            <input id="ordenLista" type="number" min={0} step={10} value={orden} onChange={(e) => setOrden(e.target.value)} className={inputClass} />
+            <input
+              id="ordenLista"
+              type="number"
+              min={0}
+              step={10}
+              value={orden}
+              onChange={(e) => setOrden(e.target.value)}
+              className={inputClass}
+            />
           </Campo>
           <div className="flex flex-col justify-end gap-1">
             <Casilla label="Activa" checked={activo} onChange={setActivo} />
-            {!lista && puedeVerCostos ? <Casilla label="Es una lista de costo (reservada)" checked={esCosto} onChange={setEsCosto} /> : null}
+            {!lista && puedeVerCostos ? (
+              <Casilla
+                label="Es una lista de costo (reservada)"
+                checked={esCosto}
+                onChange={setEsCosto}
+              />
+            ) : null}
           </div>
         </RejillaCampos>
       </Seccion>
@@ -280,45 +424,100 @@ function FormularioLista({
       <Seccion titulo="Regla de cálculo (opcional)">
         <RejillaCampos>
           <CampoAncho>
-            <Campo label="Lista base" htmlFor="baseLista" hint="Sin lista base, los precios se escriben a mano en cada producto.">
-              <select id="baseLista" value={baseId} onChange={(e) => setBaseId(e.target.value)} className={selectClass}>
-                <option value="">Sin regla (manual)</option>
-                {bases.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.nombre}
-                  </option>
-                ))}
-              </select>
+            <Campo
+              label="Lista base"
+              htmlFor="baseLista"
+              hint="Sin lista base, los precios se escriben a mano en cada producto."
+            >
+              <SelectorBuscable
+                id="baseLista"
+                opciones={bases.map((b) => ({ id: b.id, nombre: b.nombre }))}
+                valor={baseId}
+                onChange={setBaseId}
+                vacio="Sin regla (manual)"
+              />
             </Campo>
           </CampoAncho>
           {baseId ? (
             <>
               <Campo label="Factor salvaje" htmlFor="fs">
-                <input id="fs" type="number" inputMode="decimal" min={0} step="0.0001" value={fs} onChange={(e) => setFs(e.target.value)} className={inputClass} />
+                <input
+                  id="fs"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.0001"
+                  value={fs}
+                  onChange={(e) => setFs(e.target.value)}
+                  className={inputClass}
+                />
               </Campo>
               <Campo label="Factor criadero" htmlFor="fc">
-                <input id="fc" type="number" inputMode="decimal" min={0} step="0.0001" value={fc} onChange={(e) => setFc(e.target.value)} className={inputClass} />
+                <input
+                  id="fc"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.0001"
+                  value={fc}
+                  onChange={(e) => setFc(e.target.value)}
+                  className={inputClass}
+                />
               </Campo>
               <Campo label="Factor especial" htmlFor="fe">
-                <input id="fe" type="number" inputMode="decimal" min={0} step="0.0001" value={fe} onChange={(e) => setFe(e.target.value)} className={inputClass} />
+                <input
+                  id="fe"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.0001"
+                  value={fe}
+                  onChange={(e) => setFe(e.target.value)}
+                  className={inputClass}
+                />
               </Campo>
               <div className="flex items-end">
-                <Casilla label="Sumar IVA y comisión de pasarela" checked={impuestos} onChange={setImpuestos} />
+                <Casilla
+                  label="Sumar IVA y comisión de pasarela"
+                  checked={impuestos}
+                  onChange={setImpuestos}
+                />
               </div>
             </>
           ) : null}
-          <Campo label="Redondear al múltiplo de" htmlFor="redondeo" hint="50 o 100 en pesos; 0.01 en dólares.">
-            <input id="redondeo" type="number" inputMode="decimal" min={0.01} step="0.01" value={redondeo} onChange={(e) => setRedondeo(e.target.value)} className={inputClass} />
+          <Campo
+            label="Redondear al múltiplo de"
+            htmlFor="redondeo"
+            hint="50 o 100 en pesos; 0.01 en dólares."
+          >
+            <input
+              id="redondeo"
+              type="number"
+              inputMode="decimal"
+              min={0.01}
+              step="0.01"
+              value={redondeo}
+              onChange={(e) => setRedondeo(e.target.value)}
+              className={inputClass}
+            />
           </Campo>
         </RejillaCampos>
       </Seccion>
 
       {error ? <p className="text-sm text-peligro">{error}</p> : null}
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <button type="button" onClick={onCancelar} className={botonSecundarioClass}>
+        <button
+          type="button"
+          onClick={onCancelar}
+          className={botonSecundarioClass}
+        >
           Cancelar
         </button>
-        <button type="submit" disabled={guardando} className={botonPrimarioClass}>
+        <button
+          type="submit"
+          disabled={guardando}
+          className={botonPrimarioClass}
+        >
           {guardando ? "Guardando…" : "Guardar"}
         </button>
       </div>
@@ -326,12 +525,20 @@ function FormularioLista({
   );
 }
 
-function FormularioParametros({ parametros, puedeEditar }: { parametros: ParametrosPrecios; puedeEditar: boolean }) {
+function FormularioParametros({
+  parametros,
+  puedeEditar,
+}: {
+  parametros: ParametrosPrecios;
+  puedeEditar: boolean;
+}) {
   const router = useRouter();
   const [iva, setIva] = useState(texto(parametros.iva));
   const [pasarela, setPasarela] = useState(texto(parametros.pasarela));
   const [trm, setTrm] = useState(texto(parametros.trmReferencia));
-  const [mensaje, setMensaje] = useState<{ ok: boolean; texto: string } | null>(null);
+  const [mensaje, setMensaje] = useState<{ ok: boolean; texto: string } | null>(
+    null,
+  );
   const [guardando, iniciar] = useTransition();
 
   return (
@@ -340,8 +547,16 @@ function FormularioParametros({ parametros, puedeEditar }: { parametros: Paramet
         onSubmit={(e) => {
           e.preventDefault();
           iniciar(async () => {
-            const r = await guardarParametrosPreciosAction({ iva: numero(iva) ?? 0, pasarela: numero(pasarela) ?? 0, trmReferencia: numero(trm) ?? 0 });
-            setMensaje(r.error ? { ok: false, texto: r.error } : { ok: true, texto: "Parámetros guardados." });
+            const r = await guardarParametrosPreciosAction({
+              iva: numero(iva) ?? 0,
+              pasarela: numero(pasarela) ?? 0,
+              trmReferencia: numero(trm) ?? 0,
+            });
+            setMensaje(
+              r.error
+                ? { ok: false, texto: r.error }
+                : { ok: true, texto: "Parámetros guardados." },
+            );
             if (!r.error) router.refresh();
           });
         }}
@@ -350,20 +565,66 @@ function FormularioParametros({ parametros, puedeEditar }: { parametros: Paramet
         <fieldset disabled={!puedeEditar} className="contents">
           <RejillaCampos>
             <Campo label="IVA nacional (%)" htmlFor="iva">
-              <input id="iva" type="number" min={0} max={100} step="0.01" value={iva} onChange={(e) => setIva(e.target.value)} className={inputClass} />
+              <input
+                id="iva"
+                type="number"
+                min={0}
+                max={100}
+                step="0.01"
+                value={iva}
+                onChange={(e) => setIva(e.target.value)}
+                className={inputClass}
+              />
             </Campo>
-            <Campo label="Comisión pasarela de pagos (%)" htmlFor="pasarela" hint="Wompi.">
-              <input id="pasarela" type="number" min={0} max={100} step="0.01" value={pasarela} onChange={(e) => setPasarela(e.target.value)} className={inputClass} />
+            <Campo
+              label="Comisión pasarela de pagos (%)"
+              htmlFor="pasarela"
+              hint="Wompi."
+            >
+              <input
+                id="pasarela"
+                type="number"
+                min={0}
+                max={100}
+                step="0.01"
+                value={pasarela}
+                onChange={(e) => setPasarela(e.target.value)}
+                className={inputClass}
+              />
             </Campo>
-            <Campo label="TRM de referencia (COP por USD)" htmlFor="trmRef" hint="Para cotizar. Cada venta guarda su propia TRM.">
-              <input id="trmRef" type="number" min={1000} max={20000} step="0.01" value={trm} onChange={(e) => setTrm(e.target.value)} className={inputClass} />
+            <Campo
+              label="TRM de referencia (COP por USD)"
+              htmlFor="trmRef"
+              hint="Para cotizar. Cada venta guarda su propia TRM."
+            >
+              <input
+                id="trmRef"
+                type="number"
+                min={1000}
+                max={20000}
+                step="0.01"
+                value={trm}
+                onChange={(e) => setTrm(e.target.value)}
+                className={inputClass}
+              />
             </Campo>
           </RejillaCampos>
         </fieldset>
         {puedeEditar ? (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-            {mensaje ? <p role="status" className={`text-sm ${mensaje.ok ? "text-exito-texto" : "text-peligro"}`}>{mensaje.texto}</p> : null}
-            <button type="submit" disabled={guardando} className={botonPrimarioClass}>
+            {mensaje ? (
+              <p
+                role="status"
+                className={`text-sm ${mensaje.ok ? "text-exito-texto" : "text-peligro"}`}
+              >
+                {mensaje.texto}
+              </p>
+            ) : null}
+            <button
+              type="submit"
+              disabled={guardando}
+              className={botonPrimarioClass}
+            >
               {guardando ? "Guardando…" : "Guardar parámetros"}
             </button>
           </div>

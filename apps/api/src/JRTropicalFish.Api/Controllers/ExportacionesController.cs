@@ -187,3 +187,43 @@ public class EmbarquesController(EmbarqueService service, IUsuarioActual usuario
     public async Task<IActionResult> Enviar(Guid id, string tipo, EnviarDocumentoRequest request, CancellationToken ct) =>
         (await service.EnviarAsync(id, tipo, request, Alcance, ct)).ARespuesta();
 }
+
+/// <summary>
+/// AUNAP: listado de especies autorizadas, enlace de productos y permiso por embarque. Los documentos para
+/// autoridades se piden por <c>GET /embarques/{id}/documentos/{solicitud_aunap|packing_aduana|factura_aduana}</c>.
+/// </summary>
+[ApiController]
+[Route("api/v1/exportaciones")]
+public class AunapController(AunapService service, IUsuarioActual usuario) : CrmControllerBase(usuario)
+{
+    [HttpGet("aunap/especies")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> Especies(CancellationToken ct) => Ok(await service.EspeciesAsync(ct));
+
+    [HttpPost("aunap/especies/importar")]
+    [RequierePermiso(Permisos.ExportacionesConfigurar)]
+    public async Task<IActionResult> Importar(ImportarAunapRequest request, CancellationToken ct) => (await service.ImportarAsync(request, ct)).ARespuesta();
+
+    [HttpGet("aunap/productos")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> Productos(CancellationToken ct) => Ok(await service.ProductosAsync(ct));
+
+    [HttpPut("aunap/productos/{productoId:guid}")]
+    [RequierePermiso(Permisos.ExportacionesConfigurar)]
+    public async Task<IActionResult> Enlazar(Guid productoId, EnlazarProductoAunapRequest request, CancellationToken ct) =>
+        (await service.EnlazarProductoAsync(productoId, request.EspecieAunapId, ct)).ARespuesta();
+
+    /// <summary>Enlaza los productos cuyo nombre científico es idéntico al de la resolución.</summary>
+    [HttpPost("aunap/productos/enlazar-automatico")]
+    [RequierePermiso(Permisos.ExportacionesConfigurar)]
+    public async Task<IActionResult> EnlazarAutomatico(CancellationToken ct) => Ok(new { enlazados = await service.EnlazarAutomaticoAsync(ct) });
+
+    [HttpGet("embarques/{id:guid}/aunap")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> Resumen(Guid id, CancellationToken ct) => (await service.ResumenAsync(id, Alcance, ct)).ARespuesta();
+
+    [HttpPut("embarques/{id:guid}/aunap/permiso")]
+    [RequierePermiso(Permisos.ExportacionesGestionar)]
+    public async Task<IActionResult> Permiso(Guid id, GuardarPermisoAunapRequest request, CancellationToken ct) =>
+        (await service.GuardarPermisoAsync(id, request, Alcance, ct)).ARespuesta();
+}

@@ -462,6 +462,10 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("eliminado_en");
 
+                    b.Property<Guid?>("EspecieAunapId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("especie_aunap_id");
+
                     b.Property<Guid>("GrupoId")
                         .HasColumnType("uuid")
                         .HasColumnName("grupo_id");
@@ -515,6 +519,9 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_productos_codigo")
                         .HasFilter("eliminado_en IS NULL");
+
+                    b.HasIndex("EspecieAunapId")
+                        .HasDatabaseName("ix_productos_especie_aunap_id");
 
                     b.HasIndex("GrupoId")
                         .HasDatabaseName("ix_productos_grupo_id");
@@ -1582,7 +1589,7 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
 
                     b.ToTable("embarque_documentos", null, t =>
                         {
-                            t.HasCheckConstraint("ck_embarque_documentos_tipo", "tipo IN ('preinvoice', 'flete', 'orden_cargue', 'empaque', 'factura', 'nota_credito', 'balance')");
+                            t.HasCheckConstraint("ck_embarque_documentos_tipo", "tipo IN ('preinvoice', 'flete', 'orden_cargue', 'empaque', 'factura', 'nota_credito', 'balance', 'solicitud_aunap', 'packing_aduana', 'factura_aduana')");
                         });
                 });
 
@@ -1987,7 +1994,141 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
 
                     b.ToTable("embarque_envios", null, t =>
                         {
-                            t.HasCheckConstraint("ck_embarque_envios_tipo", "tipo_documento IN ('preinvoice', 'flete', 'orden_cargue', 'empaque', 'factura', 'nota_credito', 'balance')");
+                            t.HasCheckConstraint("ck_embarque_envios_tipo", "tipo_documento IN ('preinvoice', 'flete', 'orden_cargue', 'empaque', 'factura', 'nota_credito', 'balance', 'solicitud_aunap', 'packing_aduana', 'factura_aduana')");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EspecieAunap", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<bool>("Amazonia")
+                        .HasColumnType("boolean")
+                        .HasColumnName("amazonia");
+
+                    b.Property<bool>("Caribe")
+                        .HasColumnType("boolean")
+                        .HasColumnName("caribe");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Familia")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("familia");
+
+                    b.Property<bool>("Magdalena")
+                        .HasColumnType("boolean")
+                        .HasColumnName("magdalena");
+
+                    b.Property<string>("NombreCientifico")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre_cientifico");
+
+                    b.Property<string>("NombreComun")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre_comun");
+
+                    b.Property<string>("Orden")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("orden");
+
+                    b.Property<bool>("Orinoquia")
+                        .HasColumnType("boolean")
+                        .HasColumnName("orinoquia");
+
+                    b.Property<bool>("Pacifico")
+                        .HasColumnType("boolean")
+                        .HasColumnName("pacifico");
+
+                    b.HasKey("Id")
+                        .HasName("pk_especies_aunap");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_especies_aunap_codigo");
+
+                    b.ToTable("especies_aunap", (string)null);
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.PermisoAunap", b =>
+                {
+                    b.Property<Guid>("EmbarqueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("embarque_id");
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<DateOnly?>("Fecha")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("notas");
+
+                    b.Property<string>("Numero")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("numero");
+
+                    b.HasKey("EmbarqueId")
+                        .HasName("pk_embarque_permisos_aunap");
+
+                    b.ToTable("embarque_permisos_aunap", (string)null);
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.PermisoAunapLinea", b =>
+                {
+                    b.Property<Guid>("EmbarqueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("embarque_id");
+
+                    b.Property<Guid>("EspecieAunapId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("especie_aunap_id");
+
+                    b.Property<int>("CantidadAutorizada")
+                        .HasColumnType("integer")
+                        .HasColumnName("cantidad_autorizada");
+
+                    b.HasKey("EmbarqueId", "EspecieAunapId")
+                        .HasName("pk_embarque_permiso_aunap_lineas");
+
+                    b.HasIndex("EspecieAunapId")
+                        .HasDatabaseName("ix_embarque_permiso_aunap_lineas_especie_aunap_id");
+
+                    b.ToTable("embarque_permiso_aunap_lineas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_permiso_aunap_lineas_cantidad", "cantidad_autorizada >= 0");
                         });
                 });
 
@@ -4353,6 +4494,12 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("JRTropicalFish.Domain.Catalogos.Producto", b =>
                 {
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.EspecieAunap", null)
+                        .WithMany()
+                        .HasForeignKey("EspecieAunapId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_productos_especies_aunap_especie_aunap_id");
+
                     b.HasOne("JRTropicalFish.Domain.Maestros.GrupoProducto", null)
                         .WithMany()
                         .HasForeignKey("GrupoId")
@@ -4611,6 +4758,33 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_embarque_envios_embarques_embarque_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.PermisoAunap", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.Embarque", null)
+                        .WithOne()
+                        .HasForeignKey("JRTropicalFish.Domain.Exportaciones.PermisoAunap", "EmbarqueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarque_permisos_aunap_embarques_embarque_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.PermisoAunapLinea", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.PermisoAunap", null)
+                        .WithMany()
+                        .HasForeignKey("EmbarqueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarque_permiso_aunap_lineas_embarque_permisos_aunap_embar");
+
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.EspecieAunap", null)
+                        .WithMany()
+                        .HasForeignKey("EspecieAunapId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_embarque_permiso_aunap_lineas_especies_aunap_especie_aunap_");
                 });
 
             modelBuilder.Entity("JRTropicalFish.Domain.Inventario.Acuario", b =>

@@ -1,11 +1,19 @@
 "use client";
 
+import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { Plus } from "lucide-react";
 import { BotonIcono } from "@/components/campos";
 import { botonSecundarioClass, inputClass, selectClass } from "@/lib/estilos";
 import { ACCIONES, textoDosis, type Medicamento } from "@/lib/sanidad";
 
-export type PasoEditable = { clave: string; dia: number; accion: string; medicamentoId: string; porcentajeAgua: string; nota: string };
+export type PasoEditable = {
+  clave: string;
+  dia: number;
+  accion: string;
+  medicamentoId: string;
+  porcentajeAgua: string;
+  nota: string;
+};
 
 export const pasoVacio = (dia = 1): PasoEditable => ({
   clave: crypto.randomUUID(),
@@ -21,7 +29,10 @@ export const pasoParaApi = (p: PasoEditable) => ({
   dia: p.dia,
   accion: p.accion,
   medicamentoId: p.accion === "medicar" ? p.medicamentoId || null : null,
-  porcentajeAgua: p.accion === "cambio_agua" && p.porcentajeAgua ? Number(p.porcentajeAgua) : null,
+  porcentajeAgua:
+    p.accion === "cambio_agua" && p.porcentajeAgua
+      ? Number(p.porcentajeAgua)
+      : null,
   nota: p.nota.trim() || null,
 });
 
@@ -41,15 +52,21 @@ export function EditorPasos({
   deshabilitado?: boolean;
 }) {
   const activos = medicamentos.filter((m) => m.activo);
-  const cambiar = (clave: string, cambio: Partial<PasoEditable>) => onChange(pasos.map((p) => (p.clave === clave ? { ...p, ...cambio } : p)));
+  const cambiar = (clave: string, cambio: Partial<PasoEditable>) =>
+    onChange(pasos.map((p) => (p.clave === clave ? { ...p, ...cambio } : p)));
 
   return (
     <div className="flex flex-col gap-2">
-      {pasos.length === 0 ? <p className="text-sm text-texto-suave">Sin pasos.</p> : null}
+      {pasos.length === 0 ? (
+        <p className="text-sm text-texto-suave">Sin pasos.</p>
+      ) : null}
       {pasos.map((p, i) => {
         const medicamento = activos.find((m) => m.id === p.medicamentoId);
         return (
-          <div key={p.clave} className="grid grid-cols-[5rem_1fr_auto] items-start gap-2 rounded-md border border-borde p-2 md:grid-cols-[5rem_11rem_1fr_1fr_auto]">
+          <div
+            key={p.clave}
+            className="grid grid-cols-[5rem_1fr_auto] items-start gap-2 rounded-md border border-borde p-2 md:grid-cols-[5rem_11rem_1fr_1fr_auto]"
+          >
             <label className="flex flex-col gap-1 text-xs text-texto-suave">
               Día
               <input
@@ -61,17 +78,21 @@ export function EditorPasos({
                 className={inputClass}
                 value={p.dia}
                 disabled={deshabilitado}
-                onChange={(e) => cambiar(p.clave, { dia: Math.max(1, Number(e.target.value) || 1) })}
+                onChange={(e) =>
+                  cambiar(p.clave, {
+                    dia: Math.max(1, Number(e.target.value) || 1),
+                  })
+                }
               />
             </label>
             <label className="flex flex-col gap-1 text-xs text-texto-suave">
               Acción
               <select
                 aria-label={`Acción del paso ${i + 1}`}
-                className={selectClass}
                 value={p.accion}
-                disabled={deshabilitado}
                 onChange={(e) => cambiar(p.clave, { accion: e.target.value })}
+                className={selectClass}
+                disabled={deshabilitado}
               >
                 {Object.entries(ACCIONES).map(([v, t]) => (
                   <option key={v} value={v}>
@@ -81,27 +102,36 @@ export function EditorPasos({
               </select>
             </label>
             <div className="col-start-3 row-start-1 self-end md:col-start-5">
-              {!deshabilitado ? <BotonIcono accion="eliminar" etiqueta={`Quitar el paso ${i + 1}`} onClick={() => onChange(pasos.filter((x) => x.clave !== p.clave))} /> : null}
+              {!deshabilitado ? (
+                <BotonIcono
+                  accion="eliminar"
+                  etiqueta={`Quitar el paso ${i + 1}`}
+                  onClick={() =>
+                    onChange(pasos.filter((x) => x.clave !== p.clave))
+                  }
+                />
+              ) : null}
             </div>
             <div className="col-span-3 flex flex-col gap-1 md:col-span-1 md:col-start-3 md:row-start-1">
               {p.accion === "medicar" ? (
                 <label className="flex flex-col gap-1 text-xs text-texto-suave">
                   Medicamento
-                  <select
-                    aria-label={`Medicamento del paso ${i + 1}`}
-                    className={selectClass}
-                    value={p.medicamentoId}
+                  <SelectorBuscable
+                    etiqueta={`Medicamento del paso ${i + 1}`}
+                    opciones={activos.map((m) => ({
+                      id: m.id,
+                      nombre: m.nombre,
+                    }))}
+                    valor={p.medicamentoId}
+                    onChange={(v) => cambiar(p.clave, { medicamentoId: v })}
                     disabled={deshabilitado}
-                    onChange={(e) => cambiar(p.clave, { medicamentoId: e.target.value })}
-                  >
-                    <option value="">Elige…</option>
-                    {activos.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.nombre}
-                      </option>
-                    ))}
-                  </select>
-                  {medicamento ? <span className="text-xs text-texto-suave">{textoDosis(medicamento)}</span> : null}
+                    placeholder="Escribe para buscar…"
+                  />
+                  {medicamento ? (
+                    <span className="text-xs text-texto-suave">
+                      {textoDosis(medicamento)}
+                    </span>
+                  ) : null}
                 </label>
               ) : p.accion === "cambio_agua" ? (
                 <label className="flex flex-col gap-1 text-xs text-texto-suave">
@@ -115,7 +145,9 @@ export function EditorPasos({
                     className={inputClass}
                     value={p.porcentajeAgua}
                     disabled={deshabilitado}
-                    onChange={(e) => cambiar(p.clave, { porcentajeAgua: e.target.value })}
+                    onChange={(e) =>
+                      cambiar(p.clave, { porcentajeAgua: e.target.value })
+                    }
                   />
                 </label>
               ) : null}
@@ -138,7 +170,14 @@ export function EditorPasos({
         <button
           type="button"
           className={`${botonSecundarioClass} self-start`}
-          onClick={() => onChange([...pasos, pasoVacio(pasos.length ? Math.max(...pasos.map((p) => p.dia)) : 1)])}
+          onClick={() =>
+            onChange([
+              ...pasos,
+              pasoVacio(
+                pasos.length ? Math.max(...pasos.map((p) => p.dia)) : 1,
+              ),
+            ])
+          }
         >
           <Plus className="mr-1 size-4" aria-hidden /> Agregar paso
         </button>

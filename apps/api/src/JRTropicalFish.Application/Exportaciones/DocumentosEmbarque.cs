@@ -14,7 +14,11 @@ public sealed record DatosDocumento(
     IReadOnlyDictionary<Guid, TipoCajaFila> TiposCaja,
     byte[]? Logo,
     string GeneradoPor,
-    DateTime AhoraUtc);
+    DateTime AhoraUtc)
+{
+    /// <summary>Producto → especie AUNAP (solo para los documentos para autoridades).</summary>
+    public IReadOnlyDictionary<Guid, ProductoAunapFila> Aunap { get; init; } = new Dictionary<Guid, ProductoAunapFila>();
+}
 
 /// <summary>
 /// Arma el <see cref="InformeModelo"/> de cada documento del embarque, con el contenido de las hojas del
@@ -39,6 +43,9 @@ public static class DocumentosEmbarque
         TiposDocumentoEmbarque.Factura => Factura(d),
         TiposDocumentoEmbarque.NotaCredito => NotaCredito(d),
         TiposDocumentoEmbarque.Balance => Balance(d),
+        TiposDocumentoEmbarque.SolicitudAunap => SolicitudAunap(d),
+        TiposDocumentoEmbarque.PackingAduana => PackingAduana(d),
+        TiposDocumentoEmbarque.FacturaAduana => FacturaAduana(d),
         _ => throw new ArgumentOutOfRangeException(nameof(tipo), tipo, "Documento desconocido."),
     };
 
@@ -260,6 +267,123 @@ public static class DocumentosEmbarque
         ]);
     }
 
+    // --- Documentos para autoridades: siempre desde lo real, con el código y el nombre de la Resolución AUNAP ---
+
+    /// <summary>
+    /// Proforma para solicitar el permiso a la AUNAP: las especies del pedido agrupadas por especie AUNAP, con sus
+    /// cantidades y precios reales (los mismos de la preinvoice).
+    /// </summary>
+    private static InformeModelo SolicitudAunap(DatosDocumento d)
+    {
+        var e = d.Detalle.Embarque;
+        var p = d.Detalle.Calculos.Preinvoice;
+        var lineas = Declaradas(d.Detalle.Lineas.Select(l => (l.ProductoId, l.ProductoCodigo, l.NombreCientifico, l.Cantidad, l.Total)), d.Aunap);
+        var filas = lineas.Select(l => Fila(l.Codigo, l.Familia, l.NombreCientifico, l.NombreComun, Entero(l.Cantidad), Usd4(l.PrecioPromedio), Usd(l.Total))).ToList();
+        var totales = new List<IReadOnlyList<string>> { Fila("", "", "Subtotal", "", Entero(lineas.Sum(l => l.Cantidad)), "", Usd(lineas.Sum(l => l.Total))) };
+        if (p.Descuento > 0)
+        {
+            totales.Add(Fila("", "", "Descuento", "", "", Pct(e.DescuentoPeces), Usd(-p.Descuento)));
+        }
+
+        totales.Add(Fila("", "", "TOTAL PECES", "", "", "", Usd(p.SubtotalPeces - p.Descuento)));
+        var numero = e.PreinvoiceNumero ?? e.Codigo;
+        return Documento(d, "PROFORMA · SOLICITUD DE PERMISO AUNAP", $"N° {numero}",
+        [
+            new SeccionBloques("",
+            [
+                new BloqueInforme("DESTINATARIO",
+                [
+                    new("Cliente", e.ClienteNombre),
+                    new("Dirección", d.ClienteExportacion?.Direccion),
+                    new("Ciudad / país", d.Cliente is null ? null : string.Join(" - ", new[] { d.Cliente.Ciudad, d.Cliente.Pais }.Where(v => !string.IsNullOrWhiteSpace(v)))),
+                ]),
+                new BloqueInforme("ENVÍO",
+                [
+                    new("Proforma N°", numero),
+                    new("Fecha", (e.PreinvoiceFecha ?? DateOnly.FromDateTime(d.AhoraUtc)).ToString("dd/MM/yyyy")),
+                    new("Destino", e.Destino),
+                    new("Aerolínea", e.Aerolinea),
+                    new("Despacho previsto", e.FechaDespacho?.ToString("dd/MM/yyyy")),
+                ]),
+            ]),
+            new SeccionTabla("", ["CÓDIGO AUNAP", "FAMILIA", "NOMBRE CIENTÍFICO", "NOMBRE COMÚN", "CANTIDAD", "V. UNIT. USD", "VALOR USD"], filas, [4, 7, 11, 9, 5, 5, 5])
+            {
+                Alineaciones = [C, I, I, I, D, D, D],
+                Totales = totales,
+                Compacta = true,
+            },
+            new SeccionTexto("", $"Especies según la Resolución AUNAP 1924 de 2015. Cantidades y valores del pedido {e.Codigo} (preinvoice {numero})."),
+            Firma(d.Empresa),
+        ]);
+    }
+
+    /// <summary>Packing list para aduana y aeropuerto: el empaque real caja por caja, con el código y nombre AUNAP.</summary>
+    private static InformeModelo PackingAduana(DatosDocumento d)
+    {
+        var e = d.Detalle.Embarque;
+        var empaque = d.Detalle.Empaque;
+        _ = Declaradas(empaque.Select(x => (x.ProductoId, x.ProductoCodigo, x.NombreCientifico, x.Cantidad, x.Total)), d.Aunap);
+        var filas = empaque
+            .Select(x =>
+            {
+                var a = d.Aunap[x.ProductoId];
+                return Fila(Entero(x.NumeroCaja), a.AunapCodigo!, a.AunapFamilia ?? "", a.AunapNombreCientifico!, a.AunapNombreComun ?? "", Entero(x.Cantidad));
+            })
+            .ToList();
+        var cajas = empaque.Select(x => x.NumeroCaja).Distinct().Count();
+        return Documento(d, "PACKING LIST", "Customs & airport",
+        [
+            Encabezado(d, "Packing list N°", NumeroOBorrador(e), e.FechaDespacho),
+            new SeccionTabla("", ["BOX #", "AUNAP CODE", "FAMILY", "SCIENTIFIC NAME", "COMMON NAME", "TOTAL"], filas, [3, 4, 8, 12, 10, 4])
+            {
+                Alineaciones = [C, C, I, I, I, D],
+                Totales = [Fila($"{cajas} boxes", "", "", "Total", "", Entero(empaque.Sum(x => x.Cantidad)))],
+                Compacta = true,
+            },
+            Firma(d.Empresa),
+        ]);
+    }
+
+    /// <summary>Custom invoice: la factura real agrupada por especie AUNAP. Mismos totales que la factura comercial.</summary>
+    private static InformeModelo FacturaAduana(DatosDocumento d)
+    {
+        var e = d.Detalle.Embarque;
+        var f = d.Detalle.Calculos.Factura;
+        var lineas = Declaradas(d.Detalle.Empaque.Select(x => (x.ProductoId, x.ProductoCodigo, x.NombreCientifico, x.Cantidad, x.Total)), d.Aunap);
+        var filas = lineas.Select(l => Fila(l.Codigo, l.Familia, l.NombreCientifico, l.NombreComun, Entero(l.Cantidad), Usd4(l.PrecioPromedio), Usd(l.Total))).ToList();
+        IReadOnlyList<string> Total(string descripcion, string cantidad, string precio, string total) => Fila("", "", descripcion, "", cantidad, precio, total);
+        var totales = new List<IReadOnlyList<string>> { Total("Subtotal", Entero(f.Unidades), "", Usd(f.SubtotalPeces)) };
+        if (f.Descuento > 0)
+        {
+            totales.Add(Total("Fish discount", "", Pct(e.DescuentoPeces), Usd(-f.Descuento)));
+        }
+
+        totales.AddRange(f.Cargos.Select(c => Total(c.Descripcion, Num(c.Cantidad), Usd(c.Precio), Usd(c.Total))));
+        totales.Add(Total($"AWB {e.Awb ?? ""}".Trim(), "1", Usd(f.Awb), Usd(f.Awb)));
+        totales.Add(Total("TOTAL", "", "", Usd(f.Total)));
+        var numero = e.FacturaNumero?.ToString() ?? "Draft";
+        return Documento(d, e.FacturaNumero is { } n ? $"CUSTOMS INVOICE No. {n}" : "CUSTOMS INVOICE (DRAFT)", "Same quantities and values as the commercial invoice",
+        [
+            Encabezado(d, "Invoice N°", numero, e.FacturaFecha ?? e.FechaDespacho),
+            new SeccionTabla("", ["AUNAP CODE", "FAMILY", "SCIENTIFIC NAME", "COMMON NAME", "QTY", "UNIT PRICE", "TOTAL"], filas, [4, 7, 11, 10, 4, 5, 5])
+            {
+                Alineaciones = [C, I, I, I, D, D, D],
+                Totales = totales,
+                Compacta = true,
+            },
+            Firma(d.Empresa),
+        ]);
+    }
+
+    private static IReadOnlyList<LineaDeclarada> Declaradas(
+        IEnumerable<(Guid ProductoId, string ProductoCodigo, string NombreCientifico, int Cantidad, decimal Total)> filas,
+        IReadOnlyDictionary<Guid, ProductoAunapFila> mapa)
+    {
+        var (lineas, error) = ReglasAunap.Agrupar(filas, mapa);
+        return error is null ? lineas : throw new InvalidOperationException(error);
+    }
+
+
     // --- Piezas comunes ---
 
     /// <summary>Documento al cliente: logo y datos de la empresa arriba, pie con el nombre (sin "generado por").</summary>
@@ -344,6 +468,8 @@ public static class DocumentosEmbarque
     private static IReadOnlyList<string> Fila(params string[] celdas) => celdas;
 
     private static string Usd(decimal v) => v.ToString("#,##0.00", Ingles);
+
+    private static string Usd4(decimal v) => v.ToString("#,##0.00##", Ingles);
 
     private static string Entero(int v) => v.ToString("#,##0", Ingles);
 

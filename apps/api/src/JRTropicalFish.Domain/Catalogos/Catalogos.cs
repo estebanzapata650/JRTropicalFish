@@ -51,6 +51,12 @@ public class Producto : EntidadBase
 
     public string? Notas { get; set; }
 
+    /// <summary>
+    /// Especie de la Resolución AUNAP con la que se declara al exportar. Nula = sin código AUNAP: no se puede
+    /// declarar ni exportar. Solo se enlaza la misma especie (o su sinónimo taxonómico), nunca otra.
+    /// </summary>
+    public Guid? EspecieAunapId { get; set; }
+
     public DateTime? EliminadoEn { get; set; }
 }
 

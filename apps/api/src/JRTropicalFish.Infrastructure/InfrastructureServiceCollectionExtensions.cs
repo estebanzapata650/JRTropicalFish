@@ -118,6 +118,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<TablerosInventarioService>();
         services.AddScoped<IConfiguracionExportacionRepository, ConfiguracionExportacionRepository>();
         services.AddScoped<IEmbarqueRepository, EmbarqueRepository>();
+        services.AddScoped<IAunapRepository, AunapRepository>();
+        services.AddScoped<AunapService>();
         services.AddScoped<ConfiguracionExportacionService>();
         services.AddScoped<EmbarqueService>();
         services.AddScoped<ComprasService>();

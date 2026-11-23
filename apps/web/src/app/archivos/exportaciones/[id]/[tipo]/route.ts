@@ -4,7 +4,7 @@ import { getSession } from "@/lib/session";
 
 type Contexto = { params: Promise<{ id: string; tipo: string }> };
 
-const TIPOS = new Set(["preinvoice", "flete", "orden_cargue", "empaque", "factura", "nota_credito", "balance"]);
+const TIPOS = new Set(["preinvoice", "flete", "orden_cargue", "empaque", "factura", "nota_credito", "balance", "solicitud_aunap", "packing_aduana", "factura_aduana"]);
 
 /**
  * PDF de un documento del embarque. Streaming del cuerpo de la API (no por el proxy `api/[...path]`, que lee

@@ -42,6 +42,12 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   DOA → nota crédito y balance, en PDF y por correo; sincroniza venta, tracking y pedido de cliente.
   Configuración de empresa/logo/banco, cajas, bolsas, cargos y tarifas. Documentos para autoridades (AUNAP,
   aeropuerto, aduana, Siigo) **pendientes con gerencia**. Reglas en `docs/dominio/exportaciones.md`.
+- **AUNAP** (2026-11-23): listado de la Resolución 1924 de 2015 (598 especies, `npm run aunap:importar`), código
+  AUNAP por producto (Exportaciones → AUNAP), permiso por embarque con la comparación pedido / autorizado /
+  empacado, y **solicitud AUNAP, packing list de aduana y custom invoice** generados **solo desde lo real**. No hay
+  factores ni sustitución de especies; una especie sin código no se declara.
+- **Buscador en los formularios** (`components/SelectorBuscable.tsx`): toda lista de registros (clientes,
+  proveedores, productos, acuarios, usuarios…) filtra mientras se escribe, por texto o por iniciales.
 - **Sanidad** (2026-11-22, fase 1): **Mi día** del operario (llegadas con profilaxis sugerida, medicación con
   la dosis calculada por litraje, ronda de alimentación con semáforo verde/rojo, salidas), **Tablero de acuarios**
   (Kanban: por llegar, aclimatación, cuarentena, estable, ayuno pre-vuelo), **Tratamientos**, **Protocolos**
@@ -52,7 +58,7 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
 - Transversales listos para usar: auditoría (`auditoria` + `ComparadorAuditoria`), archivos S3
   (`IAlmacenArchivos`, `ClaveArchivo`, `DetectorTipoArchivo`), PDF (`IGeneradorInformePdf`), correo
   (`IServicioCorreo`, proveedores `Disco` / `SendGrid`, modo pruebas), `Resultado<T>`, `IReloj`.
-- Health check con Postgres en `/api/v1/health`. 200 pruebas unitarias en verde.
+- Health check con Postgres en `/api/v1/health`. 210 pruebas unitarias en verde.
 - Producción: `docker-compose.prod.yml` (Caddy, web, api, postgres, backup), Dockerfiles, `.env.prod.example`.
 
 **Pendiente (por fases, ver `docs/dominio/modulos.md`)**: resto de Catálogos (aerolíneas…), Inventario (conteos, ajustes con aprobación, PDFs), Sanidad fase 2 (planificador semanal, importar fichas), Importaciones,
@@ -272,6 +278,8 @@ Separar "registrar" de "aprobar/cerrar" cuando las responsabilidades difieren (e
 - Subidas por Server Action + `apiUpload` sin fijar `Content-Type`; límite de Server Actions en
   `next.config.ts` (12 MB).
 - Constantes de clases en `lib/estilos.ts`, no en `components/campos.tsx` (`"use client"`).
+- Para elegir un registro (cliente, proveedor, producto, acuario, usuario…) usar `SelectorBuscable`, no `<select>`;
+  el `<select>` queda para listas cortas de valores fijos (estado, moneda). Con FormData: `valorInicial` + `name`.
 - Un Server Component solo pasa a un cliente datos serializables o Server Actions (no funciones normales).
 - React: nada de `setState` durante el render ni en `useEffect` para reaccionar a una acción; usar
   `useTransition` y cerrar/refrescar en el handler.

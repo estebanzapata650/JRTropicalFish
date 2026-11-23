@@ -1,5 +1,6 @@
 "use client";
 
+import { SelectorBuscable } from "@/components/SelectorBuscable";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
@@ -19,7 +20,6 @@ import {
   botonPrimarioClass,
   botonSecundarioClass,
   inputClass,
-  selectClass,
 } from "@/lib/estilos";
 import {
   BORDE_COLUMNA,
@@ -475,19 +475,15 @@ function IniciarForm({
         htmlFor="protocolo-iniciar"
         hint="Las dosis se calculan con el litraje del acuario."
       >
-        <select
+        <SelectorBuscable
           id="protocolo-iniciar"
-          className={selectClass}
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-        >
-          {protocolos.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nombre}
-              {p.dias ? ` (${p.dias} días)` : ""}
-            </option>
-          ))}
-        </select>
+          opciones={protocolos.map((p) => ({
+            id: p.id,
+            nombre: p.dias ? `${p.nombre} (${p.dias} días)` : p.nombre,
+          }))}
+          valor={id}
+          onChange={(v) => setId(v)}
+        />
       </Campo>
       <button
         type="button"
@@ -514,19 +510,13 @@ function UbicarForm({
   return (
     <div className="flex flex-col gap-4">
       <Campo label="Acuario" htmlFor="acuario-ubicar">
-        <select
+        <SelectorBuscable
           id="acuario-ubicar"
-          className={selectClass}
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-        >
-          <option value="">Elige el acuario…</option>
-          {acuarios.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.codigo}
-            </option>
-          ))}
-        </select>
+          opciones={acuarios.map((a) => ({ id: a.id, nombre: a.codigo }))}
+          valor={id}
+          onChange={(v) => setId(v)}
+          placeholder="Escribe para buscar…"
+        />
       </Campo>
       <button
         type="button"

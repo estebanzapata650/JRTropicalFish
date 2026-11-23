@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { Campo, CampoAncho, RejillaCampos } from "@/components/campos";
 import {
   ESTADOS_PAGO,
@@ -12,26 +13,55 @@ import {
   type Comercial,
   type Oportunidad,
 } from "@/lib/crm";
-import { botonPeligroClass, botonPrimarioClass, botonSecundarioClass, inputClass, selectClass, textareaClass } from "@/lib/estilos";
+import {
+  botonPeligroClass,
+  botonPrimarioClass,
+  botonSecundarioClass,
+  inputClass,
+  textareaClass,
+} from "@/lib/estilos";
 import { dinero } from "@/lib/formato";
 import { SelectMapa } from "../comun";
 
-export type ClienteOpcion = { id: string; codigo: string; nombreEmpresa: string };
+export type ClienteOpcion = {
+  id: string;
+  codigo: string;
+  nombreEmpresa: string;
+};
 
-function Botones({ guardando, texto, peligro = false, onCancelar }: { guardando: boolean; texto: string; peligro?: boolean; onCancelar: () => void }) {
+function Botones({
+  guardando,
+  texto,
+  peligro = false,
+  onCancelar,
+}: {
+  guardando: boolean;
+  texto: string;
+  peligro?: boolean;
+  onCancelar: () => void;
+}) {
   return (
     <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-      <button type="button" onClick={onCancelar} className={botonSecundarioClass}>
+      <button
+        type="button"
+        onClick={onCancelar}
+        className={botonSecundarioClass}
+      >
         Cancelar
       </button>
-      <button type="submit" disabled={guardando} className={peligro ? botonPeligroClass : botonPrimarioClass}>
+      <button
+        type="submit"
+        disabled={guardando}
+        className={peligro ? botonPeligroClass : botonPrimarioClass}
+      >
         {guardando ? "Guardando…" : texto}
       </button>
     </div>
   );
 }
 
-const numero = (texto: string) => (texto.trim() === "" ? 0 : Number(texto.replace(",", ".")));
+const numero = (texto: string) =>
+  texto.trim() === "" ? 0 : Number(texto.replace(",", "."));
 
 /**
  * Crear o editar una oportunidad. La etapa solo se elige al crear (una etapa activa); después se
@@ -60,23 +90,47 @@ export function FormularioOportunidad({
 }) {
   const cerrada = oportunidad ? esTerminal(oportunidad.etapa) : false;
   const [clienteId, setClienteId] = useState(oportunidad?.clienteId ?? "");
-  const [tipoVenta, setTipoVenta] = useState(oportunidad?.tipoVenta ?? "exportacion");
+  const [tipoVenta, setTipoVenta] = useState(
+    oportunidad?.tipoVenta ?? "exportacion",
+  );
   const [moneda, setMoneda] = useState(oportunidad?.moneda ?? "USD");
-  const [monto, setMonto] = useState(oportunidad ? String(oportunidad.montoEstimado) : "");
-  const [cajas, setCajas] = useState(oportunidad ? String(oportunidad.cajasEstimadas) : "");
-  const [fechaContacto, setFechaContacto] = useState(oportunidad?.fechaContactoInicial ?? hoy);
+  const [monto, setMonto] = useState(
+    oportunidad ? String(oportunidad.montoEstimado) : "",
+  );
+  const [cajas, setCajas] = useState(
+    oportunidad ? String(oportunidad.cajasEstimadas) : "",
+  );
+  const [fechaContacto, setFechaContacto] = useState(
+    oportunidad?.fechaContactoInicial ?? hoy,
+  );
   const [etapa, setEtapa] = useState("prospeccion");
-  const [comercialId, setComercialId] = useState(oportunidad?.comercialId ?? "");
+  const [comercialId, setComercialId] = useState(
+    oportunidad?.comercialId ?? "",
+  );
   const [notas, setNotas] = useState(oportunidad?.notasSeguimiento ?? "");
 
   // El cliente actual siempre está entre las opciones aunque ya esté inactivo.
   const opcionesCliente =
     oportunidad && !clientes.some((c) => c.id === oportunidad.clienteId)
-      ? [...clientes, { id: oportunidad.clienteId, codigo: oportunidad.clienteCodigo, nombreEmpresa: oportunidad.clienteNombre }]
+      ? [
+          ...clientes,
+          {
+            id: oportunidad.clienteId,
+            codigo: oportunidad.clienteCodigo,
+            nombreEmpresa: oportunidad.clienteNombre,
+          },
+        ]
       : clientes;
   const opcionesComercial =
     oportunidad && !comerciales.some((c) => c.id === oportunidad.comercialId)
-      ? [...comerciales, { id: oportunidad.comercialId, nombre: oportunidad.comercialNombre, email: "" }]
+      ? [
+          ...comerciales,
+          {
+            id: oportunidad.comercialId,
+            nombre: oportunidad.comercialNombre,
+            email: "",
+          },
+        ]
       : comerciales;
 
   const cambiarTipo = (valor: string) => {
@@ -105,59 +159,113 @@ export function FormularioOportunidad({
     >
       {cerrada ? (
         <p className="rounded-md bg-neutro-fondo px-3 py-2 text-sm text-neutro-texto">
-          La oportunidad está cerrada ({ETAPAS[oportunidad!.etapa]}): solo se pueden editar las notas de seguimiento.
+          La oportunidad está cerrada ({ETAPAS[oportunidad!.etapa]}): solo se
+          pueden editar las notas de seguimiento.
         </p>
       ) : null}
       <fieldset disabled={cerrada} className="contents">
         <RejillaCampos>
           <CampoAncho>
             <Campo label="Cliente" htmlFor="clienteId">
-              <select id="clienteId" value={clienteId} onChange={(e) => setClienteId(e.target.value)} className={selectClass}>
-                <option value="">Selecciona…</option>
-                {opcionesCliente.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombreEmpresa} ({c.codigo})
-                  </option>
-                ))}
-              </select>
+              <SelectorBuscable
+                id="clienteId"
+                opciones={opcionesCliente.map((c) => ({
+                  id: c.id,
+                  nombre: c.nombreEmpresa,
+                  detalle: c.codigo,
+                }))}
+                valor={clienteId}
+                onChange={setClienteId}
+                placeholder="Escribe el nombre o las iniciales…"
+              />
             </Campo>
           </CampoAncho>
           <Campo label="Tipo de venta" htmlFor="tipoVenta">
-            <SelectMapa id="tipoVenta" valor={tipoVenta} onChange={cambiarTipo} mapa={TIPOS_VENTA} />
+            <SelectMapa
+              id="tipoVenta"
+              valor={tipoVenta}
+              onChange={cambiarTipo}
+              mapa={TIPOS_VENTA}
+            />
           </Campo>
           <Campo label="Moneda" htmlFor="moneda">
-            <SelectMapa id="moneda" valor={moneda} onChange={setMoneda} mapa={{ USD: "USD", COP: "COP" }} />
+            <SelectMapa
+              id="moneda"
+              valor={moneda}
+              onChange={setMoneda}
+              mapa={{ USD: "USD", COP: "COP" }}
+            />
           </Campo>
           <Campo label={`Monto estimado (${moneda})`} htmlFor="monto">
-            <input id="monto" type="number" inputMode="decimal" min={0} step="0.01" value={monto} onChange={(e) => setMonto(e.target.value)} className={inputClass} />
+            <input
+              id="monto"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="0.01"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+              className={inputClass}
+            />
           </Campo>
           <Campo label="Cajas estimadas" htmlFor="cajas">
-            <input id="cajas" type="number" inputMode="numeric" min={0} step={1} value={cajas} onChange={(e) => setCajas(e.target.value)} className={inputClass} />
+            <input
+              id="cajas"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={1}
+              value={cajas}
+              onChange={(e) => setCajas(e.target.value)}
+              className={inputClass}
+            />
           </Campo>
           <Campo label="Fecha de contacto inicial" htmlFor="fechaContacto">
-            <input id="fechaContacto" type="date" max={hoy} value={fechaContacto} onChange={(e) => setFechaContacto(e.target.value)} className={inputClass} />
+            <input
+              id="fechaContacto"
+              type="date"
+              max={hoy}
+              value={fechaContacto}
+              onChange={(e) => setFechaContacto(e.target.value)}
+              className={inputClass}
+            />
           </Campo>
           {oportunidad ? null : (
             <Campo label="Etapa inicial" htmlFor="etapa">
-              <SelectMapa id="etapa" valor={etapa} onChange={setEtapa} mapa={Object.fromEntries(ETAPAS_ACTIVAS.map((e) => [e, ETAPAS[e]]))} />
+              <SelectMapa
+                id="etapa"
+                valor={etapa}
+                onChange={setEtapa}
+                mapa={Object.fromEntries(
+                  ETAPAS_ACTIVAS.map((e) => [e, ETAPAS[e]]),
+                )}
+              />
             </Campo>
           )}
           {puedeAsignar ? (
             <Campo label="Comercial asignado" htmlFor="comercialId">
-              <select id="comercialId" value={comercialId} onChange={(e) => setComercialId(e.target.value)} className={selectClass}>
-                <option value="">Selecciona…</option>
-                {opcionesComercial.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </select>
+              <SelectorBuscable
+                id="comercialId"
+                opciones={opcionesComercial.map((c) => ({
+                  id: c.id,
+                  nombre: c.nombre,
+                }))}
+                valor={comercialId}
+                onChange={(v) => setComercialId(v)}
+                placeholder="Escribe para buscar…"
+              />
             </Campo>
           ) : null}
         </RejillaCampos>
       </fieldset>
       <Campo label="Notas de seguimiento (opcional)" htmlFor="notas">
-        <textarea id="notas" value={notas} onChange={(e) => setNotas(e.target.value)} maxLength={4000} className={`${textareaClass} min-h-28`} />
+        <textarea
+          id="notas"
+          value={notas}
+          onChange={(e) => setNotas(e.target.value)}
+          maxLength={4000}
+          className={`${textareaClass} min-h-28`}
+        />
       </Campo>
       {error ? <p className="text-sm text-peligro">{error}</p> : null}
       <Botones guardando={guardando} texto="Guardar" onCancelar={onCancelar} />
@@ -186,7 +294,11 @@ export function FormularioGanar({
 }) {
   const usd = oportunidad.moneda === "USD";
   const [fechaPago, setFechaPago] = useState(hoy);
-  const [origen, setOrigen] = useState(oportunidad.tipoVenta === "exportacion" ? "b2b_directo" : "whatsapp_directo");
+  const [origen, setOrigen] = useState(
+    oportunidad.tipoVenta === "exportacion"
+      ? "b2b_directo"
+      : "whatsapp_directo",
+  );
   const [estadoPago, setEstadoPago] = useState("anticipo");
   const [trm, setTrm] = useState("");
   const valorCop = usd && trm ? oportunidad.montoEstimado * numero(trm) : null;
@@ -206,31 +318,70 @@ export function FormularioGanar({
       className="flex flex-col gap-6"
     >
       <div className="rounded-md bg-exito-fondo px-3 py-2 text-sm text-exito-texto">
-        Se creará la venta de <strong>{dinero(oportunidad.montoEstimado, oportunidad.moneda)}</strong> ({oportunidad.cajasEstimadas} cajas)
-        {oportunidad.tipoVenta === "exportacion" ? " y su seguimiento de vuelo en fase Cuarentena." : "."}
+        Se creará la venta de{" "}
+        <strong>{dinero(oportunidad.montoEstimado, oportunidad.moneda)}</strong>{" "}
+        ({oportunidad.cajasEstimadas} cajas)
+        {oportunidad.tipoVenta === "exportacion"
+          ? " y su seguimiento de vuelo en fase Cuarentena."
+          : "."}
       </div>
       <RejillaCampos>
         <Campo label="Fecha de pago confirmado" htmlFor="fechaPago">
-          <input id="fechaPago" type="date" max={hoy} value={fechaPago} onChange={(e) => setFechaPago(e.target.value)} className={inputClass} />
+          <input
+            id="fechaPago"
+            type="date"
+            max={hoy}
+            value={fechaPago}
+            onChange={(e) => setFechaPago(e.target.value)}
+            className={inputClass}
+          />
         </Campo>
         <Campo label="Estado de pago" htmlFor="estadoPago">
-          <SelectMapa id="estadoPago" valor={estadoPago} onChange={setEstadoPago} mapa={ESTADOS_PAGO} />
+          <SelectMapa
+            id="estadoPago"
+            valor={estadoPago}
+            onChange={setEstadoPago}
+            mapa={ESTADOS_PAGO}
+          />
         </Campo>
         <Campo label="Origen / canal" htmlFor="origen">
-          <SelectMapa id="origen" valor={origen} onChange={setOrigen} mapa={ORIGENES_CANAL} />
+          <SelectMapa
+            id="origen"
+            valor={origen}
+            onChange={setOrigen}
+            mapa={ORIGENES_CANAL}
+          />
         </Campo>
         {usd ? (
           <Campo
             label="TRM del día (COP por USD)"
             htmlFor="trm"
-            hint={valorCop ? `Equivale a ${dinero(valorCop, "COP")}` : "Fija el valor en pesos de la venta para la meta."}
+            hint={
+              valorCop
+                ? `Equivale a ${dinero(valorCop, "COP")}`
+                : "Fija el valor en pesos de la venta para la meta."
+            }
           >
-            <input id="trm" type="number" inputMode="decimal" min={1000} max={20000} step="0.01" value={trm} onChange={(e) => setTrm(e.target.value)} className={inputClass} />
+            <input
+              id="trm"
+              type="number"
+              inputMode="decimal"
+              min={1000}
+              max={20000}
+              step="0.01"
+              value={trm}
+              onChange={(e) => setTrm(e.target.value)}
+              className={inputClass}
+            />
           </Campo>
         ) : null}
       </RejillaCampos>
       {error ? <p className="text-sm text-peligro">{error}</p> : null}
-      <Botones guardando={guardando} texto="Ganar y crear venta" onCancelar={onCancelar} />
+      <Botones
+        guardando={guardando}
+        texto="Ganar y crear venta"
+        onCancelar={onCancelar}
+      />
     </form>
   );
 }
@@ -258,14 +409,25 @@ export function FormularioPerdida({
       className="flex flex-col gap-4"
     >
       <p className="text-sm text-texto">
-        <strong>{oportunidad.clienteNombre}</strong> · {oportunidad.codigo}. Una oportunidad perdida queda cerrada y no vuelve a
-        etapas anteriores.
+        <strong>{oportunidad.clienteNombre}</strong> · {oportunidad.codigo}. Una
+        oportunidad perdida queda cerrada y no vuelve a etapas anteriores.
       </p>
       <Campo label="Motivo de la pérdida" htmlFor="motivo">
-        <textarea id="motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} maxLength={500} className={textareaClass} />
+        <textarea
+          id="motivo"
+          value={motivo}
+          onChange={(e) => setMotivo(e.target.value)}
+          maxLength={500}
+          className={textareaClass}
+        />
       </Campo>
       {error ? <p className="text-sm text-peligro">{error}</p> : null}
-      <Botones guardando={guardando} texto="Marcar como perdida" peligro onCancelar={onCancelar} />
+      <Botones
+        guardando={guardando}
+        texto="Marcar como perdida"
+        peligro
+        onCancelar={onCancelar}
+      />
     </form>
   );
 }

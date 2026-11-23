@@ -499,6 +499,40 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => new { e.EmbarqueId, e.CreadoEn });
             entity.HasOne<Embarque>().WithMany().HasForeignKey(e => e.EmbarqueId).OnDelete(DeleteBehavior.Cascade);
         });
+
+        // AUNAP: especies autorizadas (Resolución 1924 de 2015), enlace producto → especie y permiso por embarque.
+        modelBuilder.Entity<EspecieAunap>(entity =>
+        {
+            entity.ToTable("especies_aunap");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.NombreCientifico).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.NombreComun).HasMaxLength(200);
+            entity.Property(e => e.Orden).HasMaxLength(100);
+            entity.Property(e => e.Familia).HasMaxLength(100);
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => e.Codigo).IsUnique();
+        });
+
+        modelBuilder.Entity<Producto>()
+            .HasOne<EspecieAunap>().WithMany().HasForeignKey(p => p.EspecieAunapId).OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<PermisoAunap>(entity =>
+        {
+            entity.ToTable("embarque_permisos_aunap");
+            entity.HasKey(e => e.EmbarqueId);
+            entity.Property(e => e.Numero).HasMaxLength(60);
+            entity.Property(e => e.Notas).HasMaxLength(1000);
+            entity.HasOne<Embarque>().WithOne().HasForeignKey<PermisoAunap>(e => e.EmbarqueId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PermisoAunapLinea>(entity =>
+        {
+            entity.ToTable("embarque_permiso_aunap_lineas", t => t.HasCheckConstraint("ck_permiso_aunap_lineas_cantidad", "cantidad_autorizada >= 0"));
+            entity.HasKey(e => new { e.EmbarqueId, e.EspecieAunapId });
+            entity.HasOne<PermisoAunap>().WithMany().HasForeignKey(e => e.EmbarqueId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<EspecieAunap>().WithMany().HasForeignKey(e => e.EspecieAunapId).OnDelete(DeleteBehavior.Restrict);
+        });
     }
 
     /// <summary>

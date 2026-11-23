@@ -223,3 +223,53 @@ public class EmbarqueRepository(PostgresConnectionFactory conexiones) : Reposito
             },
             ct);
 }
+
+public class AunapRepository(PostgresConnectionFactory conexiones) : RepositorioInventario(conexiones), IAunapRepository
+{
+    public Task<IReadOnlyList<EspecieAunapFila>> EspeciesAsync(CancellationToken ct = default) =>
+        ListarAsync<EspecieAunapFila>("SELECT * FROM fn_especies_aunap_listar()", null, ct);
+
+    public async Task<ImportacionAunap> ImportarAsync(IReadOnlyList<EspecieAunapImportar> especies, DateTime fecha, CancellationToken ct = default) =>
+        (await UnoAsync<ImportacionAunap>(
+            "SELECT * FROM fn_especies_aunap_importar(@Filas::jsonb, @Fecha::timestamptz)",
+            new
+            {
+                Filas = JsonSerializer.Serialize(especies.Select(e => new
+                {
+                    id = Guid.CreateVersion7(), codigo = e.Codigo!.Trim(), nombreCientifico = e.NombreCientifico!.Trim(),
+                    nombreComun = string.IsNullOrWhiteSpace(e.NombreComun) ? null : e.NombreComun.Trim(),
+                    amazonia = e.Amazonia, orinoquia = e.Orinoquia, magdalena = e.Magdalena, pacifico = e.Pacifico, caribe = e.Caribe,
+                    orden = string.IsNullOrWhiteSpace(e.Orden) ? null : e.Orden.Trim(),
+                    familia = string.IsNullOrWhiteSpace(e.Familia) ? null : e.Familia.Trim(),
+                })),
+                Fecha = fecha,
+            },
+            ct))!;
+
+    public Task<IReadOnlyList<ProductoAunapFila>> ProductosAsync(CancellationToken ct = default) =>
+        ListarAsync<ProductoAunapFila>("SELECT * FROM fn_productos_aunap()", null, ct);
+
+    public Task EnlazarProductoAsync(Guid productoId, Guid? especieAunapId, DateTime fecha, CancellationToken ct = default) =>
+        EjecutarAsync("CALL sp_producto_aunap(@ProductoId::uuid, @EspecieId::uuid, @Fecha::timestamptz)",
+            new { ProductoId = productoId, EspecieId = especieAunapId, Fecha = fecha }, ct);
+
+    public Task<int> EnlazarAutomaticoAsync(DateTime fecha, CancellationToken ct = default) =>
+        EscalarAsync<int>("SELECT fn_productos_aunap_enlazar(@Fecha::timestamptz)", new { Fecha = fecha }, ct);
+
+    public Task<PermisoAunapFila?> PermisoAsync(Guid embarqueId, CancellationToken ct = default) =>
+        UnoAsync<PermisoAunapFila>("SELECT * FROM fn_permiso_aunap(@Id::uuid)", new { Id = embarqueId }, ct);
+
+    public Task<IReadOnlyList<PermisoAunapLineaFila>> PermisoLineasAsync(Guid embarqueId, CancellationToken ct = default) =>
+        ListarAsync<PermisoAunapLineaFila>("SELECT * FROM fn_permiso_aunap_lineas(@Id::uuid)", new { Id = embarqueId }, ct);
+
+    public Task GuardarPermisoAsync(Guid embarqueId, GuardarPermisoAunapRequest p, DateTime fecha, CancellationToken ct = default) =>
+        EjecutarAsync(
+            "CALL sp_permiso_aunap_guardar(@Id::uuid, @Numero::text, @FechaPermiso::date, @Notas::text, @Lineas::jsonb, @Fecha::timestamptz)",
+            new
+            {
+                Id = embarqueId, p.Numero, FechaPermiso = p.Fecha, p.Notas,
+                Lineas = JsonSerializer.Serialize((p.Lineas ?? []).Select(l => new { especie = l.EspecieAunapId, cantidad = l.Cantidad })),
+                Fecha = fecha,
+            },
+            ct);
+}

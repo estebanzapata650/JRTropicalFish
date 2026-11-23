@@ -178,6 +178,18 @@ Todo bajo `api/v1/exportaciones`. Reglas en [`../dominio/exportaciones.md`](../d
 | `PUT /embarques/{id}/empaque` | `exportaciones:empacar` |
 | `PUT /embarques/{id}/estado` | `leer` + (`gestionar`, o `empacar` solo para empacado ↔ confirmado) |
 
+**AUNAP** (`AunapController`, también bajo `api/v1/exportaciones`):
+
+| Método y ruta | Permiso |
+|---|---|
+| `GET /aunap/especies` · `GET /aunap/productos` · `GET /embarques/{id}/aunap` (pedido / autorizado / empacado) | `exportaciones:leer` |
+| `POST /aunap/especies/importar` · `PUT /aunap/productos/{productoId}` · `POST /aunap/productos/enlazar-automatico` | `exportaciones:configurar` |
+| `PUT /embarques/{id}/aunap/permiso` | `exportaciones:gestionar` |
+
+Los documentos `solicitud_aunap`, `packing_aduana` y `factura_aduana` van por el mismo
+`GET /embarques/{id}/documentos/{tipo}`. Responden 400 si alguna especie no tiene código AUNAP o, en los de
+aduana, si falta el empaque real.
+
 **PDF**: cada documento arma su `InformeModelo` en `Application/Exportaciones/DocumentosEmbarque.cs`. El modelo
 ganó logo, datos de la empresa en el encabezado, bloques lado a lado (`SeccionBloques`), alineación por columna,
 filas de totales, tablas compactas, hoja horizontal y pie propio; todo opcional (los informes anteriores no cambian).

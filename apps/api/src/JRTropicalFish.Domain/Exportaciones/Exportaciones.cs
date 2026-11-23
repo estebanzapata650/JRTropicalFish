@@ -341,3 +341,56 @@ public class EnvioDocumento : EntidadBase
 
     public string? EnviadoPor { get; set; }
 }
+
+/// <summary>
+/// Especie autorizada para exportar como pez ornamental por la AUNAP (Resolución 1924 de 2015). El código es el
+/// de la resolución (texto: hay códigos como "24*").
+/// </summary>
+public class EspecieAunap : EntidadBase
+{
+    public required string Codigo { get; set; }
+
+    public required string NombreCientifico { get; set; }
+
+    public string? NombreComun { get; set; }
+
+    public bool Amazonia { get; set; }
+
+    public bool Orinoquia { get; set; }
+
+    public bool Magdalena { get; set; }
+
+    public bool Pacifico { get; set; }
+
+    public bool Caribe { get; set; }
+
+    public string? Orden { get; set; }
+
+    public string? Familia { get; set; }
+
+    public bool Activo { get; set; } = true;
+}
+
+/// <summary>Permiso AUNAP del embarque: número y fecha del acto que autoriza la exportación.</summary>
+public class PermisoAunap
+{
+    public Guid EmbarqueId { get; set; }
+
+    public string? Numero { get; set; }
+
+    public DateOnly? Fecha { get; set; }
+
+    public string? Notas { get; set; }
+
+    public DateTime ActualizadoEn { get; set; }
+}
+
+/// <summary>Cantidad autorizada por especie AUNAP en el permiso del embarque.</summary>
+public class PermisoAunapLinea
+{
+    public Guid EmbarqueId { get; set; }
+
+    public Guid EspecieAunapId { get; set; }
+
+    public int CantidadAutorizada { get; set; }
+}

@@ -24,6 +24,7 @@ public class EmbarqueService(
     IEmbarqueRepository embarques,
     IConfiguracionExportacionRepository configuracion,
     ConfiguracionExportacionService servicioConfiguracion,
+    AunapService aunap,
     IVentaRepository ventas,
     IClienteRepository clientes,
     IPedidoClienteRepository pedidos,
@@ -268,6 +269,15 @@ public class EmbarqueService(
             avisos.Add(aviso);
         }
 
+        // Una especie sin código AUNAP no se puede declarar: mejor saberlo al armar el pedido que al despachar.
+        var mapaAunap = await aunap.MapaAsync(ct);
+        var sinAunap = entidades.Where(l => mapaAunap.GetValueOrDefault(l.ProductoId)?.EspecieAunapId is null)
+            .Select(l => $"{catalogo[l.ProductoId].Codigo} {catalogo[l.ProductoId].NombreCientifico}").ToList();
+        if (sinAunap.Count > 0)
+        {
+            avisos.Add($"Sin código AUNAP (no se pueden declarar ni exportar): {string.Join(", ", sinAunap)}.");
+        }
+
         return avisos;
     }
 
@@ -468,6 +478,11 @@ public class EmbarqueService(
             return new InformePdf(buffer.ToArray(), NombreArchivo(e, tipo, numero.ToString()));
         }
 
+        if (TiposDocumentoEmbarque.Autoridades.Contains(tipo) && await ValidarAutoridadesAsync(e, tipo, ct) is { } invalido)
+        {
+            return invalido;
+        }
+
         if (tipo == TiposDocumentoEmbarque.Preinvoice && e.PreinvoiceNumero is null)
         {
             await embarques.RegistrarPreinvoiceAsync(id, ReglasEmbarque.NumeroPreinvoice(reloj.Hoy), reloj.Hoy, reloj.AhoraUtc, ct);
@@ -571,8 +586,40 @@ public class EmbarqueService(
         var cliente = await clientes.ObtenerAsync(e.ClienteId, ct);
         var exportacion = await configuracion.ClienteAsync(e.ClienteId, ct);
         var logo = await servicioConfiguracion.LogoAsync(ct);
-        var datos = new DatosDocumento(detalle, empresa, cliente, exportacion, await TiposCajaAsync(ct), logo, usuario.Nombre ?? "", reloj.AhoraUtc);
+        var datos = new DatosDocumento(detalle, empresa, cliente, exportacion, await TiposCajaAsync(ct), logo, usuario.Nombre ?? "", reloj.AhoraUtc)
+        {
+            Aunap = TiposDocumentoEmbarque.Autoridades.Contains(tipo) ? await aunap.MapaAsync(ct) : new Dictionary<Guid, ProductoAunapFila>(),
+        };
         return generadorPdf.Generar(DocumentosEmbarque.Construir(tipo, datos));
+    }
+
+    /// <summary>
+    /// Los documentos para autoridades salen de lo real: la solicitud, de las especies del pedido; los de aduana y
+    /// aeropuerto, del empaque. Toda especie debe tener código AUNAP (no se declara una especie por otra).
+    /// </summary>
+    private async Task<Error?> ValidarAutoridadesAsync(EmbarqueFila e, string tipo, CancellationToken ct)
+    {
+        var mapa = await aunap.MapaAsync(ct);
+        if (tipo == TiposDocumentoEmbarque.SolicitudAunap)
+        {
+            var lineas = await embarques.LineasAsync(e.Id, ct);
+            if (lineas.Count == 0)
+            {
+                return Error.Validacion("El embarque no tiene especies.");
+            }
+
+            var (_, error) = ReglasAunap.Agrupar(lineas.Select(l => (l.ProductoId, l.ProductoCodigo, l.NombreCientifico, l.Cantidad, l.Total)), mapa);
+            return error is null ? null : Error.Validacion(error);
+        }
+
+        var empaque = await embarques.EmpaqueAsync(e.Id, ct);
+        if (empaque.Count == 0)
+        {
+            return Error.Validacion("Primero se registra el empaque real: la lista de aduana y aeropuerto sale de él.");
+        }
+
+        var (_, errorEmpaque) = ReglasAunap.Agrupar(empaque.Select(x => (x.ProductoId, x.ProductoCodigo, x.NombreCientifico, x.Cantidad, x.Total)), mapa);
+        return errorEmpaque is null ? null : Error.Validacion(errorEmpaque);
     }
 
     private async Task GuardarDocumentoAsync(EmbarqueFila e, string tipo, string numero, byte[] pdf, CancellationToken ct)
@@ -697,7 +744,7 @@ public class EmbarqueService(
 
     public static string NumeroDocumento(EmbarqueFila e, string tipo) => tipo switch
     {
-        TiposDocumentoEmbarque.Preinvoice => e.PreinvoiceNumero ?? e.Codigo,
+        TiposDocumentoEmbarque.Preinvoice or TiposDocumentoEmbarque.SolicitudAunap => e.PreinvoiceNumero ?? e.Codigo,
         TiposDocumentoEmbarque.Factura => e.FacturaNumero?.ToString() ?? $"{e.Codigo} (draft)",
         TiposDocumentoEmbarque.NotaCredito => e.FacturaNumero is { } n ? $"{n}-01" : e.Codigo,
         _ => e.FacturaNumero?.ToString() ?? e.Codigo,
@@ -711,6 +758,9 @@ public class EmbarqueService(
         TiposDocumentoEmbarque.Empaque => "Packing list",
         TiposDocumentoEmbarque.Factura => "Invoice",
         TiposDocumentoEmbarque.NotaCredito => "Credit note",
+        TiposDocumentoEmbarque.SolicitudAunap => "Solicitud AUNAP",
+        TiposDocumentoEmbarque.PackingAduana => "Customs packing list",
+        TiposDocumentoEmbarque.FacturaAduana => "Customs invoice",
         _ => "Balance",
     };
 

@@ -77,6 +77,7 @@ export function construirNavegacion(): ItemNavegacion[] {
       icono: "exportaciones",
       hijos: [
         { href: "/exportaciones", label: "Embarques", permiso: PERMISOS.EXPORTACIONES_LEER },
+        { href: "/exportaciones/aunap", label: "AUNAP", permiso: PERMISOS.EXPORTACIONES_LEER },
         { href: "/exportaciones/configuracion", label: "Configuración", permiso: PERMISOS.EXPORTACIONES_CONFIGURAR },
       ],
     },

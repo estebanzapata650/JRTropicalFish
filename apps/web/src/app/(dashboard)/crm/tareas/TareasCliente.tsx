@@ -1,5 +1,6 @@
 "use client";
 
+import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,7 +9,13 @@ import { Dialogo } from "@/components/Dialogo";
 import { DialogoConfirmacion } from "@/components/DialogoConfirmacion";
 import { HistorialRemoto } from "@/components/HistorialCambios";
 import { PageHeader } from "@/components/PageHeader";
-import { BotonIcono, Campo, CampoAncho, Etiqueta, RejillaCampos } from "@/components/campos";
+import {
+  BotonIcono,
+  Campo,
+  CampoAncho,
+  Etiqueta,
+  RejillaCampos,
+} from "@/components/campos";
 import {
   ESTADOS_TAREA,
   ETIQUETAS_HISTORIAL_CRM,
@@ -19,9 +26,20 @@ import {
   type Comercial,
   type Tarea,
 } from "@/lib/crm";
-import { botonPrimarioClass, botonSecundarioClass, casillaClass, inputClass, selectClass, textareaClass } from "@/lib/estilos";
+import {
+  botonPrimarioClass,
+  botonSecundarioClass,
+  casillaClass,
+  inputClass,
+  selectClass,
+  textareaClass,
+} from "@/lib/estilos";
 import { fecha } from "@/lib/formato";
-import { cambiarEstadoTareaAction, eliminarTareaAction, guardarTareaAction } from "../actions";
+import {
+  cambiarEstadoTareaAction,
+  eliminarTareaAction,
+  guardarTareaAction,
+} from "../actions";
 import { Tablero } from "@/components/Tablero";
 import { SelectMapa } from "../comun";
 import type { ClienteOpcion } from "../pipeline/DialogosOportunidad";
@@ -36,7 +54,8 @@ const BORDE_ESTADO: Record<string, string> = {
 };
 
 function textoDias(t: Tarea) {
-  if (t.estado === "completada") return `Completada ${fecha(t.completadaEn?.slice(0, 10))}`;
+  if (t.estado === "completada")
+    return `Completada ${fecha(t.completadaEn?.slice(0, 10))}`;
   if (t.diasRestantes < 0) return `Vencida hace ${-t.diasRestantes} d`;
   if (t.diasRestantes === 0) return "Vence hoy";
   return `Faltan ${t.diasRestantes} d`;
@@ -123,7 +142,11 @@ export function TareasCliente({
         descripcion="Micro-acciones con fecha límite por cliente u oportunidad."
         acciones={
           puedeGestionar ? (
-            <button type="button" onClick={() => setCreando(true)} className={`${botonPrimarioClass} gap-2`}>
+            <button
+              type="button"
+              onClick={() => setCreando(true)}
+              className={`${botonPrimarioClass} gap-2`}
+            >
               <Plus className="size-4" aria-hidden /> Nueva tarea
             </button>
           ) : null
@@ -132,16 +155,24 @@ export function TareasCliente({
 
       <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
         {comerciales.length > 1 ? (
-          <select aria-label="Filtrar por comercial" value={comercial} onChange={(e) => setComercial(e.target.value)} className={`${selectClass} md:w-56`}>
-            <option value="">Todos los comerciales</option>
-            {comerciales.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.id === usuarioId ? "Mis tareas" : c.nombre}
-              </option>
-            ))}
-          </select>
+          <SelectorBuscable
+            etiqueta="Filtrar por comercial"
+            opciones={comerciales.map((c) => ({
+              id: c.id,
+              nombre: c.id === usuarioId ? "Mis tareas" : c.nombre,
+            }))}
+            valor={comercial}
+            onChange={(v) => setComercial(v)}
+            vacio="Todos los comerciales"
+            className="md:w-56"
+          />
         ) : null}
-        <select aria-label="Filtrar por prioridad" value={prioridad} onChange={(e) => setPrioridad(e.target.value)} className={`${selectClass} md:w-44`}>
+        <select
+          aria-label="Filtrar por prioridad"
+          value={prioridad}
+          onChange={(e) => setPrioridad(e.target.value)}
+          className={`${selectClass} md:w-44`}
+        >
           <option value="">Toda prioridad</option>
           {Object.entries(PRIORIDADES).map(([v, e]) => (
             <option key={v} value={v}>
@@ -154,25 +185,45 @@ export function TareasCliente({
           aria-pressed={soloVencidas}
           onClick={() => setSoloVencidas((v) => !v)}
           className={`inline-flex h-11 items-center justify-center gap-2 rounded-full border px-4 text-sm ${
-            soloVencidas ? "border-peligro bg-peligro/15 font-medium text-peligro" : "border-borde text-peligro hover:bg-acento-suave"
+            soloVencidas
+              ? "border-peligro bg-peligro/15 font-medium text-peligro"
+              : "border-borde text-peligro hover:bg-acento-suave"
           }`}
         >
           Vencidas <span className="tabular-nums">{vencidas}</span>
         </button>
         <label className="flex items-center gap-2 text-sm text-texto">
-          <input type="checkbox" checked={ocultarCompletadas} onChange={(e) => setOcultarCompletadas(e.target.checked)} className={casillaClass} />
+          <input
+            type="checkbox"
+            checked={ocultarCompletadas}
+            onChange={(e) => setOcultarCompletadas(e.target.checked)}
+            className={casillaClass}
+          />
           Ocultar completadas
         </label>
       </div>
 
-      {aviso ? <p role="status" className="rounded-md bg-advertencia-fondo px-3 py-2 text-sm text-advertencia-texto">{aviso}</p> : null}
+      {aviso ? (
+        <p
+          role="status"
+          className="rounded-md bg-advertencia-fondo px-3 py-2 text-sm text-advertencia-texto"
+        >
+          {aviso}
+        </p>
+      ) : null}
 
       <Tablero
-        columnas={ORDEN_ESTADOS_TAREA.map((e) => ({ id: e, titulo: ESTADOS_TAREA[e], borde: BORDE_ESTADO[e] }))}
+        columnas={ORDEN_ESTADOS_TAREA.map((e) => ({
+          id: e,
+          titulo: ESTADOS_TAREA[e],
+          borde: BORDE_ESTADO[e],
+        }))}
         items={visibles}
         columnaDe={(t) => t.estado}
         idDe={(t) => t.id}
-        etiquetaDe={(t) => `${t.accion}, ${t.clienteNombre}${t.vencida ? ", vencida" : ""}`}
+        etiquetaDe={(t) =>
+          `${t.accion}, ${t.clienteNombre}${t.vencida ? ", vencida" : ""}`
+        }
         puedeSoltar={() => puedeGestionar}
         onSoltar={mover}
         deshabilitado={!puedeGestionar || procesando}
@@ -181,19 +232,36 @@ export function TareasCliente({
           <div className="flex flex-col gap-2">
             <div className="flex items-start justify-between gap-2">
               <p className="text-sm font-medium text-texto">{t.accion}</p>
-              <Etiqueta texto={PRIORIDADES[t.prioridad]} tono={tonoPrioridad(t.prioridad)} />
+              <Etiqueta
+                texto={PRIORIDADES[t.prioridad]}
+                tono={tonoPrioridad(t.prioridad)}
+              />
             </div>
             <p className="text-xs text-texto-suave">
-              <Link href={`/crm/clientes/${t.clienteId}`} className="hover:text-acento hover:underline">
+              <Link
+                href={`/crm/clientes/${t.clienteId}`}
+                className="hover:text-acento hover:underline"
+              >
                 {t.clienteNombre}
               </Link>
-              {t.oportunidadCodigo ? ` · ${t.oportunidadCodigo}` : ""} · {TIPOS_ACCION[t.tipoAccion]}
+              {t.oportunidadCodigo ? ` · ${t.oportunidadCodigo}` : ""} ·{" "}
+              {TIPOS_ACCION[t.tipoAccion]}
             </p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-              <span className={t.vencida ? "font-semibold text-peligro" : t.diasRestantes <= 1 && t.estado !== "completada" ? "font-medium text-advertencia-texto" : "text-texto-suave"}>
+              <span
+                className={
+                  t.vencida
+                    ? "font-semibold text-peligro"
+                    : t.diasRestantes <= 1 && t.estado !== "completada"
+                      ? "font-medium text-advertencia-texto"
+                      : "text-texto-suave"
+                }
+              >
                 {textoDias(t)}
               </span>
-              <span className="text-texto-suave">Vence {fecha(t.fechaVencimiento)}</span>
+              <span className="text-texto-suave">
+                Vence {fecha(t.fechaVencimiento)}
+              </span>
               <span className="text-texto-suave">{t.comercialNombre}</span>
             </div>
             <div className="flex flex-wrap items-center gap-1 border-t border-borde pt-2">
@@ -206,11 +274,13 @@ export function TareasCliente({
                   className="h-9 rounded-md border border-borde bg-superficie px-2 text-xs text-texto"
                 >
                   <option value="">Mover a…</option>
-                  {ORDEN_ESTADOS_TAREA.filter((e) => e !== t.estado).map((e) => (
-                    <option key={e} value={e}>
-                      {ESTADOS_TAREA[e]}
-                    </option>
-                  ))}
+                  {ORDEN_ESTADOS_TAREA.filter((e) => e !== t.estado).map(
+                    (e) => (
+                      <option key={e} value={e}>
+                        {ESTADOS_TAREA[e]}
+                      </option>
+                    ),
+                  )}
                 </select>
               ) : null}
               {puedeGestionar && t.estado !== "completada" ? (
@@ -225,16 +295,38 @@ export function TareasCliente({
                 </button>
               ) : null}
               <div className="ml-auto flex">
-                <BotonIcono accion="otra" icono={History} etiqueta={`Historial de la tarea ${t.accion}`} onClick={() => setHistorialDe(t)} />
-                {puedeGestionar ? <BotonIcono accion="editar" etiqueta={`Editar la tarea ${t.accion}`} onClick={() => setEditando(t)} /> : null}
-                {puedeGestionar ? <BotonIcono accion="eliminar" etiqueta={`Eliminar la tarea ${t.accion}`} onClick={() => setEliminando(t)} /> : null}
+                <BotonIcono
+                  accion="otra"
+                  icono={History}
+                  etiqueta={`Historial de la tarea ${t.accion}`}
+                  onClick={() => setHistorialDe(t)}
+                />
+                {puedeGestionar ? (
+                  <BotonIcono
+                    accion="editar"
+                    etiqueta={`Editar la tarea ${t.accion}`}
+                    onClick={() => setEditando(t)}
+                  />
+                ) : null}
+                {puedeGestionar ? (
+                  <BotonIcono
+                    accion="eliminar"
+                    etiqueta={`Eliminar la tarea ${t.accion}`}
+                    onClick={() => setEliminando(t)}
+                  />
+                ) : null}
               </div>
             </div>
           </div>
         )}
       />
 
-      <Dialogo titulo={editando ? "Editar tarea" : "Nueva tarea"} abierto={creando || editando !== null} onCerrar={cerrar} ancho="max-w-4xl">
+      <Dialogo
+        titulo={editando ? "Editar tarea" : "Nueva tarea"}
+        abierto={creando || editando !== null}
+        onCerrar={cerrar}
+        ancho="max-w-4xl"
+      >
         <FormularioTarea
           key={editando?.id ?? "nueva"}
           tarea={editando}
@@ -249,12 +341,23 @@ export function TareasCliente({
           onCancelar={cerrar}
         />
       </Dialogo>
-      <Dialogo titulo="Historial de la tarea" abierto={historialDe !== null} onCerrar={() => setHistorialDe(null)}>
-        {historialDe ? <HistorialRemoto ruta={`/api/crm/tareas/${historialDe.id}/historial`} etiquetas={ETIQUETAS_HISTORIAL_CRM} /> : null}
+      <Dialogo
+        titulo="Historial de la tarea"
+        abierto={historialDe !== null}
+        onCerrar={() => setHistorialDe(null)}
+      >
+        {historialDe ? (
+          <HistorialRemoto
+            ruta={`/api/crm/tareas/${historialDe.id}/historial`}
+            etiquetas={ETIQUETAS_HISTORIAL_CRM}
+          />
+        ) : null}
       </Dialogo>
       <DialogoConfirmacion
         titulo="Eliminar tarea"
-        mensaje={eliminando ? <>¿Eliminar la tarea «{eliminando.accion}»?</> : null}
+        mensaje={
+          eliminando ? <>¿Eliminar la tarea «{eliminando.accion}»?</> : null
+        }
         textoConfirmar="Eliminar"
         peligro
         abierto={eliminando !== null}
@@ -302,9 +405,13 @@ function FormularioTarea({
   onCancelar: () => void;
 }) {
   const [clienteId, setClienteId] = useState(tarea?.clienteId ?? "");
-  const [oportunidadId, setOportunidadId] = useState(tarea?.oportunidadId ?? "");
+  const [oportunidadId, setOportunidadId] = useState(
+    tarea?.oportunidadId ?? "",
+  );
   const [accion, setAccion] = useState(tarea?.accion ?? "");
-  const [tipoAccion, setTipoAccion] = useState(tarea?.tipoAccion ?? "prospeccion");
+  const [tipoAccion, setTipoAccion] = useState(
+    tarea?.tipoAccion ?? "prospeccion",
+  );
   const [prioridad, setPrioridad] = useState(tarea?.prioridad ?? "media");
   const [estado, setEstado] = useState(tarea?.estado ?? "pendiente");
   const [comercialId, setComercialId] = useState(tarea?.comercialId ?? "");
@@ -314,12 +421,28 @@ function FormularioTarea({
 
   const opcionesCliente =
     tarea && !clientes.some((c) => c.id === tarea.clienteId)
-      ? [...clientes, { id: tarea.clienteId, codigo: tarea.clienteCodigo, nombreEmpresa: tarea.clienteNombre }]
+      ? [
+          ...clientes,
+          {
+            id: tarea.clienteId,
+            codigo: tarea.clienteCodigo,
+            nombreEmpresa: tarea.clienteNombre,
+          },
+        ]
       : clientes;
   const delCliente = oportunidades.filter((o) => o.clienteId === clienteId);
   const opcionesOportunidad =
-    tarea?.oportunidadId && tarea.clienteId === clienteId && !delCliente.some((o) => o.id === tarea.oportunidadId)
-      ? [...delCliente, { id: tarea.oportunidadId, codigo: tarea.oportunidadCodigo ?? "", clienteId }]
+    tarea?.oportunidadId &&
+    tarea.clienteId === clienteId &&
+    !delCliente.some((o) => o.id === tarea.oportunidadId)
+      ? [
+          ...delCliente,
+          {
+            id: tarea.oportunidadId,
+            codigo: tarea.oportunidadCodigo ?? "",
+            clienteId,
+          },
+        ]
       : delCliente;
 
   return (
@@ -344,76 +467,127 @@ function FormularioTarea({
       <RejillaCampos>
         <CampoAncho>
           <Campo label="Acción comercial" htmlFor="accion">
-            <input id="accion" value={accion} onChange={(e) => setAccion(e.target.value)} maxLength={300} placeholder="Ej. Enviar stocklist con fotos de Altums" className={inputClass} />
+            <input
+              id="accion"
+              value={accion}
+              onChange={(e) => setAccion(e.target.value)}
+              maxLength={300}
+              placeholder="Ej. Enviar stocklist con fotos de Altums"
+              className={inputClass}
+            />
           </Campo>
         </CampoAncho>
         <Campo label="Cliente" htmlFor="clienteTarea">
-          <select
+          <SelectorBuscable
             id="clienteTarea"
-            value={clienteId}
-            onChange={(e) => {
-              setClienteId(e.target.value);
+            opciones={opcionesCliente.map((c) => ({
+              id: c.id,
+              nombre: `${c.nombreEmpresa} (${c.codigo})`,
+            }))}
+            valor={clienteId}
+            onChange={(v) => {
+              setClienteId(v);
               setOportunidadId("");
             }}
-            className={selectClass}
-          >
-            <option value="">Selecciona…</option>
-            {opcionesCliente.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nombreEmpresa} ({c.codigo})
-              </option>
-            ))}
-          </select>
+            placeholder="Escribe para buscar…"
+          />
         </Campo>
         <Campo label="Oportunidad (opcional)" htmlFor="oportunidadTarea">
-          <select id="oportunidadTarea" value={oportunidadId} onChange={(e) => setOportunidadId(e.target.value)} disabled={!clienteId} className={selectClass}>
-            <option value="">{delCliente.length ? "Ninguna" : "Sin oportunidades abiertas"}</option>
-            {opcionesOportunidad.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.codigo}
-              </option>
-            ))}
-          </select>
+          <SelectorBuscable
+            id="oportunidadTarea"
+            opciones={opcionesOportunidad.map((o) => ({
+              id: o.id,
+              nombre: o.codigo,
+            }))}
+            valor={oportunidadId}
+            onChange={(v) => setOportunidadId(v)}
+            vacio={delCliente.length ? "Ninguna" : "Sin oportunidades abiertas"}
+            disabled={!clienteId}
+          />
         </Campo>
         <Campo label="Tipo de acción" htmlFor="tipoAccion">
-          <SelectMapa id="tipoAccion" valor={tipoAccion} onChange={setTipoAccion} mapa={TIPOS_ACCION} />
+          <SelectMapa
+            id="tipoAccion"
+            valor={tipoAccion}
+            onChange={setTipoAccion}
+            mapa={TIPOS_ACCION}
+          />
         </Campo>
         <Campo label="Prioridad" htmlFor="prioridad">
-          <SelectMapa id="prioridad" valor={prioridad} onChange={setPrioridad} mapa={PRIORIDADES} />
+          <SelectMapa
+            id="prioridad"
+            valor={prioridad}
+            onChange={setPrioridad}
+            mapa={PRIORIDADES}
+          />
         </Campo>
         <Campo label="Estado" htmlFor="estadoTarea">
-          <SelectMapa id="estadoTarea" valor={estado} onChange={setEstado} mapa={ESTADOS_TAREA} />
+          <SelectMapa
+            id="estadoTarea"
+            valor={estado}
+            onChange={setEstado}
+            mapa={ESTADOS_TAREA}
+          />
         </Campo>
         {puedeAsignar ? (
           <Campo label="Comercial asignado" htmlFor="comercialTarea">
-            <select id="comercialTarea" value={comercialId} onChange={(e) => setComercialId(e.target.value)} className={selectClass}>
-              <option value="">Yo</option>
-              {comerciales.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}
-                </option>
-              ))}
-            </select>
+            <SelectorBuscable
+              id="comercialTarea"
+              opciones={comerciales.map((c) => ({
+                id: c.id,
+                nombre: c.nombre,
+              }))}
+              valor={comercialId}
+              onChange={(v) => setComercialId(v)}
+              vacio="Yo"
+            />
           </Campo>
         ) : null}
         <Campo label="Fecha de asignación" htmlFor="asignacion">
-          <input id="asignacion" type="date" value={asignacion} onChange={(e) => setAsignacion(e.target.value)} className={inputClass} />
+          <input
+            id="asignacion"
+            type="date"
+            value={asignacion}
+            onChange={(e) => setAsignacion(e.target.value)}
+            className={inputClass}
+          />
         </Campo>
         <Campo label="Fecha de vencimiento" htmlFor="vencimiento">
-          <input id="vencimiento" type="date" min={asignacion || undefined} value={vencimiento} onChange={(e) => setVencimiento(e.target.value)} className={inputClass} />
+          <input
+            id="vencimiento"
+            type="date"
+            min={asignacion || undefined}
+            value={vencimiento}
+            onChange={(e) => setVencimiento(e.target.value)}
+            className={inputClass}
+          />
         </Campo>
         <CampoAncho>
           <Campo label="Notas de seguimiento (opcional)" htmlFor="notasTarea">
-            <textarea id="notasTarea" value={notas} onChange={(e) => setNotas(e.target.value)} maxLength={4000} className={textareaClass} />
+            <textarea
+              id="notasTarea"
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+              maxLength={4000}
+              className={textareaClass}
+            />
           </Campo>
         </CampoAncho>
       </RejillaCampos>
       {error ? <p className="text-sm text-peligro">{error}</p> : null}
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <button type="button" onClick={onCancelar} className={botonSecundarioClass}>
+        <button
+          type="button"
+          onClick={onCancelar}
+          className={botonSecundarioClass}
+        >
           Cancelar
         </button>
-        <button type="submit" disabled={guardando} className={botonPrimarioClass}>
+        <button
+          type="submit"
+          disabled={guardando}
+          className={botonPrimarioClass}
+        >
           {guardando ? "Guardando…" : "Guardar"}
         </button>
       </div>

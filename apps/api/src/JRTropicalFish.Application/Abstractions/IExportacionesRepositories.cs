@@ -77,3 +77,23 @@ public interface IEmbarqueRepository
 
     Task RegistrarEnvioAsync(EnvioDocumento envio, DateTime fecha, CancellationToken ct = default);
 }
+
+/// <summary>AUNAP: especies autorizadas, enlace producto → especie y permiso por embarque.</summary>
+public interface IAunapRepository
+{
+    Task<IReadOnlyList<EspecieAunapFila>> EspeciesAsync(CancellationToken ct = default);
+
+    Task<ImportacionAunap> ImportarAsync(IReadOnlyList<EspecieAunapImportar> especies, DateTime fecha, CancellationToken ct = default);
+
+    Task<IReadOnlyList<ProductoAunapFila>> ProductosAsync(CancellationToken ct = default);
+
+    Task EnlazarProductoAsync(Guid productoId, Guid? especieAunapId, DateTime fecha, CancellationToken ct = default);
+
+    Task<int> EnlazarAutomaticoAsync(DateTime fecha, CancellationToken ct = default);
+
+    Task<PermisoAunapFila?> PermisoAsync(Guid embarqueId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<PermisoAunapLineaFila>> PermisoLineasAsync(Guid embarqueId, CancellationToken ct = default);
+
+    Task GuardarPermisoAsync(Guid embarqueId, GuardarPermisoAunapRequest permiso, DateTime fecha, CancellationToken ct = default);
+}

@@ -48,6 +48,9 @@ export const DOCUMENTOS: { tipo: string; nombre: string; paraCliente: boolean }[
   { tipo: "factura", nombre: "Factura", paraCliente: true },
   { tipo: "nota_credito", nombre: "Nota crédito", paraCliente: true },
   { tipo: "balance", nombre: "Balance", paraCliente: true },
+  { tipo: "solicitud_aunap", nombre: "Solicitud AUNAP", paraCliente: false },
+  { tipo: "packing_aduana", nombre: "Packing list de aduana", paraCliente: false },
+  { tipo: "factura_aduana", nombre: "Custom invoice", paraCliente: false },
 ];
 
 export const nombreDocumento = (tipo: string) => DOCUMENTOS.find((d) => d.tipo === tipo)?.nombre ?? tipo;
@@ -272,3 +275,67 @@ export type EmbarqueDetalle = {
   calculos: Calculos;
   clienteEmail: string | null;
 };
+
+// --- AUNAP ---
+
+export type EspecieAunap = {
+  id: string;
+  codigo: string;
+  nombreCientifico: string;
+  nombreComun: string | null;
+  amazonia: boolean;
+  orinoquia: boolean;
+  magdalena: boolean;
+  pacifico: boolean;
+  caribe: boolean;
+  orden: string | null;
+  familia: string | null;
+  activo: boolean;
+  productos: number;
+};
+
+export type ProductoAunap = {
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  nombreComun: string | null;
+  grupoNombre: string | null;
+  activo: boolean;
+  especieAunapId: string | null;
+  aunapCodigo: string | null;
+  aunapNombreCientifico: string | null;
+  aunapNombreComun: string | null;
+  aunapFamilia: string | null;
+};
+
+export type FilaAunap = {
+  especieAunapId: string;
+  codigo: string;
+  nombreCientifico: string;
+  nombreComun: string | null;
+  familia: string | null;
+  productos: string[];
+  solicitado: number;
+  autorizado: number | null;
+  empacado: number;
+  estado: "sin_permiso" | "no_autorizada" | "excede" | "ok";
+};
+
+export type ResumenAunap = {
+  permiso: { numero: string | null; fecha: string | null; notas: string | null; actualizadoEn: string } | null;
+  filas: FilaAunap[];
+  sinCodigo: { productoId: string; productoCodigo: string; nombreCientifico: string; cantidad: number }[];
+  hayEmpaque: boolean;
+  avisos: string[];
+};
+
+export const ESTADOS_AUNAP: Record<FilaAunap["estado"], string> = {
+  sin_permiso: "Sin permiso",
+  no_autorizada: "No autorizada",
+  excede: "Excede",
+  ok: "Dentro",
+};
+
+/** Cuencas en las que la resolución autoriza la especie. */
+export const cuencasAunap = (e: Pick<EspecieAunap, "amazonia" | "orinoquia" | "magdalena" | "pacifico" | "caribe">) =>
+  [e.amazonia && "Amazonía", e.orinoquia && "Orinoquía", e.magdalena && "Magdalena", e.pacifico && "Pacífico", e.caribe && "Caribe"].filter(Boolean).join(", ");

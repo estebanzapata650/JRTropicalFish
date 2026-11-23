@@ -72,12 +72,39 @@ lista y descuento) se editan desde el embarque («Datos del cliente»).
 
 Plantillas: Comercial leer + gestionar; Bodega leer + empacar; Operativo leer + gestionar + empacar; Consulta leer.
 
+## AUNAP y documentos para autoridades
+
+- **Listado AUNAP** (Resolución 1924 de 2015, 598 especies; `docs/excelBD/Listado de la Aunap.xlsx`):
+  `npm run aunap:importar -- "<archivo>"`. El listado trae cuatro grupos de códigos: 1–522, 600–611,
+  700–739 y 1*–24*. Se importan todos tal cual, porque **falta confirmar qué implica cada grupo**.
+- **Código AUNAP de cada producto** (Exportaciones → AUNAP): el enlace automático solo se hace cuando el
+  nombre científico es idéntico; así quedaron 411 de 794 productos. Los sinónimos taxonómicos se enlazan a mano,
+  por ejemplo *Ariopsis seemanni* = *Sciades seemanni* (365). **Nunca se enlaza una especie con otra distinta.**
+  Un producto sin código no se puede declarar ni exportar. Al guardar las especies de un embarque, el sistema
+  avisa cuáles están en ese caso.
+- **Paso «2 AUNAP y aduana» del embarque**:
+  - Permiso: número, fecha y cantidad autorizada por especie, con un botón para copiar lo pedido.
+  - Comparación por especie: pedido, autorizado y empacado. Estados: sin permiso, no autorizada, excede o
+    dentro. Si lo empacado supera lo autorizado, aparece el aviso de pedir la ampliación.
+- **Documentos** (PDF):
+
+  | Documento | De dónde sale |
+  |---|---|
+  | **Proforma · solicitud de permiso AUNAP** | Las especies y cantidades del pedido, con los precios de la preinvoice |
+  | **Packing list de aduana y aeropuerto** | El empaque real, caja por caja |
+  | **Custom invoice** | La factura real agrupada por especie AUNAP, con los mismos totales que la factura comercial |
+
+  Todos usan el código y el nombre de la resolución.
+- **Regla (`ReglasAunap`)**: lo declarado sale de lo real. Nunca hay factores, especies sustituidas ni
+  cantidades o valores distintos a los del pedido, el empaque o la factura. Si alguna especie no tiene código,
+  el documento no se genera.
+
 ## Pendiente
 
-- **Con gerencia (no se construyó)**: proforma AUNAP (solicitud de permiso), lista de empaque de aeropuerto,
-  custom invoice, informe AUNAP y resumen para Siigo. En el despacho 12186 esos documentos declaran 4.578 peces
-  contra 6.174 facturados y la proforma ≈ 40 % del precio; en el sistema saldrán **de la lista de empaque real**
-  cuando se defina la regla. Requieren el catálogo AUNAP (575 especies) y el código AUNAP por producto.
+- **Con gerencia**: el informe AUNAP posterior al despacho y el resumen para Siigo. Saldrán de los mismos datos
+  reales. Falta confirmar el significado de los grupos de códigos AUNAP 600–611, 700–739 y 1*–24*.
+- **Productos sin código AUNAP** (383): revisar sinónimos y, para las especies que no están en la resolución,
+  decidir si se retiran de la oferta de exportación o se tramita su autorización.
 - **Por aclarar**: significado de las columnas ADD y FINAL de la factura JRCH (hoy se suman al DOA como en el
   Excel); hoja «Parametros agua» (rota en el Excel).
 - Factura electrónica DIAN: se sigue digitando en Siigo.
