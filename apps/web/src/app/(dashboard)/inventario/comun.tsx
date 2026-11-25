@@ -23,7 +23,11 @@ export function SelectorProducto({
 }) {
   const opciones = useMemo(
     () =>
-      productos.map((p) => ({ id: p.id, nombre: `${p.codigo} · ${p.nombre}` })),
+      productos.map((p) => ({
+        id: p.id,
+        nombre: `${p.codigo} · ${p.nombre}`,
+        detalle: p.detalle,
+      })),
     [productos],
   );
   return (
@@ -60,6 +64,24 @@ export const nuevaLinea = (
 });
 
 /**
+ * Valor de la línea al cambiar de especie o de moneda. Conserva lo escrito a mano: solo reemplaza un precio vacío
+ * o el que había puesto una lista. Sin moneda (aún no hay cliente) no pone precio.
+ */
+export function precioSugerido(
+  linea: LineaEditable,
+  anterior: ProductoOpcion | undefined,
+  nuevo: ProductoOpcion | undefined,
+  moneda: string | null | undefined,
+) {
+  const escrito = aNumero(linea.valor);
+  if (moneda === undefined) return linea.valor;
+  const deLista = Object.values(anterior?.precios ?? {});
+  if (escrito !== null && !deLista.includes(escrito)) return linea.valor;
+  const precio = moneda ? nuevo?.precios?.[moneda] : undefined;
+  return precio != null ? String(precio) : "";
+}
+
+/**
  * Editor de líneas por especie (ofertas, pedidos a proveedor, pedidos de cliente). En escritorio es
  * una tabla; en móvil cada línea es una tarjeta con sus campos uno debajo del otro.
  */
@@ -69,6 +91,7 @@ export function EditorLineas({
   productos,
   etiquetaValor,
   conObservacion = true,
+  moneda,
 }: {
   lineas: LineaEditable[];
   onChange: (lineas: LineaEditable[]) => void;
@@ -76,9 +99,21 @@ export function EditorLineas({
   /** "Costo unitario (COP)", "Precio unitario"… Sin etiqueta, no hay columna de valor. */
   etiquetaValor?: string;
   conObservacion?: boolean;
+  /** Pedidos de cliente: elegir la especie trae su precio de la lista de esa moneda. */
+  moneda?: string | null;
 }) {
   const cambiar = (clave: string, cambio: Partial<LineaEditable>) =>
     onChange(lineas.map((l) => (l.clave === clave ? { ...l, ...cambio } : l)));
+  const porId = useMemo(
+    () => new Map(productos.map((p) => [p.id, p])),
+    [productos],
+  );
+  /** Cambia la especie; el precio de lista entra solo si no se escribió otro a mano. */
+  const elegir = (l: LineaEditable, id: string) =>
+    cambiar(l.clave, {
+      productoId: id,
+      valor: precioSugerido(l, porId.get(l.productoId), porId.get(id), moneda),
+    });
 
   return (
     <div className="flex flex-col gap-3">
@@ -91,7 +126,7 @@ export function EditorLineas({
             <SelectorProducto
               productos={productos}
               valor={l.productoId}
-              onChange={(id) => cambiar(l.clave, { productoId: id })}
+              onChange={(id) => elegir(l, id)}
               etiqueta={`Especie de la línea ${i + 1}`}
             />
             <input

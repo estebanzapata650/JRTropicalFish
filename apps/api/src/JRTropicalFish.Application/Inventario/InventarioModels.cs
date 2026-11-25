@@ -271,7 +271,8 @@ public sealed record PedidoClienteLineaFila(
     int Cantidad,
     decimal? PrecioUnitario,
     string? Observacion,
-    int Despachada)
+    int Despachada,
+    string? Talla)
 {
     public int Pendiente => Math.Max(0, Cantidad - Despachada);
 }

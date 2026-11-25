@@ -25,7 +25,7 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   **Clientes** con ficha (WhatsApp/llamada) y **Metas**. 53 clientes importados del Excel con
   `npm run crm:importar-clientes`. Reglas en `docs/dominio/crm.md`.
 - **Catálogos** (2026-11-21): **Productos** (794, código por grupo, tipo, talla, bolsa, disponibilidad
-  publicada, centros de origen), **Listas de precios** (8 listas con regla deducida del Excel,
+  publicada, centros de origen), **Listas de precios** (7 listas con regla deducida del Excel,
   recálculo en bloque; costo protegido por `catalogos:ver-costos`), **Centros de acopio**, **Proveedores**
   y maestros *Grupos de producto* y *Cuencas*. Importados con `npm run catalogo:importar`. Reglas en
   `docs/dominio/catalogos.md`.

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ApiError, apiFetch } from "@/lib/api";
 import type { Producto } from "@/lib/catalogos";
 import type { ClienteExportacion, Configuracion, EmbarqueDetalle } from "@/lib/exportaciones";
+import { opcionesProducto } from "@/lib/inventario";
 import { PERMISOS } from "@/lib/permisos";
 import { exigirPermiso } from "@/lib/usuario-actual";
 import { FichaEmbarque } from "./FichaEmbarque";
@@ -36,7 +37,7 @@ export default async function EmbarquePage({ params }: { params: Promise<{ id: s
       d={detalle}
       cajas={configuracion.cajas}
       bolsas={configuracion.bolsas}
-      productos={productos.filter((p) => p.activo).map((p) => ({ id: p.id, codigo: p.codigo, nombre: p.nombreCientifico }))}
+      productos={opcionesProducto(productos)}
       listas={listas.filter((l) => !l.esCosto && l.activo).map((l) => ({ id: l.id, nombre: l.nombre }))}
       clienteExportacion={clienteExportacion}
       puedeGestionar={gestionar}

@@ -1,3 +1,4 @@
+import { textoTalla, type Producto } from "@/lib/catalogos";
 /**
  * Tipos, etiquetas y reglas de presentación de inventario, compras y pedidos de cliente. Los valores
  * son los de `apps/api/src/JRTropicalFish.Domain/Inventario/EnumsInventario.cs`; las transiciones
@@ -272,6 +273,8 @@ export type PedidoClienteLinea = {
   cantidad: number;
   precioUnitario: number | null;
   observacion: string | null;
+  /** Del producto en el catálogo ("5 – 6 cm"); cada talla es un producto. */
+  talla: string | null;
   despachada: number;
   pendiente: number;
 };
@@ -471,4 +474,40 @@ export const dias = (v: number) => {
 };
 
 /** Producto para los selectores de líneas: "AP005 · Crenicara Punctulatum". */
-export type ProductoOpcion = { id: string; codigo: string; nombre: string };
+export type ProductoOpcion = {
+  id: string;
+  codigo: string;
+  /** "Oscares Tigre Mediano · 5 – 6 cm": el nombre científico se repite entre tallas y no las distingue. */
+  nombre: string;
+  /** Nombre científico y nombre en inglés, para buscar también por ellos. */
+  detalle?: string | null;
+  /** Precio de lista por moneda (USD = STANDARD, COP = MAYORISTA_NACIONAL), si se cargaron las listas. */
+  precios?: Record<string, number>;
+};
+
+/** Productos activos del catálogo como opciones del selector de especies. `listas`: id de la lista de precios de cada moneda. */
+export function opcionesProducto(
+  productos: Producto[],
+  listas: Record<string, string> = {},
+): ProductoOpcion[] {
+  return productos
+    .filter((p) => p.activo)
+    .map((p) => {
+      const nombre = p.nombreEspanol ?? p.nombreComun ?? p.nombreCientifico;
+      const talla = textoTalla(p);
+      return {
+        id: p.id,
+        codigo: p.codigo,
+        nombre: talla === "—" ? nombre : `${nombre} · ${talla}`,
+        detalle:
+          [p.nombreCientifico, p.nombreComun]
+            .filter((x) => x && x !== nombre)
+            .join(" · ") || null,
+        precios: Object.fromEntries(
+          Object.entries(listas)
+            .filter(([, id]) => p.precios[id] != null)
+            .map(([moneda, id]) => [moneda, p.precios[id]]),
+        ),
+      };
+    });
+}

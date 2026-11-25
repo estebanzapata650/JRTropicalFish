@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { apiFetch } from "@/lib/api";
 import type { Producto, Proveedor } from "@/lib/catalogos";
 import type { Oferta } from "@/lib/inventario";
+import { opcionesProducto } from "@/lib/inventario";
 import { PERMISOS } from "@/lib/permisos";
 import { exigirPermiso } from "@/lib/usuario-actual";
 import { OfertasCliente } from "./OfertasCliente";
@@ -20,7 +21,7 @@ export default async function OfertasPage() {
   return (
     <OfertasCliente
       ofertas={ofertas}
-      productos={productos.filter((p) => p.activo).map((p) => ({ id: p.id, codigo: p.codigo, nombre: p.nombreCientifico }))}
+      productos={opcionesProducto(productos)}
       proveedores={proveedores.filter((p) => p.activo).map((p) => ({ id: p.id, nombre: p.nombre }))}
       puedeGestionar={gestionar}
     />

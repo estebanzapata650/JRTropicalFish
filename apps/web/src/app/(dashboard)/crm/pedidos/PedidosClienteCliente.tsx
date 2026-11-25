@@ -39,6 +39,7 @@ import {
   EditorLineas,
   aNumero,
   nuevaLinea,
+  precioSugerido,
   type LineaEditable,
 } from "../../inventario/comun";
 import {
@@ -51,12 +52,15 @@ import { fijarReservaAction } from "../../sanidad/actions";
 import type { Reserva } from "@/lib/sanidad";
 
 type Opcion = { id: string; nombre: string };
+/** `moneda`: la de sus pedidos sueltos (Colombia = COP, los demás = USD), igual que en la base. */
+type OpcionCliente = Opcion & { moneda: string };
 export type VentaOrigen = {
   id: string;
   codigo: string;
   clienteNombre: string;
   comercialNombre: string;
   ciudad: string | null;
+  moneda: string;
 };
 type Vista =
   | { tipo: "detalle"; id: string }
@@ -89,7 +93,7 @@ export function PedidosClienteCliente({
 }: {
   pedidos: PedidoCliente[];
   productos: ProductoOpcion[];
-  clientes: Opcion[];
+  clientes: OpcionCliente[];
   comerciales: Opcion[];
   abrirId: string | null;
   ventaOrigen: VentaOrigen | null;
@@ -485,7 +489,19 @@ function DetallePedido({
                 <span className="mr-1 font-mono text-xs text-texto-suave">
                   {l.productoCodigo}
                 </span>
-                <span className="text-texto italic">{l.nombreCientifico}</span>
+                <span className="text-texto">
+                  {l.nombreEspanol ?? l.nombreCientifico}
+                </span>
+                {l.talla ? (
+                  <span className="ml-2 text-xs whitespace-nowrap text-texto-suave">
+                    {l.talla}
+                  </span>
+                ) : null}
+                {l.nombreEspanol ? (
+                  <p className="text-xs text-texto-suave italic">
+                    {l.nombreCientifico}
+                  </p>
+                ) : null}
                 {l.observacion ? (
                   <p className="text-xs text-texto-suave">{l.observacion}</p>
                 ) : null}
@@ -576,7 +592,7 @@ function FormularioPedido({
   detalle: PedidoClienteDetalle | null;
   desdeVenta: VentaOrigen | null;
   productos: ProductoOpcion[];
-  clientes: Opcion[];
+  clientes: OpcionCliente[];
   comerciales: Opcion[];
   puedeAsignar: boolean;
   guardando: boolean;
@@ -605,6 +621,23 @@ function FormularioPedido({
       : [nuevaLinea()],
   );
   const enlazado = !!desdeVenta || !!p?.ventaId;
+  const moneda =
+    desdeVenta?.moneda ??
+    p?.moneda ??
+    clientes.find((c) => c.id === clienteId)?.moneda ??
+    null;
+
+  /** Al elegir el cliente se sabe la moneda: entran (o salen) los precios de lista. */
+  const elegirCliente = (id: string) => {
+    setClienteId(id);
+    const nueva = clientes.find((c) => c.id === id)?.moneda ?? null;
+    setLineas((ls) =>
+      ls.map((l) => {
+        const prod = productos.find((x) => x.id === l.productoId);
+        return { ...l, valor: precioSugerido(l, prod, prod, nueva) };
+      }),
+    );
+  };
 
   return (
     <form
@@ -653,7 +686,7 @@ function FormularioPedido({
                     : clientes
                 }
                 valor={clienteId}
-                onChange={setClienteId}
+                onChange={elegirCliente}
                 disabled={!!p}
                 placeholder="Escribe el nombre o las iniciales…"
               />
@@ -716,7 +749,8 @@ function FormularioPedido({
           lineas={lineas}
           onChange={setLineas}
           productos={productos}
-          etiquetaValor="Precio u."
+          etiquetaValor={moneda ? `Precio ${moneda}` : "Precio u."}
+          moneda={moneda}
         />
       </fieldset>
       {error ? <p className="text-sm text-peligro">{error}</p> : null}
@@ -874,7 +908,12 @@ function FormularioDespacho({
                   <span className="mr-1 font-mono text-xs text-texto-suave">
                     {l.productoCodigo}
                   </span>
-                  <span className="italic">{l.nombreCientifico}</span>
+                  <span>{l.nombreEspanol ?? l.nombreCientifico}</span>
+                  {l.talla ? (
+                    <span className="ml-2 text-xs whitespace-nowrap text-texto-suave">
+                      {l.talla}
+                    </span>
+                  ) : null}
                 </legend>
                 <p
                   className={`text-xs ${suma > l.pendiente ? "text-peligro" : "text-texto-suave"}`}

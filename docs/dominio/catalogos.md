@@ -26,7 +26,7 @@ conserva además su **disponibilidad publicada** (lo que ve el cliente en el sto
 
 ## Listas de precios
 
-Cada producto tiene **un precio por lista** (sin fila = sin precio). Las 8 listas del Excel:
+Cada producto tiene **un precio por lista** (sin fila = sin precio). Las listas (7; la de David Ramírez se retiró el 2026-11-25 y los clientes de Colombia usan Mayorista nacional):
 
 | Lista | Moneda | Regla deducida del Excel |
 |---|---|---|
@@ -36,7 +36,6 @@ Cada producto tiene **un precio por lista** (sin fila = sin precio). Las 8 lista
 | Minoristas del exterior | USD | Standard × 1,2 |
 | **Costo de compra** | COP | Manual · **reservada** (`catalogos:ver-costos`) |
 | Mayorista nacional | COP | Costo × (salvaje 2 · criadero 1,3 · especial 2) × (1 + IVA) × (1 + Wompi), redondeo $50 |
-| David Ramírez (cliente) | COP | Mayorista × 1,2, redondeo $50 |
 | Al detal nacional | COP | Mayorista × (salvaje 2 · criadero 1,5 · especial 2), redondeo $50 |
 
 Las reglas reproducen **2.756 de 2.760** precios del Excel. La diferencia real es **TE130**: el Excel

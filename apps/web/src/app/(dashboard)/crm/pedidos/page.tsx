@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { apiFetch } from "@/lib/api";
-import type { Producto } from "@/lib/catalogos";
+import type { ListaPrecios, Producto } from "@/lib/catalogos";
 import type { Cliente, Comercial, Venta } from "@/lib/crm";
-import type { PedidoCliente } from "@/lib/inventario";
+import { opcionesProducto, type PedidoCliente } from "@/lib/inventario";
 import { PERMISOS } from "@/lib/permisos";
 import { exigirPermiso } from "@/lib/usuario-actual";
 import { PedidosClienteCliente, type VentaOrigen } from "./PedidosClienteCliente";
+
+/** Lista que pone el precio en el pedido según su moneda (decisión del negocio). */
+const LISTAS_PEDIDO: Record<string, string> = { USD: "STANDARD", COP: "MAYORISTA_NACIONAL" };
 
 export const metadata: Metadata = { title: "Pedidos de clientes" };
 
@@ -18,12 +21,20 @@ export default async function PedidosClientePage({ searchParams }: { searchParam
   const gestionar = permisos.includes(PERMISOS.PEDIDOS_GESTIONAR);
   const { id, venta } = await searchParams;
 
-  const [pedidos, productos, clientes, comerciales] = await Promise.all([
+  const [pedidos, productos, clientes, comerciales, listas] = await Promise.all([
     apiFetch<PedidoCliente[]>("/api/v1/pedidos", { token }),
     gestionar && permisos.includes(PERMISOS.CATALOGOS_LEER) ? apiFetch<Producto[]>("/api/v1/catalogos/productos", { token }) : Promise.resolve([]),
     gestionar && permisos.includes(PERMISOS.CLIENTES_LEER) ? apiFetch<Cliente[]>("/api/v1/crm/clientes", { token }) : Promise.resolve([]),
     gestionar && permisos.includes(PERMISOS.CRM_LEER) ? apiFetch<Comercial[]>("/api/v1/crm/comerciales", { token }) : Promise.resolve([]),
+    gestionar && permisos.includes(PERMISOS.PRECIOS_LEER) ? apiFetch<ListaPrecios[]>("/api/v1/catalogos/precios/listas", { token }) : Promise.resolve([]),
   ]);
+
+  // Cada moneda tiene su lista; la moneda de la lista debe coincidir para no mezclar dólares y pesos.
+  const listaPorMoneda = Object.fromEntries(
+    listas
+      .filter((l) => l.activo && !l.esCosto && LISTAS_PEDIDO[l.moneda] === l.codigo)
+      .map((l) => [l.moneda, l.id]),
+  );
 
   // Desde Ventas: abrir el pedido de esa venta o proponer crearlo.
   let abrirId = typeof id === "string" ? id : null;
@@ -33,15 +44,15 @@ export default async function PedidosClientePage({ searchParams }: { searchParam
     if (existente) abrirId = existente.id;
     else if (gestionar && permisos.includes(PERMISOS.CRM_LEER)) {
       const v = await apiFetch<Venta>(`/api/v1/crm/ventas/${venta}`, { token }).catch(() => null);
-      if (v) ventaOrigen = { id: v.id, codigo: v.codigo, clienteNombre: v.clienteNombre, comercialNombre: v.comercialNombre, ciudad: v.ciudadEntrega };
+      if (v) ventaOrigen = { id: v.id, codigo: v.codigo, clienteNombre: v.clienteNombre, comercialNombre: v.comercialNombre, ciudad: v.ciudadEntrega, moneda: v.moneda };
     }
   }
 
   return (
     <PedidosClienteCliente
       pedidos={pedidos}
-      productos={productos.filter((p) => p.activo).map((p) => ({ id: p.id, codigo: p.codigo, nombre: p.nombreCientifico }))}
-      clientes={clientes.filter((c) => c.estado !== "inactivo").map((c) => ({ id: c.id, nombre: `${c.codigo} · ${c.nombreEmpresa}` }))}
+      productos={opcionesProducto(productos, listaPorMoneda)}
+      clientes={clientes.filter((c) => c.estado !== "inactivo").map((c) => ({ id: c.id, nombre: `${c.codigo} · ${c.nombreEmpresa}`, moneda: c.pais === "Colombia" ? "COP" : "USD" }))}
       comerciales={comerciales.map((c) => ({ id: c.id, nombre: c.nombre }))}
       abrirId={abrirId}
       ventaOrigen={ventaOrigen}

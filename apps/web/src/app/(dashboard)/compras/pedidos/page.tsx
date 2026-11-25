@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { apiFetch } from "@/lib/api";
 import type { Proveedor, Producto } from "@/lib/catalogos";
 import type { Oferta, PedidoProveedor } from "@/lib/inventario";
+import { opcionesProducto } from "@/lib/inventario";
 import { PERMISOS } from "@/lib/permisos";
 import { exigirPermiso } from "@/lib/usuario-actual";
 import { PedidosProveedorCliente } from "./PedidosProveedorCliente";
@@ -23,7 +24,7 @@ export default async function PedidosProveedorPage({ searchParams }: { searchPar
   return (
     <PedidosProveedorCliente
       pedidos={pedidos}
-      productos={productos.filter((p) => p.activo).map((p) => ({ id: p.id, codigo: p.codigo, nombre: p.nombreCientifico }))}
+      productos={opcionesProducto(productos)}
       proveedores={proveedores.filter((p) => p.activo).map((p) => ({ id: p.id, nombre: p.nombre }))}
       ofertas={ofertas.filter((o) => o.estado === "abierta").map((o) => ({ id: o.id, codigo: o.codigo, proveedorId: o.proveedorId }))}
       abrirId={typeof id === "string" ? id : null}
