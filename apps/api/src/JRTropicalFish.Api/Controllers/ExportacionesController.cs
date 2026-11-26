@@ -222,8 +222,59 @@ public class AunapController(AunapService service, IUsuarioActual usuario) : Crm
     [RequierePermiso(Permisos.ExportacionesLeer)]
     public async Task<IActionResult> Resumen(Guid id, CancellationToken ct) => (await service.ResumenAsync(id, Alcance, ct)).ARespuesta();
 
+    /// <summary>Trámites: VUCE (TM, fechas, cantidades aprobadas), DEX, factura DIAN y CITES.</summary>
     [HttpPut("embarques/{id:guid}/aunap/permiso")]
     [RequierePermiso(Permisos.ExportacionesGestionar)]
     public async Task<IActionResult> Permiso(Guid id, GuardarPermisoAunapRequest request, CancellationToken ct) =>
         (await service.GuardarPermisoAsync(id, request, Alcance, ct)).ARespuesta();
+
+    /// <summary>Numera la proforma (cuando el cliente aprobó la preinvoice).</summary>
+    [HttpPost("embarques/{id:guid}/aunap/proforma")]
+    [RequierePermiso(Permisos.ExportacionesGestionar)]
+    public async Task<IActionResult> Proforma(Guid id, CancellationToken ct)
+    {
+        var resultado = await service.GenerarProformaAsync(id, Alcance, ct);
+        return resultado.Exitoso ? Ok(new { numero = resultado.Valor }) : ResultadoHttp.Error(resultado.Error!);
+    }
+
+    [HttpGet("aunap/municipios")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> Municipios(CancellationToken ct) => Ok(await service.MunicipiosAsync(ct));
+
+    [HttpGet("aunap/centros")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> Centros(CancellationToken ct) => Ok(await service.CentrosAsync(ct));
+
+    [HttpPut("aunap/centros/{centroId:guid}")]
+    [RequierePermiso(Permisos.ExportacionesConfigurar)]
+    public async Task<IActionResult> GuardarCentro(Guid centroId, GuardarCentroAunapRequest request, CancellationToken ct) =>
+        (await service.GuardarCentroAsync(centroId, request, ct)).ARespuesta();
+
+    [HttpGet("aunap/parametros")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> Parametros(CancellationToken ct) => Ok(await service.ParametrosAsync(ct));
+
+    [HttpPut("aunap/parametros")]
+    [RequierePermiso(Permisos.ExportacionesConfigurar)]
+    public async Task<IActionResult> GuardarParametros(GuardarParametrosAunapRequest request, CancellationToken ct) =>
+        (await service.GuardarParametrosAsync(request, ct)).ARespuesta();
+
+    /// <summary>Informe mensual AUNAP (lo que salió de bodega en las exportaciones del mes).</summary>
+    [HttpGet("aunap/informe/{anio:int}/{mes:int}")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> Informe(int anio, int mes, CancellationToken ct) => (await service.InformeAsync(anio, mes, ct)).ARespuesta();
+
+    [HttpGet("aunap/informe/{anio:int}/{mes:int}/excel")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> InformeExcel(int anio, int mes, CancellationToken ct)
+    {
+        var resultado = await service.InformeExcelAsync(anio, mes, ct);
+        if (!resultado.Exitoso)
+        {
+            return ResultadoHttp.Error(resultado.Error!);
+        }
+
+        Response.Headers.CacheControl = "private, no-store";
+        return File(resultado.Valor.Contenido, resultado.Valor.TipoContenido, resultado.Valor.Nombre);
+    }
 }

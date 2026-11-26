@@ -371,14 +371,37 @@ public class EspecieAunap : EntidadBase
     public bool Activo { get; set; } = true;
 }
 
-/// <summary>Permiso AUNAP del embarque: número y fecha del acto que autoriza la exportación.</summary>
+/// <summary>
+/// Trámites de exportación del embarque. La proforma (cuando el cliente aprueba) es la base de la VUCE; la VUCE
+/// (<see cref="Numero"/> = n.º de trámite TM, <see cref="Fecha"/> = aprobación) autoriza la exportación; el DEX,
+/// la factura DIAN y el CITES se registran después. Alimentan el informe mensual AUNAP.
+/// </summary>
 public class PermisoAunap
 {
     public Guid EmbarqueId { get; set; }
 
+    /// <summary>N.º de trámite VUCE ("TM-00017927-20260918").</summary>
     public string? Numero { get; set; }
 
+    /// <summary>Fecha de aprobación de la VUCE.</summary>
     public DateOnly? Fecha { get; set; }
+
+    public DateOnly? VuceFechaSolicitud { get; set; }
+
+    /// <summary>Consecutivo propio (<c>PRO-001</c>); se asigna al generar la proforma.</summary>
+    public string? ProformaNumero { get; set; }
+
+    public DateOnly? ProformaFecha { get; set; }
+
+    /// <summary>N.º del documento de exportación DEX de la DIAN.</summary>
+    public string? DexNumero { get; set; }
+
+    /// <summary>N.º de la factura electrónica DIAN (Siigo), "JRE437".</summary>
+    public string? FacturaDian { get; set; }
+
+    public string? CitesNumero { get; set; }
+
+    public DateOnly? CitesFecha { get; set; }
 
     public string? Notas { get; set; }
 
@@ -393,4 +416,55 @@ public class PermisoAunapLinea
     public Guid EspecieAunapId { get; set; }
 
     public int CantidadAutorizada { get; set; }
+}
+
+/// <summary>Municipio del formato de informe mensual AUNAP con la cuenca que le asigna (1.122 filas, hoja ESPECIES).</summary>
+public class MunicipioAunap
+{
+    public int Id { get; set; }
+
+    public required string Departamento { get; set; }
+
+    public required string Municipio { get; set; }
+
+    /// <summary>Amazonas, Orinoco, Magdalena Cauca, Pacifico o Caribe (como en el formato).</summary>
+    public required string Cuenca { get; set; }
+}
+
+/// <summary>
+/// Origen que se declara a la AUNAP para lo que llega de un centro de acopio. <see cref="Excluir"/> = no se reporta
+/// (peces de criadero).
+/// </summary>
+public class CentroAcopioAunap
+{
+    public Guid CentroAcopioId { get; set; }
+
+    public int? MunicipioAunapId { get; set; }
+
+    public bool Excluir { get; set; }
+
+    public DateTime ActualizadoEn { get; set; }
+}
+
+/// <summary>Encabezado del informe mensual AUNAP (datos del permisionario). Una sola fila (<c>Id = 1</c>).</summary>
+public class ParametrosAunap
+{
+    public int Id { get; set; } = 1;
+
+    public string? RepresentanteLegal { get; set; }
+
+    /// <summary>"2124 DE 02 DE OCTUBRE DE 2025".</summary>
+    public string? Resolucion { get; set; }
+
+    public DateOnly? VigenciaDesde { get; set; }
+
+    public DateOnly? VigenciaHasta { get; set; }
+
+    public string? Direccion { get; set; }
+
+    public string? Correo { get; set; }
+
+    public string? Telefono { get; set; }
+
+    public DateTime? ActualizadoEn { get; set; }
 }

@@ -46,6 +46,11 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   AUNAP por producto (Exportaciones → AUNAP), permiso por embarque con la comparación pedido / autorizado /
   empacado, y **solicitud AUNAP, packing list de aduana y custom invoice** generados **solo desde lo real**. No hay
   factores ni sustitución de especies; una especie sin código no se declara.
+- **Informe mensual AUNAP y trámites** (2026-11-25): el embarque separa **preinvoice** (cotización) → **proforma**
+  (`PRO-…`, al confirmar) → **VUCE** (TM, fechas, cantidades aprobadas) → **DEX y factura DIAN** → **CITES** →
+  packing list de aeropuerto. Informe mensual en el formato de la DTIV (pantalla + Excel con ClosedXML), **solo desde
+  los despachos reales**, por especie × municipio de origen (centro de acopio → `municipios_aunap`); el criadero no se
+  reporta. ICA pendiente.
 - **Buscador en los formularios** (`components/SelectorBuscable.tsx`): toda lista de registros (clientes,
   proveedores, productos, acuarios, usuarios…) filtra mientras se escribe, por texto o por iniciales.
 - **Sanidad** (2026-11-22, fase 1): **Mi día** del operario (llegadas con profilaxis sugerida, medicación con

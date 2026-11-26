@@ -118,5 +118,17 @@ export async function enlazarAunapAutomaticoAction() {
 }
 
 export async function guardarPermisoAunapAction(embarqueId: string, datos: Cuerpo) {
-  return ejecutar(`${base}/embarques/${embarqueId}/aunap/permiso`, "PUT", datos, "No se pudo guardar el permiso.");
+  return ejecutar(`${base}/embarques/${embarqueId}/aunap/permiso`, "PUT", datos, "No se pudieron guardar los trámites.");
+}
+
+export async function generarProformaAction(embarqueId: string) {
+  return ejecutar<{ numero: string }>(`${base}/embarques/${embarqueId}/aunap/proforma`, "POST", null, "No se pudo generar la proforma.");
+}
+
+export async function guardarCentroAunapAction(centroId: string, municipioAunapId: number | null, excluir: boolean) {
+  return ejecutar(`${base}/aunap/centros/${centroId}`, "PUT", { municipioAunapId, excluir }, "No se pudo guardar el origen.");
+}
+
+export async function guardarParametrosAunapAction(datos: Cuerpo) {
+  return ejecutar(`${base}/aunap/parametros`, "PUT", datos, "No se pudo guardar el encabezado.");
 }

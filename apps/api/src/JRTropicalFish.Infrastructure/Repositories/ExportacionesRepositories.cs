@@ -264,12 +264,47 @@ public class AunapRepository(PostgresConnectionFactory conexiones) : Repositorio
 
     public Task GuardarPermisoAsync(Guid embarqueId, GuardarPermisoAunapRequest p, DateTime fecha, CancellationToken ct = default) =>
         EjecutarAsync(
-            "CALL sp_permiso_aunap_guardar(@Id::uuid, @Numero::text, @FechaPermiso::date, @Notas::text, @Lineas::jsonb, @Fecha::timestamptz)",
+            """
+            CALL sp_permiso_aunap_guardar(@Id::uuid, @Numero::text, @FechaPermiso::date, @VuceFechaSolicitud::date, @DexNumero::text,
+                @FacturaDian::text, @CitesNumero::text, @CitesFecha::date, @Notas::text, @Lineas::jsonb, @Fecha::timestamptz)
+            """,
             new
             {
-                Id = embarqueId, p.Numero, FechaPermiso = p.Fecha, p.Notas,
+                Id = embarqueId, p.Numero, FechaPermiso = p.Fecha, p.VuceFechaSolicitud, p.DexNumero, p.FacturaDian, p.CitesNumero,
+                p.CitesFecha, p.Notas,
                 Lineas = JsonSerializer.Serialize((p.Lineas ?? []).Select(l => new { especie = l.EspecieAunapId, cantidad = l.Cantidad })),
                 Fecha = fecha,
             },
             ct);
+
+    public Task<string> AsignarProformaAsync(Guid embarqueId, DateOnly fecha, DateTime actualizado, CancellationToken ct = default) =>
+        EscalarAsync<string>(
+            "SELECT fn_proforma_asignar(@Id::uuid, @FechaProforma::date, @Fecha::timestamptz)",
+            new { Id = embarqueId, FechaProforma = fecha, Fecha = actualizado }, ct);
+
+    public Task<IReadOnlyList<MunicipioAunapFila>> MunicipiosAsync(CancellationToken ct = default) =>
+        ListarAsync<MunicipioAunapFila>("SELECT * FROM fn_municipios_aunap()", null, ct);
+
+    public Task<IReadOnlyList<CentroAcopioAunapFila>> CentrosAsync(CancellationToken ct = default) =>
+        ListarAsync<CentroAcopioAunapFila>("SELECT * FROM fn_centros_acopio_aunap()", null, ct);
+
+    public Task GuardarCentroAsync(Guid centroId, int? municipioId, bool excluir, DateTime fecha, CancellationToken ct = default) =>
+        EjecutarAsync(
+            "CALL sp_centro_acopio_aunap_guardar(@Id::uuid, @Municipio::integer, @Excluir::boolean, @Fecha::timestamptz)",
+            new { Id = centroId, Municipio = municipioId, Excluir = excluir, Fecha = fecha }, ct);
+
+    public async Task<ParametrosAunapFila> ParametrosAsync(CancellationToken ct = default) =>
+        await UnoAsync<ParametrosAunapFila>("SELECT * FROM fn_parametros_aunap()", null, ct)
+        ?? new ParametrosAunapFila(null, null, null, null, null, null, null, null);
+
+    public Task GuardarParametrosAsync(GuardarParametrosAunapRequest p, DateTime fecha, CancellationToken ct = default) =>
+        EjecutarAsync(
+            """
+            CALL sp_parametros_aunap_guardar(@RepresentanteLegal::text, @Resolucion::text, @VigenciaDesde::date, @VigenciaHasta::date,
+                @Direccion::text, @Correo::text, @Telefono::text, @Fecha::timestamptz)
+            """,
+            new { p.RepresentanteLegal, p.Resolucion, p.VigenciaDesde, p.VigenciaHasta, p.Direccion, p.Correo, p.Telefono, Fecha = fecha }, ct);
+
+    public Task<IReadOnlyList<DespachoAunapFila>> DespachosAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default) =>
+        ListarAsync<DespachoAunapFila>("SELECT * FROM fn_informe_aunap(@Desde::date, @Hasta::date)", new { Desde = desde, Hasta = hasta }, ct);
 }

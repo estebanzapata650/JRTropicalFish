@@ -48,7 +48,7 @@ export const DOCUMENTOS: { tipo: string; nombre: string; paraCliente: boolean }[
   { tipo: "factura", nombre: "Factura", paraCliente: true },
   { tipo: "nota_credito", nombre: "Nota crédito", paraCliente: true },
   { tipo: "balance", nombre: "Balance", paraCliente: true },
-  { tipo: "solicitud_aunap", nombre: "Solicitud AUNAP", paraCliente: false },
+  { tipo: "solicitud_aunap", nombre: "Proforma", paraCliente: false },
   { tipo: "packing_aduana", nombre: "Packing list de aduana", paraCliente: false },
   { tipo: "factura_aduana", nombre: "Custom invoice", paraCliente: false },
 ];
@@ -321,8 +321,23 @@ export type FilaAunap = {
   estado: "sin_permiso" | "no_autorizada" | "excede" | "ok";
 };
 
+/** Trámites del embarque: proforma, VUCE (numero = TM, fecha = aprobación), DEX, factura DIAN y CITES. */
+export type Tramites = {
+  numero: string | null;
+  fecha: string | null;
+  notas: string | null;
+  actualizadoEn: string;
+  vuceFechaSolicitud: string | null;
+  proformaNumero: string | null;
+  proformaFecha: string | null;
+  dexNumero: string | null;
+  facturaDian: string | null;
+  citesNumero: string | null;
+  citesFecha: string | null;
+};
+
 export type ResumenAunap = {
-  permiso: { numero: string | null; fecha: string | null; notas: string | null; actualizadoEn: string } | null;
+  permiso: Tramites | null;
   filas: FilaAunap[];
   sinCodigo: { productoId: string; productoCodigo: string; nombreCientifico: string; cantidad: number }[];
   hayEmpaque: boolean;
@@ -330,7 +345,7 @@ export type ResumenAunap = {
 };
 
 export const ESTADOS_AUNAP: Record<FilaAunap["estado"], string> = {
-  sin_permiso: "Sin permiso",
+  sin_permiso: "Sin VUCE",
   no_autorizada: "No autorizada",
   excede: "Excede",
   ok: "Dentro",
@@ -339,3 +354,63 @@ export const ESTADOS_AUNAP: Record<FilaAunap["estado"], string> = {
 /** Cuencas en las que la resolución autoriza la especie. */
 export const cuencasAunap = (e: Pick<EspecieAunap, "amazonia" | "orinoquia" | "magdalena" | "pacifico" | "caribe">) =>
   [e.amazonia && "Amazonía", e.orinoquia && "Orinoquía", e.magdalena && "Magdalena", e.pacifico && "Pacífico", e.caribe && "Caribe"].filter(Boolean).join(", ");
+
+// --- Informe mensual AUNAP ---
+
+export type MunicipioAunap = { id: number; departamento: string; municipio: string; cuenca: string };
+
+export type CentroAunap = {
+  centroAcopioId: string;
+  centroNombre: string;
+  cuencaInterna: string;
+  municipioAunapId: number | null;
+  departamento: string | null;
+  municipio: string | null;
+  cuenca: string | null;
+  /** No se reporta (criadero). */
+  excluir: boolean;
+};
+
+export type ParametrosAunap = {
+  representanteLegal: string | null;
+  resolucion: string | null;
+  vigenciaDesde: string | null;
+  vigenciaHasta: string | null;
+  direccion: string | null;
+  correo: string | null;
+  telefono: string | null;
+  actualizadoEn: string | null;
+};
+
+export type FilaInformeAunap = {
+  embarqueId: string;
+  embarqueCodigo: string;
+  codigo: string;
+  familia: string | null;
+  nombreCientifico: string;
+  nombreComun: string | null;
+  departamento: string | null;
+  municipio: string | null;
+  cuenca: string | null;
+  unidades: number;
+  ciudad: string | null;
+  pais: string | null;
+  fechaExportacion: string;
+  dexNumero: string | null;
+  vuceNumero: string | null;
+  vuceFecha: string | null;
+  facturaDian: string | null;
+  citesNumero: string | null;
+  citesFecha: string | null;
+};
+
+export type InformeAunap = {
+  anio: number;
+  mes: number;
+  razonSocial: string;
+  parametros: ParametrosAunap;
+  filas: FilaInformeAunap[];
+  avisos: { embarqueId: string; embarqueCodigo: string; texto: string }[];
+  excluidosCriadero: number;
+  embarques: number;
+};

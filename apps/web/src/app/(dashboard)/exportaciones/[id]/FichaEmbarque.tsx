@@ -48,7 +48,7 @@ import { PasoPreinvoice } from "./PasoPreinvoice";
 
 const PASOS = [
   { clave: "preinvoice", texto: "1 Pedido y preinvoice" },
-  { clave: "aunap", texto: "2 AUNAP y aduana" },
+  { clave: "aunap", texto: "2 Trámites" },
   { clave: "flete", texto: "3 Flete" },
   { clave: "cargue", texto: "4 Orden de cargue" },
   { clave: "empaque", texto: "5 Empaque" },

@@ -96,4 +96,25 @@ public interface IAunapRepository
     Task<IReadOnlyList<PermisoAunapLineaFila>> PermisoLineasAsync(Guid embarqueId, CancellationToken ct = default);
 
     Task GuardarPermisoAsync(Guid embarqueId, GuardarPermisoAunapRequest permiso, DateTime fecha, CancellationToken ct = default);
+
+    /// <summary>Numera la proforma (consecutivo PRO) si aún no tiene número; devuelve el número.</summary>
+    Task<string> AsignarProformaAsync(Guid embarqueId, DateOnly fecha, DateTime actualizado, CancellationToken ct = default);
+
+    Task<IReadOnlyList<MunicipioAunapFila>> MunicipiosAsync(CancellationToken ct = default);
+
+    Task<IReadOnlyList<CentroAcopioAunapFila>> CentrosAsync(CancellationToken ct = default);
+
+    Task GuardarCentroAsync(Guid centroId, int? municipioId, bool excluir, DateTime fecha, CancellationToken ct = default);
+
+    Task<ParametrosAunapFila> ParametrosAsync(CancellationToken ct = default);
+
+    Task GuardarParametrosAsync(GuardarParametrosAunapRequest p, DateTime fecha, CancellationToken ct = default);
+
+    Task<IReadOnlyList<DespachoAunapFila>> DespachosAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default);
+}
+
+/// <summary>Arma el .xlsx del informe mensual en el formato de la AUNAP.</summary>
+public interface IGeneradorInformeAunapExcel
+{
+    byte[] Generar(InformeAunap informe);
 }

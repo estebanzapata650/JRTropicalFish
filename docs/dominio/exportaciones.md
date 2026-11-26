@@ -82,15 +82,24 @@ Plantillas: Comercial leer + gestionar; Bodega leer + empacar; Operativo leer + 
   por ejemplo *Ariopsis seemanni* = *Sciades seemanni* (365). **Nunca se enlaza una especie con otra distinta.**
   Un producto sin código no se puede declarar ni exportar. Al guardar las especies de un embarque, el sistema
   avisa cuáles están en ese caso.
-- **Paso «2 AUNAP y aduana» del embarque**:
-  - Permiso: número, fecha y cantidad autorizada por especie, con un botón para copiar lo pedido.
-  - Comparación por especie: pedido, autorizado y empacado. Estados: sin permiso, no autorizada, excede o
-    dentro. Si lo empacado supera lo autorizado, aparece el aviso de pedir la ampliación.
+- **Paso «2 Trámites» del embarque**, en el orden del despacho:
+  1. **Proforma.** La preinvoice es la cotización al cliente. Cuando la aprueba (embarque *confirmado*), se genera
+     la proforma, con consecutivo propio `PRO-001` y fecha. Es la base de la VUCE y sale de las especies y
+     cantidades reales del pedido. No se genera antes de confirmar (409), y su PDF exige que esté generada.
+  2. **VUCE.** Todo despacho tiene una: n.º de trámite TM, fecha de solicitud, fecha de aprobación y cantidad
+     aprobada por especie, con un botón para copiar lo pedido. La comparación por especie muestra pedido, aprobado y
+     empacado. Estados: sin VUCE, no autorizada, excede o dentro.
+  3. **DEX y factura DIAN** (la factura electrónica de Siigo, por ejemplo JRE437; no es la factura comercial 12187…).
+  4. **CITES**, si aplica (n.º y fecha).
+  5. **Aeropuerto y aduana:** packing list y custom invoice. El **ICA** queda para una fase posterior.
+
+  Se guarda en `embarque_permisos_aunap` (`numero` = TM, `fecha` = aprobación) y todo cambio queda en la
+  auditoría.
 - **Documentos** (PDF):
 
   | Documento | De dónde sale |
   |---|---|
-  | **Proforma · solicitud de permiso AUNAP** | Las especies y cantidades del pedido, con los precios de la preinvoice |
+  | **Proforma** (`PRO-…`) | Las especies y cantidades del pedido, con los precios de la preinvoice |
   | **Packing list de aduana y aeropuerto** | El empaque real, caja por caja |
   | **Custom invoice** | La factura real agrupada por especie AUNAP, con los mismos totales que la factura comercial |
 
@@ -99,10 +108,40 @@ Plantillas: Comercial leer + gestionar; Bodega leer + empacar; Operativo leer + 
   cantidades o valores distintos a los del pedido, el empaque o la factura. Si alguna especie no tiene código,
   el documento no se genera.
 
+## Informe mensual AUNAP
+
+Reemplaza el «Formato Informe Mensual» de la DTIV (`docs/excelBD/10 - OCUBRE 2026 JR TROPICAL FISH LTDA.xlsx`).
+Está en **Exportaciones → Informe AUNAP** (`/exportaciones/aunap/informe?mes=2026-10`); por defecto muestra el mes
+anterior. Se descarga en Excel con las mismas celdas del formato: encabezado en B3:G11, títulos en las filas 15–16
+y datos desde la fila 17, columnas B…S.
+
+- **Unidades:** solo lo que **salió de bodega**, es decir, los despachos del pedido de cliente del embarque.
+  Nunca salen de la proforma, del pedido ni de lo aprobado en la VUCE.
+- **Filas:** una por exportación × especie AUNAP × municipio de origen.
+- **Origen:** lote despachado → centro de acopio → municipio AUNAP. El listado oficial de municipios
+  (`municipios_aunap`) tiene 1.121 filas de la hoja oculta ESPECIES y trae la cuenca de cada municipio. Se
+  administra en **Orígenes y encabezado** (`/exportaciones/aunap/origenes`).
+- **Criadero:** un centro marcado «no se reporta» (Medellín) queda fuera del informe; el total excluido se muestra
+  aparte.
+- **Fecha de exportación:** la salida del vuelo en hora de Bogotá. Si no hay vuelo, la fecha de despacho; y si
+  tampoco hay fecha de despacho, la del último despacho. El mes del informe sale de esta fecha.
+- **Avisos** antes de enviar:
+  - falta VUCE, DEX o factura DIAN;
+  - un producto sin código AUNAP (no se declara);
+  - un centro sin municipio;
+  - salió más de lo aprobado en la VUCE;
+  - lo despachado difiere de lo empacado.
+- **Encabezado:** representante legal, resolución, vigencia, dirección, correo y teléfono, en `parametros_aunap`.
+  Si la vigencia ya terminó, la pantalla lo advierte.
+- **Código:** reglas en `ReglasInformeAunap` (con pruebas), datos en `fn_informe_aunap` y Excel en
+  `GeneradorInformeAunapExcel` (ClosedXML, MIT; solo se usa ahí).
+
 ## Pendiente
 
-- **Con gerencia**: el informe AUNAP posterior al despacho y el resumen para Siigo. Saldrán de los mismos datos
-  reales. Falta confirmar el significado de los grupos de códigos AUNAP 600–611, 700–739 y 1*–24*.
+- **Con gerencia**: el informe ICA y el resumen para Siigo. Saldrán de los mismos datos reales. Falta confirmar el
+  significado de los grupos de códigos AUNAP 600–611, 700–739 y 1*–24*.
+- **Orígenes por definir**: los centros Bogotá y Esmeraldas no tienen municipio. En Barranquilla, San Felipe y San
+  José del Guaviare, la cuenca del catálogo no coincide con la del listado AUNAP.
 - **Productos sin código AUNAP** (383): revisar sinónimos y, para las especies que no están en la resolución,
   decidir si se retiran de la oferta de exportación o se tramita su autorización.
 - **Por aclarar**: significado de las columnas ADD y FINAL de la factura JRCH (hoy se suman al DOA como en el

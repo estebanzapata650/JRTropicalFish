@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { Link2, Search, TriangleAlert } from "lucide-react";
@@ -132,9 +133,17 @@ export function AunapCliente({
         }
       />
 
+      <nav aria-label="Más de AUNAP" className="flex flex-wrap gap-2">
+        <Link href="/exportaciones/aunap/informe" className={botonSecundarioClass}>
+          Informe mensual
+        </Link>
+        <Link href="/exportaciones/aunap/origenes" className={botonSecundarioClass}>
+          Orígenes y encabezado
+        </Link>
+      </nav>
       <p className="flex items-start gap-2 rounded-md bg-info-fondo px-3 py-2 text-sm text-info-texto">
         <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
-        La solicitud AUNAP, el packing list de aduana y la custom invoice salen
+        La proforma, el packing list de aduana y la custom invoice salen
         de las especies y cantidades reales del embarque, con este código.
         Enlaza un producto solo con su misma especie (o su sinónimo taxonómico).
         Si la especie no está en la resolución, déjala sin código: no se puede

@@ -31,7 +31,19 @@ public sealed record ProductoAunapFila(
     string? AunapNombreComun,
     string? AunapFamilia);
 
-public sealed record PermisoAunapFila(string? Numero, DateOnly? Fecha, string? Notas, DateTime ActualizadoEn);
+/// <summary>Trámites del embarque: VUCE (<see cref="Numero"/> = TM, <see cref="Fecha"/> = aprobación), proforma, DEX, factura DIAN, CITES.</summary>
+public sealed record PermisoAunapFila(
+    string? Numero,
+    DateOnly? Fecha,
+    string? Notas,
+    DateTime ActualizadoEn,
+    DateOnly? VuceFechaSolicitud = null,
+    string? ProformaNumero = null,
+    DateOnly? ProformaFecha = null,
+    string? DexNumero = null,
+    string? FacturaDian = null,
+    string? CitesNumero = null,
+    DateOnly? CitesFecha = null);
 
 public sealed record PermisoAunapLineaFila(Guid EspecieAunapId, int CantidadAutorizada);
 
@@ -57,7 +69,18 @@ public sealed record EnlazarProductoAunapRequest(Guid? EspecieAunapId);
 
 public sealed record CantidadAutorizada(Guid EspecieAunapId, int Cantidad);
 
-public sealed record GuardarPermisoAunapRequest(string? Numero, DateOnly? Fecha, string? Notas, IReadOnlyList<CantidadAutorizada>? Lineas);
+/// <param name="Numero">N.º de trámite VUCE (TM-…).</param>
+/// <param name="Fecha">Fecha de aprobación de la VUCE.</param>
+public sealed record GuardarPermisoAunapRequest(
+    string? Numero,
+    DateOnly? Fecha,
+    string? Notas,
+    IReadOnlyList<CantidadAutorizada>? Lineas,
+    DateOnly? VuceFechaSolicitud = null,
+    string? DexNumero = null,
+    string? FacturaDian = null,
+    string? CitesNumero = null,
+    DateOnly? CitesFecha = null);
 
 // --- Resumen del embarque ---
 
@@ -109,3 +132,104 @@ public sealed record LineaDeclarada(
 {
     public decimal PrecioPromedio => Cantidad == 0 ? 0 : Math.Round(Total / Cantidad, 4, MidpointRounding.AwayFromZero);
 }
+
+// --- Informe mensual AUNAP (migración FuncionesInformeAunap) ---
+
+public sealed record MunicipioAunapFila(int Id, string Departamento, string Municipio, string Cuenca);
+
+public sealed record CentroAcopioAunapFila(
+    Guid CentroAcopioId,
+    string CentroNombre,
+    string CuencaInterna,
+    int? MunicipioAunapId,
+    string? Departamento,
+    string? Municipio,
+    string? Cuenca,
+    bool Excluir);
+
+/// <param name="Excluir">No se reporta (peces de criadero).</param>
+public sealed record GuardarCentroAunapRequest(int? MunicipioAunapId, bool Excluir);
+
+public sealed record ParametrosAunapFila(
+    string? RepresentanteLegal,
+    string? Resolucion,
+    DateOnly? VigenciaDesde,
+    DateOnly? VigenciaHasta,
+    string? Direccion,
+    string? Correo,
+    string? Telefono,
+    DateTime? ActualizadoEn);
+
+public sealed record GuardarParametrosAunapRequest(
+    string? RepresentanteLegal,
+    string? Resolucion,
+    DateOnly? VigenciaDesde,
+    DateOnly? VigenciaHasta,
+    string? Direccion,
+    string? Correo,
+    string? Telefono);
+
+/// <summary>Lo despachado de un producto de un centro de acopio en un embarque (<c>fn_informe_aunap</c>).</summary>
+public sealed record DespachoAunapFila(
+    Guid EmbarqueId,
+    string EmbarqueCodigo,
+    DateOnly FechaExportacion,
+    string? Ciudad,
+    string? Pais,
+    string? VuceNumero,
+    DateOnly? VuceFecha,
+    string? DexNumero,
+    string? FacturaDian,
+    string? CitesNumero,
+    DateOnly? CitesFecha,
+    int Empacado,
+    string ProductoCodigo,
+    Guid? EspecieAunapId,
+    string? Codigo,
+    string? Familia,
+    string? NombreCientifico,
+    string? NombreComun,
+    string? CentroNombre,
+    string? Departamento,
+    string? Municipio,
+    string? Cuenca,
+    bool Excluir,
+    int? Autorizado,
+    int Unidades);
+
+/// <summary>Una fila del formato AUNAP: especie × origen × exportación, con las unidades que salieron.</summary>
+public sealed record FilaInformeAunap(
+    Guid EmbarqueId,
+    string EmbarqueCodigo,
+    string Codigo,
+    string? Familia,
+    string NombreCientifico,
+    string? NombreComun,
+    string? Departamento,
+    string? Municipio,
+    string? Cuenca,
+    int Unidades,
+    string? Ciudad,
+    string? Pais,
+    DateOnly FechaExportacion,
+    string? DexNumero,
+    string? VuceNumero,
+    DateOnly? VuceFecha,
+    string? FacturaDian,
+    string? CitesNumero,
+    DateOnly? CitesFecha);
+
+/// <summary>Algo que falta o no cuadra en un embarque del mes.</summary>
+public sealed record AvisoInformeAunap(Guid EmbarqueId, string EmbarqueCodigo, string Texto);
+
+public sealed record InformeAunap(
+    int Anio,
+    int Mes,
+    string RazonSocial,
+    ParametrosAunapFila Parametros,
+    IReadOnlyList<FilaInformeAunap> Filas,
+    IReadOnlyList<AvisoInformeAunap> Avisos,
+    int ExcluidosCriadero,
+    int Embarques);
+
+public sealed record ArchivoGenerado(byte[] Contenido, string Nombre, string TipoContenido);

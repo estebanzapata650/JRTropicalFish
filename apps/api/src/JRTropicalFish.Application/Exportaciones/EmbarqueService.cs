@@ -490,7 +490,8 @@ public class EmbarqueService(
         }
 
         var bytes = await GenerarAsync(e, tipo, ct);
-        return new InformePdf(bytes, NombreArchivo(e, tipo, null));
+        var numeroArchivo = tipo == TiposDocumentoEmbarque.SolicitudAunap ? (await aunap.TramitesAsync(e.Id, ct))?.ProformaNumero : null;
+        return new InformePdf(bytes, NombreArchivo(e, tipo, numeroArchivo));
     }
 
     /// <summary>Envía un documento por correo (al email del cliente si no se indica otro) y deja registro.</summary>
@@ -589,6 +590,7 @@ public class EmbarqueService(
         var datos = new DatosDocumento(detalle, empresa, cliente, exportacion, await TiposCajaAsync(ct), logo, usuario.Nombre ?? "", reloj.AhoraUtc)
         {
             Aunap = TiposDocumentoEmbarque.Autoridades.Contains(tipo) ? await aunap.MapaAsync(ct) : new Dictionary<Guid, ProductoAunapFila>(),
+            Tramites = TiposDocumentoEmbarque.Autoridades.Contains(tipo) ? await aunap.TramitesAsync(e.Id, ct) : null,
         };
         return generadorPdf.Generar(DocumentosEmbarque.Construir(tipo, datos));
     }
@@ -606,6 +608,11 @@ public class EmbarqueService(
             if (lineas.Count == 0)
             {
                 return Error.Validacion("El embarque no tiene especies.");
+            }
+
+            if ((await aunap.TramitesAsync(e.Id, ct))?.ProformaNumero is null)
+            {
+                return Error.Validacion("Primero genera la proforma en Trámites (cuando el cliente aprueba la preinvoice).");
             }
 
             var (_, error) = ReglasAunap.Agrupar(lineas.Select(l => (l.ProductoId, l.ProductoCodigo, l.NombreCientifico, l.Cantidad, l.Total)), mapa);
@@ -758,7 +765,7 @@ public class EmbarqueService(
         TiposDocumentoEmbarque.Empaque => "Packing list",
         TiposDocumentoEmbarque.Factura => "Invoice",
         TiposDocumentoEmbarque.NotaCredito => "Credit note",
-        TiposDocumentoEmbarque.SolicitudAunap => "Solicitud AUNAP",
+        TiposDocumentoEmbarque.SolicitudAunap => "Proforma",
         TiposDocumentoEmbarque.PackingAduana => "Customs packing list",
         TiposDocumentoEmbarque.FacturaAduana => "Customs invoice",
         _ => "Balance",

@@ -1390,6 +1390,33 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.CentroAcopioAunap", b =>
+                {
+                    b.Property<Guid>("CentroAcopioId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("centro_acopio_id");
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<bool>("Excluir")
+                        .HasColumnType("boolean")
+                        .HasColumnName("excluir");
+
+                    b.Property<int?>("MunicipioAunapId")
+                        .HasColumnType("integer")
+                        .HasColumnName("municipio_aunap_id");
+
+                    b.HasKey("CentroAcopioId")
+                        .HasName("pk_centros_acopio_aunap");
+
+                    b.HasIndex("MunicipioAunapId")
+                        .HasDatabaseName("ix_centros_acopio_aunap_municipio_aunap_id");
+
+                    b.ToTable("centros_acopio_aunap", (string)null);
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.ClienteExportacion", b =>
                 {
                     b.Property<Guid>("ClienteId")
@@ -2076,6 +2103,92 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                     b.ToTable("especies_aunap", (string)null);
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.MunicipioAunap", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Cuenca")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("cuenca");
+
+                    b.Property<string>("Departamento")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("departamento");
+
+                    b.Property<string>("Municipio")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("municipio");
+
+                    b.HasKey("Id")
+                        .HasName("pk_municipios_aunap");
+
+                    b.HasIndex("Departamento", "Municipio")
+                        .IsUnique()
+                        .HasDatabaseName("ix_municipios_aunap_departamento_municipio");
+
+                    b.ToTable("municipios_aunap", (string)null);
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.ParametrosAunap", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("Correo")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("correo");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("direccion");
+
+                    b.Property<string>("RepresentanteLegal")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("representante_legal");
+
+                    b.Property<string>("Resolucion")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("resolucion");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("telefono");
+
+                    b.Property<DateOnly?>("VigenciaDesde")
+                        .HasColumnType("date")
+                        .HasColumnName("vigencia_desde");
+
+                    b.Property<DateOnly?>("VigenciaHasta")
+                        .HasColumnType("date")
+                        .HasColumnName("vigencia_hasta");
+
+                    b.HasKey("Id")
+                        .HasName("pk_parametros_aunap");
+
+                    b.ToTable("parametros_aunap", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_parametros_aunap_fila_unica", "id = 1");
+                        });
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.PermisoAunap", b =>
                 {
                     b.Property<Guid>("EmbarqueId")
@@ -2085,6 +2198,25 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("ActualizadoEn")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("actualizado_en");
+
+                    b.Property<DateOnly?>("CitesFecha")
+                        .HasColumnType("date")
+                        .HasColumnName("cites_fecha");
+
+                    b.Property<string>("CitesNumero")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("cites_numero");
+
+                    b.Property<string>("DexNumero")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("dex_numero");
+
+                    b.Property<string>("FacturaDian")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("factura_dian");
 
                     b.Property<DateOnly?>("Fecha")
                         .HasColumnType("date")
@@ -2100,8 +2232,25 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(60)")
                         .HasColumnName("numero");
 
+                    b.Property<DateOnly?>("ProformaFecha")
+                        .HasColumnType("date")
+                        .HasColumnName("proforma_fecha");
+
+                    b.Property<string>("ProformaNumero")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("proforma_numero");
+
+                    b.Property<DateOnly?>("VuceFechaSolicitud")
+                        .HasColumnType("date")
+                        .HasColumnName("vuce_fecha_solicitud");
+
                     b.HasKey("EmbarqueId")
                         .HasName("pk_embarque_permisos_aunap");
+
+                    b.HasIndex("ProformaNumero")
+                        .IsUnique()
+                        .HasDatabaseName("ix_embarque_permisos_aunap_proforma_numero");
 
                     b.ToTable("embarque_permisos_aunap", (string)null);
                 });
@@ -4646,6 +4795,22 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OportunidadId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_ventas_oportunidades_oportunidad_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.CentroAcopioAunap", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.CentroAcopio", null)
+                        .WithOne()
+                        .HasForeignKey("JRTropicalFish.Domain.Exportaciones.CentroAcopioAunap", "CentroAcopioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_centros_acopio_aunap_centros_acopio_centro_acopio_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.MunicipioAunap", null)
+                        .WithMany()
+                        .HasForeignKey("MunicipioAunapId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_centros_acopio_aunap_municipios_aunap_municipio_aunap_id");
                 });
 
             modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.ClienteExportacion", b =>

@@ -68,7 +68,7 @@ public static class ReglasAunap
         var exceden = filas.Where(f => f.Estado is EstadosAunap.Excede or EstadosAunap.NoAutorizada).ToList();
         if (exceden.Count > 0)
         {
-            avisos.Add($"Supera lo autorizado en el permiso: {string.Join(", ", exceden.Select(f => f.NombreCientifico))}. Pide la ampliación antes de despachar.");
+            avisos.Add($"Supera lo aprobado en la VUCE: {string.Join(", ", exceden.Select(f => f.NombreCientifico))}. Pide la ampliación antes de despachar.");
         }
 
         return new ResumenAunap(permiso, filas, [.. sinCodigo.Values.OrderBy(s => s.ProductoCodigo, StringComparer.Ordinal)], hayEmpaque, avisos);

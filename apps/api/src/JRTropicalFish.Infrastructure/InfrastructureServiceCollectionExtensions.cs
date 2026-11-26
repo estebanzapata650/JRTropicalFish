@@ -72,6 +72,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
         services.AddScoped<ServicioAuditoria>();
         services.AddSingleton<IGeneradorInformePdf, GeneradorInformePdfQuestPdf>();
+        services.AddSingleton<IGeneradorInformeAunapExcel, GeneradorInformeAunapExcel>();
         RegistrarAlmacenArchivos(services, configuration);
         RegistrarCorreo(services, configuration);
 

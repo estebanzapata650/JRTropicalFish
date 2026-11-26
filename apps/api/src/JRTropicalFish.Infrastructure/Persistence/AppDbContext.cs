@@ -522,7 +522,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.ToTable("embarque_permisos_aunap");
             entity.HasKey(e => e.EmbarqueId);
             entity.Property(e => e.Numero).HasMaxLength(60);
+            entity.Property(e => e.ProformaNumero).HasMaxLength(20);
+            entity.Property(e => e.DexNumero).HasMaxLength(40);
+            entity.Property(e => e.FacturaDian).HasMaxLength(40);
+            entity.Property(e => e.CitesNumero).HasMaxLength(60);
             entity.Property(e => e.Notas).HasMaxLength(1000);
+            entity.HasIndex(e => e.ProformaNumero).IsUnique();
             entity.HasOne<Embarque>().WithOne().HasForeignKey<PermisoAunap>(e => e.EmbarqueId).OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -532,6 +537,37 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasKey(e => new { e.EmbarqueId, e.EspecieAunapId });
             entity.HasOne<PermisoAunap>().WithMany().HasForeignKey(e => e.EmbarqueId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne<EspecieAunap>().WithMany().HasForeignKey(e => e.EspecieAunapId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MunicipioAunap>(entity =>
+        {
+            entity.ToTable("municipios_aunap");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Departamento).HasMaxLength(60).IsRequired();
+            entity.Property(e => e.Municipio).HasMaxLength(80).IsRequired();
+            entity.Property(e => e.Cuenca).HasMaxLength(30).IsRequired();
+            entity.HasIndex(e => new { e.Departamento, e.Municipio }).IsUnique();
+        });
+
+        modelBuilder.Entity<CentroAcopioAunap>(entity =>
+        {
+            entity.ToTable("centros_acopio_aunap");
+            entity.HasKey(e => e.CentroAcopioId);
+            entity.HasOne<CentroAcopio>().WithOne().HasForeignKey<CentroAcopioAunap>(e => e.CentroAcopioId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<MunicipioAunap>().WithMany().HasForeignKey(e => e.MunicipioAunapId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ParametrosAunap>(entity =>
+        {
+            entity.ToTable("parametros_aunap", t => t.HasCheckConstraint("ck_parametros_aunap_fila_unica", "id = 1"));
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.RepresentanteLegal).HasMaxLength(150);
+            entity.Property(e => e.Resolucion).HasMaxLength(100);
+            entity.Property(e => e.Direccion).HasMaxLength(250);
+            entity.Property(e => e.Correo).HasMaxLength(320);
+            entity.Property(e => e.Telefono).HasMaxLength(60);
         });
     }
 

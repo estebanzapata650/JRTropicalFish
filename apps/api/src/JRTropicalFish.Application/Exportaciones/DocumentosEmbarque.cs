@@ -18,6 +18,9 @@ public sealed record DatosDocumento(
 {
     /// <summary>Producto → especie AUNAP (solo para los documentos para autoridades).</summary>
     public IReadOnlyDictionary<Guid, ProductoAunapFila> Aunap { get; init; } = new Dictionary<Guid, ProductoAunapFila>();
+
+    /// <summary>Trámites del embarque (número y fecha de la proforma).</summary>
+    public PermisoAunapFila? Tramites { get; init; }
 }
 
 /// <summary>
@@ -270,8 +273,8 @@ public static class DocumentosEmbarque
     // --- Documentos para autoridades: siempre desde lo real, con el código y el nombre de la Resolución AUNAP ---
 
     /// <summary>
-    /// Proforma para solicitar el permiso a la AUNAP: las especies del pedido agrupadas por especie AUNAP, con sus
-    /// cantidades y precios reales (los mismos de la preinvoice).
+    /// Proforma (cuando el cliente aprueba la preinvoice): base de la VUCE y de los demás trámites. Las especies del
+    /// pedido agrupadas por especie AUNAP, con sus cantidades y precios reales (los mismos de la preinvoice).
     /// </summary>
     private static InformeModelo SolicitudAunap(DatosDocumento d)
     {
@@ -286,8 +289,9 @@ public static class DocumentosEmbarque
         }
 
         totales.Add(Fila("", "", "TOTAL PECES", "", "", "", Usd(p.SubtotalPeces - p.Descuento)));
-        var numero = e.PreinvoiceNumero ?? e.Codigo;
-        return Documento(d, "PROFORMA · SOLICITUD DE PERMISO AUNAP", $"N° {numero}",
+        var numero = d.Tramites?.ProformaNumero ?? e.PreinvoiceNumero ?? e.Codigo;
+        var fecha = d.Tramites?.ProformaFecha ?? e.PreinvoiceFecha ?? DateOnly.FromDateTime(d.AhoraUtc);
+        return Documento(d, "PROFORMA", $"N° {numero}",
         [
             new SeccionBloques("",
             [
@@ -300,7 +304,7 @@ public static class DocumentosEmbarque
                 new BloqueInforme("ENVÍO",
                 [
                     new("Proforma N°", numero),
-                    new("Fecha", (e.PreinvoiceFecha ?? DateOnly.FromDateTime(d.AhoraUtc)).ToString("dd/MM/yyyy")),
+                    new("Fecha", fecha.ToString("dd/MM/yyyy")),
                     new("Destino", e.Destino),
                     new("Aerolínea", e.Aerolinea),
                     new("Despacho previsto", e.FechaDespacho?.ToString("dd/MM/yyyy")),
@@ -312,7 +316,7 @@ public static class DocumentosEmbarque
                 Totales = totales,
                 Compacta = true,
             },
-            new SeccionTexto("", $"Especies según la Resolución AUNAP 1924 de 2015. Cantidades y valores del pedido {e.Codigo} (preinvoice {numero})."),
+            new SeccionTexto("", $"Especies según la Resolución AUNAP 1924 de 2015. Cantidades y valores del pedido {e.Codigo} (preinvoice {e.PreinvoiceNumero ?? "—"})."),
             Firma(d.Empresa),
         ]);
     }
