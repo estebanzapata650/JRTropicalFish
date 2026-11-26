@@ -22,7 +22,8 @@
     "crm:importar-clientes": "node scripts/importar-clientes.mjs",
     "catalogo:importar": "node scripts/importar-catalogo.mjs",
     "inventario:importar": "node scripts/importar-inventario.mjs",
-    "aunap:importar": "node scripts/importar-aunap.mjs"
+    "aunap:importar": "node scripts/importar-aunap.mjs",
+    "sanidad:importar-fichas": "node scripts/importar-fichas.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

@@ -1,7 +1,7 @@
 # Sanidad: medicación, cuarentena y alimentación
 
-> Estado: **fase 1 implementada** (2026-11-22). Fase 2 pendiente: planificador semanal e importación del PDF
-> de fichas técnicas.
+> Estado: **fase 1 implementada** (2026-11-22). Fase 2: **fichas técnicas importadas del PDF** (2026-11-26);
+> pendiente el planificador semanal.
 
 ## De dónde salen los datos
 
@@ -12,7 +12,21 @@
   - etología y empaque.
 
   **No trae** dieta, frecuencia de alimentación, sensibilidad química ni protocolos de cuarentena. Esos campos
-  existen en el sistema y los llena el equipo. La importación del PDF queda para la fase 2.
+  existen en el sistema y los llena el equipo.
+
+  **Importación** (`npm run sanidad:importar-fichas -- "<pdf>" [--simular] [--sobrescribir]`):
+  - `scripts/extraer-palabras-pdf` (PdfPig, Apache-2.0; necesita el SDK de .NET) vuelca cada palabra con su posición;
+    `scripts/lib/fichas-pdf.mjs` arma las 303 fichas: 4 por fila, varias filas por página y algunas partidas entre
+    páginas. Cada valor se asigna a la etiqueta más cercana a su centro, porque Excel centra el texto en la celda.
+  - **Asignación a productos:** por código interno, y solo si el nombre de la ficha comparte alguna palabra con el
+    nombre científico del producto. El PDF trae 21 códigos repetidos y varios equivocados; si hay dos fichas con el
+    mismo código, gana la que más coincide.
+  - **No sobrescribe** una ficha que ya exista, salvo con `--sobrescribir`.
+  - **Revisión:** deja en `docs/temp/fichas-revision.csv` lo que no cargó.
+  - **Resultado del 2026-11-26:** 320 de los 794 productos quedaron con ficha. Quedaron sin cargar, para revisar a
+    mano, 14 fichas cuyo nombre no coincide con el producto de ese código (por ejemplo, CF110 *Microglanis* trae la
+    ficha de *Pseudoplatystoma*) y 11 códigos que no existen en el catálogo (rayas PT…, LO128/129/418, CC078).
+  - **GH:** muchas fichas lo traen vacío. «<5º» se guarda como máximo 5, sin mínimo.
 - **Reportes AQUAVET** (15 PDF, ene–feb 2026): necropsia de un grupo de peces y el tratamiento sugerido. De ahí
   salen los **13 medicamentos sembrados**, cada uno con su dosis de referencia y su **fuente**.
   - Cada reporte dice que vale **solo para el grupo muestreado**. Por eso ningún protocolo se aplica solo: lo
@@ -154,7 +168,6 @@ Plantillas de perfil:
 - **Fase 2**:
   - planificador semanal (acuarios × lunes a domingo con alimentación, cambios de agua, medicación y ayunos
     proyectados por los vuelos);
-  - importar el PDF de fichas técnicas;
   - inventario y costo de insumos.
 - **Con el veterinario**: días y pasos del protocolo de llegada (y por procedencia, p. ej. Leticia/Inírida),
   tiempos de retiro, incompatibles y sensibilidad química por especie.

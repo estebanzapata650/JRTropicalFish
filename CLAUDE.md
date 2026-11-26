@@ -60,13 +60,16 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   **Alimentos y dietas**, **Fichas técnicas** y **Reservas de despacho** en el picking. Ayuno firme de 48 h antes
   del vuelo; acuario en tratamiento o retiro no se reserva ni despacha (`JR004`). Fase 2: planificador semanal e
   importación del PDF de fichas. Reglas en `docs/dominio/sanidad.md`.
+- **Fichas técnicas importadas** (2026-11-26): `npm run sanidad:importar-fichas -- "<pdf>"` lee el PDF FT.CA.01 por
+  coordenadas (`scripts/extraer-palabras-pdf`, PdfPig) y carga 320 fichas (pH, GH, temperatura, procedencia,
+  características, dimorfismo, etología, empaque); lo dudoso queda en `docs/temp/fichas-revision.csv`.
 - Transversales listos para usar: auditoría (`auditoria` + `ComparadorAuditoria`), archivos S3
   (`IAlmacenArchivos`, `ClaveArchivo`, `DetectorTipoArchivo`), PDF (`IGeneradorInformePdf`), correo
   (`IServicioCorreo`, proveedores `Disco` / `SendGrid`, modo pruebas), `Resultado<T>`, `IReloj`.
 - Health check con Postgres en `/api/v1/health`. 210 pruebas unitarias en verde.
 - Producción: `docker-compose.prod.yml` (Caddy, web, api, postgres, backup), Dockerfiles, `.env.prod.example`.
 
-**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: resto de Catálogos (aerolíneas…), Inventario (conteos, ajustes con aprobación, PDFs), Sanidad fase 2 (planificador semanal, importar fichas), Importaciones,
+**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: resto de Catálogos (aerolíneas…), Inventario (conteos, ajustes con aprobación, PDFs), Sanidad fase 2 (planificador semanal), Importaciones,
 Exportaciones (documentos AUNAP/aduana pendientes con gerencia), Reportes. Recuperación de contraseña por correo. CI/CD (fase 2).
 
 ## Descripción del proyecto
