@@ -11,6 +11,16 @@ public static class ReglasInformeAunap
 {
     private static readonly CultureInfo Es = CultureInfo.GetCultureInfo("es-CO");
 
+    /// <summary>
+    /// Géneros de rayas de agua dulce: son las únicas especies del despacho que necesitan CITES. Se reconoce por el nombre
+    /// científico (el grupo PT también trae lenguados, que no lo necesitan).
+    /// </summary>
+    private static readonly string[] GenerosConCites = ["Potamotrygon", "Paratrygon"];
+
+    public static bool RequiereCites(string? nombreCientifico) =>
+        nombreCientifico is not null
+        && GenerosConCites.Any(g => nombreCientifico.TrimStart().StartsWith(g, StringComparison.OrdinalIgnoreCase));
+
     /// <summary>Primer y último día del mes.</summary>
     public static (DateOnly Desde, DateOnly Hasta) Rango(int anio, int mes)
     {
@@ -50,6 +60,11 @@ public static class ReglasInformeAunap
             if (string.IsNullOrWhiteSpace(e.FacturaDian))
             {
                 Avisar("Falta el n.º de la factura DIAN.");
+            }
+
+            if (string.IsNullOrWhiteSpace(e.CitesNumero) && embarque.Any(d => !d.Excluir && RequiereCites(d.NombreCientifico)))
+            {
+                Avisar("Lleva rayas y falta el n.º de CITES.");
             }
 
             var reportables = embarque.Where(d => !d.Excluir).ToList();

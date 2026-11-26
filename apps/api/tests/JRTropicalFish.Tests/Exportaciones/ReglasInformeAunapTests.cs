@@ -101,6 +101,21 @@ public class ReglasInformeAunapTests
         Assert.Equal(["9", "24*", "500"], filas.Select(f => f.Codigo));
     }
 
+    [Fact]
+    public void El_CITES_solo_se_pide_cuando_van_rayas()
+    {
+        var raya = Guid.NewGuid();
+        var sinRayas = ReglasInformeAunap.Armar([Despacho("CI500", Altum, "500", "Carreño", "Puerto Carreño", 240)]).Avisos;
+        Assert.DoesNotContain(sinRayas, a => a.Texto.Contains("CITES"));
+
+        var conRaya = Despacho("PT040", raya, "516", "Carreño", "Puerto Carreño", 10) with { NombreCientifico = "Potamotrygon motoro" };
+        Assert.Contains(ReglasInformeAunap.Armar([conRaya]).Avisos, a => a.Texto == "Lleva rayas y falta el n.º de CITES.");
+        Assert.DoesNotContain(ReglasInformeAunap.Armar([conRaya with { CitesNumero = "CO-123" }]).Avisos, a => a.Texto.Contains("CITES"));
+
+        Assert.True(ReglasInformeAunap.RequiereCites("Paratrygon aiereba"));
+        Assert.False(ReglasInformeAunap.RequiereCites("Catathyridium jenynsii"));
+    }
+
     [Theory]
     [InlineData(2026, 10, "2026-10-01", "2026-10-31", "Octubre 2026")]
     [InlineData(2026, 2, "2026-02-01", "2026-02-28", "Febrero 2026")]

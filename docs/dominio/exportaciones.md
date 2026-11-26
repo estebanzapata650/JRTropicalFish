@@ -90,7 +90,9 @@ Plantillas: Comercial leer + gestionar; Bodega leer + empacar; Operativo leer + 
      aprobada por especie, con un botón para copiar lo pedido. La comparación por especie muestra pedido, aprobado y
      empacado. Estados: sin VUCE, no autorizada, excede o dentro.
   3. **DEX y factura DIAN** (la factura electrónica de Siigo, por ejemplo JRE437; no es la factura comercial 12187…).
-  4. **CITES**, si aplica (n.º y fecha).
+  4. **CITES** (n.º y fecha): solo cuando el despacho lleva rayas (*Potamotrygon*, *Paratrygon*), reconocidas por el nombre
+     científico, porque el grupo PT también trae lenguados. Si no lleva rayas, la sección dice «No aplica». El informe
+     mensual avisa si van rayas sin CITES.
   5. **Aeropuerto y aduana:** packing list y custom invoice. El **ICA** queda para una fase posterior.
 
   Se guarda en `embarque_permisos_aunap` (`numero` = TM, `fecha` = aprobación) y todo cambio queda en la

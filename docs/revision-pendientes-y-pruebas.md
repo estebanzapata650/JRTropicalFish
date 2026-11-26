@@ -205,6 +205,104 @@ Cada fila: ruta → qué hacer → qué debe pasar.
 | ☐ | http://localhost:3100/sanidad/fichas | Completar la ficha de una especie (pH, temperatura, ayuno al llegar) | Queda «Con ficha» |
 | ☐ | http://localhost:3100/sanidad/configuracion | Intentar poner 24 h de ayuno pre-vuelo; asignar responsables | No acepta menos de 48 h; el responsable aparece en el tablero |
 
+## B2b. Mapa de todas las rutas (actualizado el 2026-11-26)
+
+Todas sobre **http://localhost:3100**, con `admin@jrtropicalfish.local` / `Admin123!`. Son las 45 pantallas que hay hoy; el
+recorrido detallado de cada módulo está en B2. Revisar cada una también a ~390 px (B3).
+
+### Acceso
+
+| ✔ | Ruta | Qué probar |
+|---|---|---|
+| ☐ | `/login` | Entrar; 5 intentos fallidos bloquean 15 min |
+| ☐ | `/` | Panel de inicio con los módulos según los permisos |
+| ☐ | `/cuenta` | Mi cuenta: cambiar la propia contraseña |
+
+### Seguridad
+
+| ✔ | Ruta | Qué probar |
+|---|---|---|
+| ☐ | `/seguridad/usuarios` | Crear, editar, restablecer contraseña, activar/desactivar, desbloquear, historial |
+| ☐ | `/seguridad/perfiles` | Crear perfil, editar permisos por módulo, eliminar, historial |
+
+### Administración
+
+| ✔ | Ruta | Qué probar |
+|---|---|---|
+| ☐ | `/administracion/empleados` | Empleado con foto; el salario solo con permiso |
+| ☐ | `/administracion/maestros` | Las 12 pestañas, incluidas aerolíneas, agentes de carga, aeropuertos (31), causas de mortalidad, conceptos de costo y tipos de documento (12). Crear, editar, desactivar, eliminar |
+
+### Catálogos
+
+| ✔ | Ruta | Qué probar |
+|---|---|---|
+| ☐ | `/catalogos/productos` | 794 productos: talla, peces por bolsa, precios por lista |
+| ☐ | `/catalogos/precios` | 7 listas (ya sin David Ramírez) y recálculo |
+| ☐ | `/catalogos/centros-acopio` | Centros con su cuenca |
+| ☐ | `/catalogos/proveedores` | Proveedores con sus centros |
+
+### Comercial (CRM)
+
+| ✔ | Ruta | Qué probar |
+|---|---|---|
+| ☐ | `/crm` | Dashboard: ventas vs meta, embudo, alertas DOA |
+| ☐ | `/crm/pipeline` | Kanban; «Ganar» crea la venta |
+| ☐ | `/crm/ventas` | Venta nacional y de exportación |
+| ☐ | `/crm/pedidos` | Pedido de la venta o suelto: buscador por talla («oscar tigre» → 3 tallas), el precio lo escribe el comercial (la lista sale de referencia), picking y despacho |
+| ☐ | `/crm/vuelos` | Torre de vuelos; la aerolínea se elige del maestro |
+| ☐ | `/crm/tareas` | Kanban de tareas con semáforo |
+| ☐ | `/crm/clientes` | Clientes; el aeropuerto se elige del maestro («toki» → NRT) |
+| ☐ | `/crm/clientes/{id}` | Ficha del cliente (WhatsApp, llamada, historial) |
+| ☐ | `/crm/metas` | Metas por comercial |
+
+### Inventario y compras
+
+| ✔ | Ruta | Qué probar |
+|---|---|---|
+| ☐ | `/inventario` | Tablero de bodega |
+| ☐ | `/inventario/existencias` | Ubicar, trasladar, enfermo, aliviado, ajuste; **mortalidad con causa** (del maestro) |
+| ☐ | `/inventario/lotes` | Lotes |
+| ☐ | `/inventario/lotes/{id}` | Kardex y trazabilidad; la causa de mortalidad sale en la nota |
+| ☐ | `/inventario/acuarios` | Mapa de acuarios y litraje |
+| ☐ | `/inventario/proveedores` | Tablero por proveedor |
+| ☐ | `/inventario/clientes` | Tablero por cliente |
+| ☐ | `/compras` | Inicio de compras |
+| ☐ | `/compras/necesidades` | Qué hay que comprar |
+| ☐ | `/compras/ofertas` | Disponibilidad de proveedores (buscador por talla) |
+| ☐ | `/compras/pedidos` | Pedido a proveedor (buscador por talla) |
+| ☐ | `/compras/recepciones` | Recepción: crea los lotes |
+
+### Exportaciones
+
+| ✔ | Ruta | Qué probar |
+|---|---|---|
+| ☐ | `/exportaciones` | Embarques; «Nuevo embarque» desde una venta de exportación |
+| ☐ | `/exportaciones/{id} · 1 Pedido y preinvoice` | Especies, aerolínea del maestro, preinvoice (cotización) |
+| ☐ | `/exportaciones/{id} · 2 Trámites` | Proforma (solo con el embarque confirmado), VUCE, DEX y factura DIAN. **CITES solo si lleva rayas** (Potamotrygon, Paratrygon); si no, dice «No aplica» |
+| ☐ | `/exportaciones/{id} · 3 Flete y 4 Orden de cargue` | PDF del flete y de la orden de cargue |
+| ☐ | `/exportaciones/{id} · 5 Empaque` | Empaque real; arriba, costo de empaque, costo por pez, faltantes y avisos de fuera de estándar |
+| ☐ | `/exportaciones/{id} · 6 Factura, 7 DOA y 8 Balance` | Factura, nota crédito y balance |
+| ☐ | `/exportaciones/aunap` | Código AUNAP de cada producto |
+| ☐ | `/exportaciones/aunap/informe` | Informe mensual y «Descargar Excel»; avisos (VUCE, DEX, factura, rayas sin CITES) |
+| ☐ | `/exportaciones/aunap/origenes` | Municipio de cada centro y encabezado del informe |
+| ☐ | `/exportaciones/empaque` | Estándares por especie y talla, Costos (litros, aditivos, oxígeno, heat pack) y DOA por empaque |
+| ☐ | `/exportaciones/configuracion` | Empresa, logo, banco, tarifas, cajas, bolsas, cargos |
+
+### Sanidad
+
+| ✔ | Ruta | Qué probar |
+|---|---|---|
+| ☐ | `/sanidad` | Mi día del operario: llegadas, medicación, alimentación, salidas |
+| ☐ | `/sanidad/tablero` | Kanban de acuarios |
+| ☐ | `/sanidad/tratamientos` | Tratamientos y aplicaciones |
+| ☐ | `/sanidad/protocolos` | Protocolos; solo los aprobados se sugieren |
+| ☐ | `/sanidad/medicamentos` | Los 13 de AQUAVET |
+| ☐ | `/sanidad/alimentacion` | Alimentos y dietas |
+| ☐ | `/sanidad/fichas` | 320 fichas técnicas importadas del PDF; editar una y ver su historial |
+| ☐ | `/sanidad/configuracion` | Responsables y parámetros |
+
+> El picking, el despacho y la mortalidad mueven stock real de la base de desarrollo.
+
 ## B3. Revisión de diseño (en cada pantalla anterior)
 
 | ✔ | Qué revisar |

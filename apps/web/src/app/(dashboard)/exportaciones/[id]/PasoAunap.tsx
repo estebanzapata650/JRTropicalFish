@@ -17,6 +17,9 @@ const TONO: Record<FilaAunap["estado"], TonoEtiqueta> = { sin_permiso: "neutro",
 /** Estados en que el cliente ya aprobó la preinvoice: se puede generar la proforma. */
 const CON_PROFORMA = new Set(["confirmado", "empacado", "facturado", "cerrado"]);
 
+/** Rayas de agua dulce: las únicas especies del despacho que necesitan CITES (igual que `ReglasInformeAunap.RequiereCites`). */
+const requiereCites = (nombre: string | null | undefined) => /^\s*(potamotrygon|paratrygon)\b/i.test(nombre ?? "");
+
 const entero = (n: number | null | undefined) => (n === null || n === undefined ? "—" : n.toLocaleString("es-CO"));
 
 /**
@@ -55,6 +58,7 @@ export function PasoAunap({ d, puedeGestionar }: { d: EmbarqueDetalle; puedeGest
 
       <TramitesForm
         key={`${resumen.permiso?.actualizadoEn ?? "nuevo"}-${version}`}
+        llevaRayas={[...d.lineas, ...d.empaque].some((l) => requiereCites(l.nombreCientifico))}
         embarqueId={e.id}
         resumen={resumen}
         puede={puede}
@@ -174,7 +178,19 @@ function Documento({ titulo, detalle, embarqueId, tipo, motivo }: { titulo: stri
   );
 }
 
-function TramitesForm({ embarqueId, resumen, puede, onGuardado }: { embarqueId: string; resumen: ResumenAunap; puede: boolean; onGuardado: () => void }) {
+function TramitesForm({
+  embarqueId,
+  resumen,
+  puede,
+  llevaRayas,
+  onGuardado,
+}: {
+  embarqueId: string;
+  resumen: ResumenAunap;
+  puede: boolean;
+  llevaRayas: boolean;
+  onGuardado: () => void;
+}) {
   const router = useRouter();
   const [pendiente, iniciar] = useTransition();
   const [mensaje, setMensaje] = useState<{ texto: string; error: boolean } | null>(null);
@@ -312,15 +328,22 @@ function TramitesForm({ embarqueId, resumen, puede, onGuardado }: { embarqueId: 
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-texto">4 · CITES (si aplica)</h2>
-        <RejillaCampos>
-          <Campo label="N.º CITES" htmlFor="cites">
-            {texto("citesNumero", "cites", 60)}
-          </Campo>
-          <Campo label="Fecha de aprobación CITES" htmlFor="cites-fecha">
-            {dia("citesFecha", "cites-fecha")}
-          </Campo>
-        </RejillaCampos>
+        <h2 className="text-base font-semibold text-texto">4 · CITES</h2>
+        {llevaRayas || campos.citesNumero || campos.citesFecha ? (
+          <>
+            {llevaRayas ? <p className="text-sm text-texto-suave">El despacho lleva rayas: necesita CITES.</p> : null}
+            <RejillaCampos>
+              <Campo label="N.º CITES" htmlFor="cites">
+                {texto("citesNumero", "cites", 60)}
+              </Campo>
+              <Campo label="Fecha de aprobación CITES" htmlFor="cites-fecha">
+                {dia("citesFecha", "cites-fecha")}
+              </Campo>
+            </RejillaCampos>
+          </>
+        ) : (
+          <p className="text-sm text-texto-suave">No aplica: el CITES solo se pide cuando el despacho lleva rayas.</p>
+        )}
       </section>
 
       {mensaje ? <Aviso texto={mensaje.texto} error={mensaje.error} /> : null}
