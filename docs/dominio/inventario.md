@@ -93,9 +93,9 @@ Las reglas de cada tipo (qué origen/destino exige) están en `ReglasStock` (App
   **Suelto**: se elige cliente y, si se puede asignar, comercial.
 - **Cada talla es un producto**: precio, stock, picking y reservas cuelgan del producto, así que el pedido no lleva
   talla libre. El selector muestra código · nombre · talla (y busca también por nombre científico e inglés).
-- **Precio**: elegir la especie trae el precio de lista según la moneda del pedido (USD = `STANDARD`, COP =
-  `MAYORISTA_NACIONAL`) sin pisar lo escrito a mano. Moneda = la de la venta; en un pedido suelto, Colombia = COP y los
-  demás = USD.
+- **Precio**: lo escribe el comercial. Debajo de cada línea se muestra de referencia el precio de lista según la moneda del
+  pedido (USD = `STANDARD`, COP = `MAYORISTA_NACIONAL`); no se llena solo. Moneda = la de la venta; en un pedido
+  suelto, Colombia = COP y los demás = USD.
 - Visibilidad como el CRM: el comercial sin `crm:ver-todo` solo ve y edita los suyos.
 - **Despacho**: solo confirmado o en preparación; solo desde existencias sanas en acuario; no supera lo
   pendiente de la línea (`JR003` → 400). El primer despacho pasa el pedido a **en preparación** y la

@@ -278,3 +278,55 @@ public class AunapController(AunapService service, IUsuarioActual usuario) : Crm
         return File(resultado.Valor.Contenido, resultado.Valor.TipoContenido, resultado.Valor.Nombre);
     }
 }
+
+/// <summary>Empaque: estándar por producto (especie y talla), costos de empaque, costo por despacho y DOA por forma de empaque.</summary>
+[ApiController]
+[Route("api/v1/exportaciones/empaque")]
+public class EmpaqueController(EmpaqueService service, IUsuarioActual usuario) : CrmControllerBase(usuario)
+{
+    [HttpGet("estandares")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> Estandares(CancellationToken ct) => Ok(await service.EstandaresAsync(ct));
+
+    [HttpPut("estandares/{productoId:guid}")]
+    [RequierePermiso(Permisos.ExportacionesConfigurar)]
+    public async Task<IActionResult> GuardarEstandar(Guid productoId, GuardarEstandarEmpaqueRequest request, CancellationToken ct) =>
+        (await service.GuardarEstandarAsync(productoId, request, ct)).ARespuesta();
+
+    [HttpGet("estandares/{productoId:guid}/historial")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> HistorialEstandar(Guid productoId, CancellationToken ct) => Ok(await service.HistorialAsync(productoId, ct));
+
+    [HttpDelete("estandares/{productoId:guid}")]
+    [RequierePermiso(Permisos.ExportacionesConfigurar)]
+    public async Task<IActionResult> EliminarEstandar(Guid productoId, CancellationToken ct) =>
+        (await service.EliminarEstandarAsync(productoId, ct)).ARespuesta();
+
+    [HttpGet("costos")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> Costos(CancellationToken ct) => Ok(await service.CostosAsync(ct));
+
+    [HttpPut("costos/parametros")]
+    [RequierePermiso(Permisos.ExportacionesConfigurar)]
+    public async Task<IActionResult> GuardarParametros(GuardarParametrosEmpaqueRequest request, CancellationToken ct) =>
+        (await service.GuardarParametrosAsync(request, ct)).ARespuesta();
+
+    [HttpPut("costos/bolsas/{tipoBolsaId:guid}")]
+    [RequierePermiso(Permisos.ExportacionesConfigurar)]
+    public async Task<IActionResult> GuardarLitros(Guid tipoBolsaId, GuardarLitrosBolsaRequest request, CancellationToken ct) =>
+        (await service.GuardarLitrosBolsaAsync(tipoBolsaId, request, ct)).ARespuesta();
+
+    [HttpPut("costos/aditivos/{medicamentoId:guid}")]
+    [RequierePermiso(Permisos.ExportacionesConfigurar)]
+    public async Task<IActionResult> GuardarCostoAditivo(Guid medicamentoId, GuardarCostoAditivoRequest request, CancellationToken ct) =>
+        (await service.GuardarCostoAditivoAsync(medicamentoId, request, ct)).ARespuesta();
+
+    [HttpGet("embarques/{id:guid}")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> CostoEmbarque(Guid id, CancellationToken ct) => (await service.CostoEmbarqueAsync(id, Alcance, ct)).ARespuesta();
+
+    [HttpGet("doa")]
+    [RequierePermiso(Permisos.ExportacionesLeer)]
+    public async Task<IActionResult> Doa([FromQuery] DateOnly? desde, [FromQuery] DateOnly? hasta, CancellationToken ct) =>
+        (await service.DoaAsync(desde, hasta, ct)).ARespuesta();
+}

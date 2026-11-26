@@ -362,6 +362,57 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => e.Nombre).IsUnique();
         });
 
+        modelBuilder.Entity<EstandarEmpaque>(entity =>
+        {
+            entity.ToTable("estandares_empaque", t =>
+            {
+                t.HasCheckConstraint("ck_estandares_empaque_peces", "(peces_min IS NULL OR peces_min > 0) AND (peces_max IS NULL OR peces_max > 0) AND (peces_min IS NULL OR peces_max IS NULL OR peces_min <= peces_max)");
+                t.HasCheckConstraint("ck_estandares_empaque_litros", "litros_agua IS NULL OR (litros_agua > 0 AND litros_agua <= 50)");
+            });
+            entity.HasKey(e => e.ProductoId);
+            entity.Property(e => e.LitrosAgua).HasPrecision(6, 2);
+            entity.Property(e => e.Notas).HasMaxLength(500);
+            entity.HasOne<Producto>().WithOne().HasForeignKey<EstandarEmpaque>(e => e.ProductoId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<TipoBolsa>().WithMany().HasForeignKey(e => e.TipoBolsaId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<EstandarEmpaqueAditivo>(entity =>
+        {
+            entity.ToTable("estandar_empaque_aditivos");
+            entity.HasKey(e => new { e.ProductoId, e.MedicamentoId });
+            entity.HasOne<EstandarEmpaque>().WithMany().HasForeignKey(e => e.ProductoId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Medicamento>().WithMany().HasForeignKey(e => e.MedicamentoId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<EmpaqueBolsa>(entity =>
+        {
+            entity.ToTable("empaque_bolsas", t => t.HasCheckConstraint("ck_empaque_bolsas_litros", "litros_agua IS NULL OR (litros_agua > 0 AND litros_agua <= 50)"));
+            entity.HasKey(e => e.TipoBolsaId);
+            entity.Property(e => e.LitrosAgua).HasPrecision(6, 2);
+            entity.HasOne<TipoBolsa>().WithOne().HasForeignKey<EmpaqueBolsa>(e => e.TipoBolsaId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EmpaqueCostoAditivo>(entity =>
+        {
+            entity.ToTable("empaque_costos_aditivo", t => t.HasCheckConstraint("ck_empaque_costos_aditivo", "costo_cop_unidad IS NULL OR costo_cop_unidad >= 0"));
+            entity.HasKey(e => e.MedicamentoId);
+            entity.Property(e => e.CostoCopUnidad).HasPrecision(14, 4);
+            entity.HasOne<Medicamento>().WithOne().HasForeignKey<EmpaqueCostoAditivo>(e => e.MedicamentoId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ParametrosEmpaque>(entity =>
+        {
+            entity.ToTable("parametros_empaque", t =>
+            {
+                t.HasCheckConstraint("ck_parametros_empaque_fila_unica", "id = 1");
+                t.HasCheckConstraint("ck_parametros_empaque_costos", "(costo_heat_pack_cop IS NULL OR costo_heat_pack_cop >= 0) AND (costo_oxigeno_bolsa_cop IS NULL OR costo_oxigeno_bolsa_cop >= 0)");
+            });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CostoHeatPackCop).HasPrecision(12, 2);
+            entity.Property(e => e.CostoOxigenoBolsaCop).HasPrecision(12, 2);
+        });
+
         modelBuilder.Entity<TipoBolsa>(entity =>
         {
             entity.ToTable("tipos_bolsa", t => t.HasCheckConstraint("ck_tipos_bolsa_valores", "porcion > 0 AND porcion <= 1 AND costo_cop >= 0"));

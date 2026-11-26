@@ -79,6 +79,7 @@ export function construirNavegacion(): ItemNavegacion[] {
         { href: "/exportaciones", label: "Embarques", permiso: PERMISOS.EXPORTACIONES_LEER },
         { href: "/exportaciones/aunap", label: "AUNAP", permiso: PERMISOS.EXPORTACIONES_LEER },
         { href: "/exportaciones/aunap/informe", label: "Informe AUNAP", permiso: PERMISOS.EXPORTACIONES_LEER },
+        { href: "/exportaciones/empaque", label: "Empaque", permiso: PERMISOS.EXPORTACIONES_LEER },
         { href: "/exportaciones/configuracion", label: "Configuración", permiso: PERMISOS.EXPORTACIONES_CONFIGURAR },
       ],
     },

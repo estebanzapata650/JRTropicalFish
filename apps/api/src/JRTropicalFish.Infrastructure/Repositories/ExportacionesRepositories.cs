@@ -308,3 +308,48 @@ public class AunapRepository(PostgresConnectionFactory conexiones) : Repositorio
     public Task<IReadOnlyList<DespachoAunapFila>> DespachosAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default) =>
         ListarAsync<DespachoAunapFila>("SELECT * FROM fn_informe_aunap(@Desde::date, @Hasta::date)", new { Desde = desde, Hasta = hasta }, ct);
 }
+
+public class EmpaqueRepository(PostgresConnectionFactory conexiones) : RepositorioInventario(conexiones), IEmpaqueRepository
+{
+    public Task<IReadOnlyList<EstandarEmpaqueFila>> EstandaresAsync(CancellationToken ct = default) =>
+        ListarAsync<EstandarEmpaqueFila>("SELECT * FROM fn_estandares_empaque()", null, ct);
+
+    public Task GuardarEstandarAsync(Guid productoId, GuardarEstandarEmpaqueRequest e, DateTime fecha, CancellationToken ct = default) =>
+        EjecutarAsync(
+            """
+            CALL sp_estandar_empaque_guardar(@Producto::uuid, @TipoBolsaId::uuid, @PecesMin::integer, @PecesMax::integer,
+                @LitrosAgua::numeric, @Notas::text, @Revisado::boolean, @Aditivos::jsonb, @Fecha::timestamptz)
+            """,
+            new
+            {
+                Producto = productoId, e.TipoBolsaId, e.PecesMin, e.PecesMax, e.LitrosAgua, e.Notas, e.Revisado,
+                Aditivos = JsonSerializer.Serialize(e.Aditivos ?? []), Fecha = fecha,
+            },
+            ct);
+
+    public Task EliminarEstandarAsync(Guid productoId, CancellationToken ct = default) =>
+        EjecutarAsync("CALL sp_estandar_empaque_eliminar(@Id::uuid)", new { Id = productoId }, ct);
+
+    public async Task<ParametrosEmpaqueFila> ParametrosAsync(CancellationToken ct = default) =>
+        await UnoAsync<ParametrosEmpaqueFila>("SELECT * FROM fn_parametros_empaque()", null, ct) ?? new ParametrosEmpaqueFila(null, null, null);
+
+    public Task GuardarParametrosAsync(GuardarParametrosEmpaqueRequest p, DateTime fecha, CancellationToken ct = default) =>
+        EjecutarAsync(
+            "CALL sp_parametros_empaque_guardar(@CostoHeatPackCop::numeric, @CostoOxigenoBolsaCop::numeric, @Fecha::timestamptz)",
+            new { p.CostoHeatPackCop, p.CostoOxigenoBolsaCop, Fecha = fecha }, ct);
+
+    public Task<IReadOnlyList<EmpaqueBolsaFila>> BolsasAsync(CancellationToken ct = default) =>
+        ListarAsync<EmpaqueBolsaFila>("SELECT * FROM fn_empaque_bolsas()", null, ct);
+
+    public Task GuardarLitrosBolsaAsync(Guid tipoBolsaId, decimal? litros, DateTime fecha, CancellationToken ct = default) =>
+        EjecutarAsync("CALL sp_empaque_bolsa_guardar(@Id::uuid, @Litros::numeric, @Fecha::timestamptz)", new { Id = tipoBolsaId, Litros = litros, Fecha = fecha }, ct);
+
+    public Task<IReadOnlyList<AditivoEmpaqueFila>> AditivosAsync(CancellationToken ct = default) =>
+        ListarAsync<AditivoEmpaqueFila>("SELECT * FROM fn_empaque_aditivos()", null, ct);
+
+    public Task GuardarCostoAditivoAsync(Guid medicamentoId, decimal? costo, DateTime fecha, CancellationToken ct = default) =>
+        EjecutarAsync("CALL sp_empaque_aditivo_costo(@Id::uuid, @Costo::numeric, @Fecha::timestamptz)", new { Id = medicamentoId, Costo = costo, Fecha = fecha }, ct);
+
+    public Task<IReadOnlyList<DoaEmpaqueFila>> DoaAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default) =>
+        ListarAsync<DoaEmpaqueFila>("SELECT * FROM fn_doa_empaque(@Desde::date, @Hasta::date)", new { Desde = desde, Hasta = hasta }, ct);
+}

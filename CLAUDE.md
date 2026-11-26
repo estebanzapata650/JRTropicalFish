@@ -55,6 +55,10 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   causas de mortalidad, conceptos de costo y tipos de documento (12 sembrados), con el mecanismo genérico de maestros.
   Los formularios los eligen con `SelectorMaestro`: aerolínea del embarque y del vuelo, aeropuerto del cliente y causa de
   mortalidad (va al comienzo de la nota del kardex).
+- **Empaque** (2026-11-26): estándar por especie y talla (bolsa de la macro, peces por bolsa, litros, aditivos de los
+  medicamentos AQUAVET dosificados por litro de agua), costos de empaque por llenar con el equipo, costo de empaque de cada
+  despacho con avisos de fuera de estándar, y DOA por forma de empaque (`/exportaciones/empaque`). El precio del pedido lo
+  escribe el comercial (la lista solo se muestra de referencia).
 - **Buscador en los formularios** (`components/SelectorBuscable.tsx`): toda lista de registros (clientes,
   proveedores, productos, acuarios, usuarios…) filtra mientras se escribe, por texto o por iniciales.
 - **Sanidad** (2026-11-22, fase 1): **Mi día** del operario (llegadas con profilaxis sugerida, medicación con

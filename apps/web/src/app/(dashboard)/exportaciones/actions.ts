@@ -121,6 +121,35 @@ export async function guardarPermisoAunapAction(embarqueId: string, datos: Cuerp
   return ejecutar(`${base}/embarques/${embarqueId}/aunap/permiso`, "PUT", datos, "No se pudieron guardar los trámites.");
 }
 
+export async function guardarEstandarEmpaqueAction(productoId: string, datos: Cuerpo) {
+  return ejecutar(`${base}/empaque/estandares/${productoId}`, "PUT", datos, "No se pudo guardar el estándar.");
+}
+
+export async function eliminarEstandarEmpaqueAction(productoId: string) {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  try {
+    await apiFetch(`${base}/empaque/estandares/${productoId}`, { method: "DELETE", token: session.token });
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) redirect("/login");
+    return { error: err instanceof ApiError ? err.message : "No se pudo quitar el estándar." };
+  }
+  revalidatePath("/exportaciones", "layout");
+  return { ok: true };
+}
+
+export async function guardarParametrosEmpaqueAction(datos: Cuerpo) {
+  return ejecutar(`${base}/empaque/costos/parametros`, "PUT", datos, "No se pudieron guardar los costos.");
+}
+
+export async function guardarLitrosBolsaAction(tipoBolsaId: string, litrosAgua: number | null) {
+  return ejecutar(`${base}/empaque/costos/bolsas/${tipoBolsaId}`, "PUT", { litrosAgua }, "No se pudieron guardar los litros.");
+}
+
+export async function guardarCostoAditivoAction(medicamentoId: string, costoCopUnidad: number | null) {
+  return ejecutar(`${base}/empaque/costos/aditivos/${medicamentoId}`, "PUT", { costoCopUnidad }, "No se pudo guardar el costo.");
+}
+
 export async function generarProformaAction(embarqueId: string) {
   return ejecutar<{ numero: string }>(`${base}/embarques/${embarqueId}/aunap/proforma`, "POST", null, "No se pudo generar la proforma.");
 }

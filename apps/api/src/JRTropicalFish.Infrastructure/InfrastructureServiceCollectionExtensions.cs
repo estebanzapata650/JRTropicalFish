@@ -121,6 +121,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IEmbarqueRepository, EmbarqueRepository>();
         services.AddScoped<IAunapRepository, AunapRepository>();
         services.AddScoped<AunapService>();
+        services.AddScoped<IEmpaqueRepository, EmpaqueRepository>();
+        services.AddScoped<EmpaqueService>();
         services.AddScoped<ConfiguracionExportacionService>();
         services.AddScoped<EmbarqueService>();
         services.AddScoped<ComprasService>();

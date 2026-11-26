@@ -19,6 +19,7 @@ import { SelectorProducto } from "../../inventario/comun";
 import { guardarEmpaqueAction } from "../actions";
 import { EncabezadoTabla, TablaResponsive } from "@/components/campos";
 import { Aviso, BotonesDocumento, CampoFila, numero } from "./comun";
+import { CostoEmpaque } from "./CostoEmpaque";
 
 type Fila = {
   clave: string;
@@ -42,6 +43,10 @@ const nueva = (parcial: Partial<Fila> = {}): Fila => ({
   precio: "",
   ...parcial,
 });
+
+/** Cambia cuando cambia el empaque guardado o las cajas reales: el costo de empaque se recalcula. */
+const versionCosto = (d: EmbarqueDetalle) =>
+  [...JSON.stringify([d.empaque, d.cajasReales])].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0);
 
 /**
  * Paso 4: empaque real caja por caja (lo llena bodega). Cada fila: caja, especie, tipo de bolsa, bolsas ×
@@ -116,6 +121,7 @@ export function PasoEmpaque({
   return (
     <div className="flex flex-col gap-5">
       <Aviso texto={aviso} />
+      <CostoEmpaque embarqueId={d.embarque.id} version={versionCosto(d)} />
       {!puede ? (
         <p className="text-sm text-texto-suave">
           {d.embarque.facturaNumero

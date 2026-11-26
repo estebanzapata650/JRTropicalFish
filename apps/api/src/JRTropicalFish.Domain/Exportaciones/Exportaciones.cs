@@ -468,3 +468,69 @@ public class ParametrosAunap
 
     public DateTime? ActualizadoEn { get; set; }
 }
+
+/// <summary>
+/// Estándar de empaque de un producto (especie y talla): tipo de bolsa, peces por bolsa y litros de agua. Sin estándar,
+/// se usan los peces por bolsa del catálogo. <see cref="Revisado"/> = lo validó el equipo.
+/// </summary>
+public class EstandarEmpaque
+{
+    public Guid ProductoId { get; set; }
+
+    public Guid? TipoBolsaId { get; set; }
+
+    public int? PecesMin { get; set; }
+
+    public int? PecesMax { get; set; }
+
+    /// <summary>Litros de agua por bolsa de esta especie; nulo = los del tipo de bolsa.</summary>
+    public decimal? LitrosAgua { get; set; }
+
+    public string? Notas { get; set; }
+
+    public bool Revisado { get; set; }
+
+    public DateTime ActualizadoEn { get; set; }
+}
+
+/// <summary>Aditivo del agua de empaque (Stress Guard, sal…): un medicamento, dosificado por litro de agua.</summary>
+public class EstandarEmpaqueAditivo
+{
+    public Guid ProductoId { get; set; }
+
+    public Guid MedicamentoId { get; set; }
+}
+
+/// <summary>Litros de agua de un tipo de bolsa (para dosificar aditivos).</summary>
+public class EmpaqueBolsa
+{
+    public Guid TipoBolsaId { get; set; }
+
+    public decimal? LitrosAgua { get; set; }
+
+    public DateTime ActualizadoEn { get; set; }
+}
+
+/// <summary>Costo de un aditivo de empaque por unidad del medicamento (mL, g, mg…), en COP.</summary>
+public class EmpaqueCostoAditivo
+{
+    public Guid MedicamentoId { get; set; }
+
+    public decimal? CostoCopUnidad { get; set; }
+
+    public DateTime ActualizadoEn { get; set; }
+}
+
+/// <summary>Costos de empaque que no son caja ni bolsa. Una sola fila (<c>Id = 1</c>).</summary>
+public class ParametrosEmpaque
+{
+    public int Id { get; set; } = 1;
+
+    /// <summary>Costo de un heat pack (uno por piso de caja).</summary>
+    public decimal? CostoHeatPackCop { get; set; }
+
+    /// <summary>Costo del oxígeno de una bolsa.</summary>
+    public decimal? CostoOxigenoBolsaCop { get; set; }
+
+    public DateTime? ActualizadoEn { get; set; }
+}

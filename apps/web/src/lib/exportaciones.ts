@@ -414,3 +414,81 @@ export type InformeAunap = {
   excluidosCriadero: number;
   embarques: number;
 };
+
+// --- Empaque ---
+
+export type EstandarEmpaque = {
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  nombreEspanol: string | null;
+  talla: string | null;
+  grupoNombre: string;
+  /** Peces por bolsa del catálogo (lo que se usa sin estándar). */
+  bolsaMin: number | null;
+  bolsaMax: number | null;
+  tieneEstandar: boolean;
+  tipoBolsaId: string | null;
+  tipoBolsaNombre: string | null;
+  pecesMin: number | null;
+  pecesMax: number | null;
+  litrosAgua: number | null;
+  notas: string | null;
+  revisado: boolean;
+  aditivos: string[];
+  actualizadoEn: string | null;
+};
+
+export type BolsaEmpaque = {
+  tipoBolsaId: string;
+  nombre: string;
+  tamano: string | null;
+  porcion: number;
+  costoCop: number;
+  litrosAgua: number | null;
+  activo: boolean;
+};
+
+export type AditivoEmpaque = {
+  medicamentoId: string;
+  codigo: string;
+  nombre: string;
+  unidad: string;
+  dosisCantidad: number;
+  dosisBase: number;
+  costoCopUnidad: number | null;
+  fuente: string | null;
+};
+
+export type CostosEmpaque = {
+  parametros: { costoHeatPackCop: number | null; costoOxigenoBolsaCop: number | null; actualizadoEn: string | null };
+  bolsas: BolsaEmpaque[];
+  aditivos: AditivoEmpaque[];
+};
+
+export type CostoEmpaqueEmbarque = {
+  conceptos: { concepto: string; cantidad: number; unidad: string; costoUnitario: number | null; total: number | null }[];
+  total: number;
+  faltantes: string[];
+  fueraDeEstandar: { numeroCaja: number; productoCodigo: string; texto: string }[];
+  peces: number;
+  costoPorPez: number | null;
+};
+
+export type DoaEmpaque = {
+  productoId: string;
+  productoCodigo: string;
+  nombreCientifico: string;
+  nombreEspanol: string | null;
+  talla: string | null;
+  tipoBolsaId: string | null;
+  tipoBolsaNombre: string | null;
+  pecesPorBolsa: number;
+  embarques: number;
+  bolsas: number;
+  peces: number;
+  doa: number;
+  porcentajeDoa: number;
+};
+
+export const pesos = (v: number | null | undefined) => (v == null ? "—" : `$${Math.round(v).toLocaleString("es-CO")}`);

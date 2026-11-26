@@ -108,6 +108,35 @@ Plantillas: Comercial leer + gestionar; Bodega leer + empacar; Operativo leer + 
   cantidades o valores distintos a los del pedido, el empaque o la factura. Si alguna especie no tiene código,
   el documento no se genera.
 
+## Empaque (`/exportaciones/empaque`)
+
+- **Estándar por producto** (especie y talla):
+  - tipo de bolsa (los 14 de la macro comercial) y peces por bolsa (mínimo y máximo);
+  - litros de agua (vacío = los del tipo de bolsa);
+  - aditivos del agua y notas para bodega;
+  - «revisado con el equipo».
+
+  Sin estándar se usan los peces por bolsa del catálogo.
+- **Aditivos:** los medicamentos de los reportes AQUAVET que se dosifican por volumen (12; el mebendazol va en el
+  alimento y no aplica). La dosis es la de la ficha del medicamento **por litro de agua**:
+  cantidad = dosis ÷ base (L) × litros de la bolsa × bolsas.
+- **Costos** (pestaña Costos): heat pack (1.470 COP de la hoja Parametros), oxígeno por bolsa, litros de agua por tipo de
+  bolsa y costo por unidad de cada aditivo. Las cajas y las bolsas siguen en Configuración. Ningún costo se inventa: lo
+  vacío queda «por definir».
+- **Costo de empaque del despacho** (paso Empaque del embarque): sale del empaque real:
+  - cajas reales × costo de materiales;
+  - bolsas × costo de cada tipo;
+  - heat packs (uno por piso) y oxígeno por bolsa;
+  - aditivos del estándar de cada especie.
+
+  Muestra el total y el costo por pez, lista lo que falta por cargar (no lo suma) y avisa las filas fuera del estándar
+  (otra bolsa, o más o menos peces por bolsa).
+- **DOA por empaque:** DOA + ADD + FINAL sobre los peces enviados, por especie × tipo de bolsa × peces por bolsa, de los
+  embarques facturados o cerrados (por defecto, los últimos 12 meses). Marca la forma con menor DOA de cada especie,
+  para ajustar el estándar con datos.
+- **Código:** reglas en `ReglasEmpaque` (con pruebas) y funciones en la migración `FuncionesEmpaque`. Los estándares y
+  los costos se editan con `exportaciones:configurar`; todo cambio queda en la auditoría.
+
 ## Informe mensual AUNAP
 
 Reemplaza el «Formato Informe Mensual» de la DTIV (`docs/excelBD/10 - OCUBRE 2026 JR TROPICAL FISH LTDA.xlsx`).

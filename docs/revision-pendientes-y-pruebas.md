@@ -39,6 +39,18 @@
 | ☐ | **Datos bancarios, firmante y logo** (Exportaciones → Configuración) | Salen en la preinvoice y la factura |
 | ☐ | **Reimportar el Excel «BASES» actualizado** | Looker iba en el lote LOT-1011 y lo cargado llega a LOT-0695. Hacerlo antes de producción (`npm run inventario:importar`) |
 
+## A3b. Empaque: revisar con el equipo y cargar costos
+
+| ✔ | Qué | Dónde |
+|---|---|---|
+| ☐ | **Estándar de empaque por especie y talla**: tipo de bolsa, peces por bolsa, aditivos. Hoy ninguno está definido; se usan los peces por bolsa del catálogo. Marcar «Revisado con el equipo» al confirmarlo | Exportaciones → Empaque → Estándares |
+| ☐ | **Litros de agua de cada tipo de bolsa** (14). Sin litros no se calcula el costo de los aditivos | Exportaciones → Empaque → Costos |
+| ☐ | **Costo por unidad de los aditivos** (Stress Guard, sal, etc.) | Exportaciones → Empaque → Costos |
+| ☐ | **Costo del oxígeno por bolsa** y confirmar el del heat pack (1.470 COP del Excel) | Exportaciones → Empaque → Costos |
+| ☐ | **Costo de materiales de la caja triple piso** (hoy 0) y revisar los de las demás cajas y bolsas | Exportaciones → Configuración |
+| ☐ | **Qué aditivos lleva cada especie** y si la dosis de empaque es la misma de la ficha del medicamento | Con el veterinario |
+| ☐ | Después de unos despachos con DOA, revisar **DOA por empaque** y ajustar los estándares | Exportaciones → Empaque → DOA por empaque |
+
 ## A4. Huecos de integración (para decidir en las pruebas con el equipo)
 
 | ✔ | Hueco | Qué pasa hoy |
@@ -172,7 +184,8 @@ Cada fila: ruta → qué hacer → qué debe pasar.
 | ☐ | http://localhost:3100/exportaciones | «Nuevo embarque» desde la venta de exportación PRUEBA | Hereda cliente, comercial, aerolínea y AWB |
 | ☐ | Ficha del embarque, paso **1 Pedido y preinvoice** | Agregar especies, vuelo (con hora) y cajas; ver el PDF; enviarlo por correo | Preinvoice con anticipo; el correo queda en la carpeta de correos |
 | ☐ | Pasos **2 Flete** y **3 Orden de cargue** | Ver los PDF | Flete con desglose; orden de cargue en español con las cajas «13 – 14» |
-| ☐ | Paso **4 Empaque** (como Bodega) | Registrar caja por caja y marcar «empacado» | Packing list en PDF |
+| ☐ | Paso **4 Empaque** (como Bodega) | Registrar caja por caja y marcar «empacado» | Packing list en PDF; arriba, el costo de empaque y los avisos de fuera de estándar |
+| ☐ | http://localhost:3100/exportaciones/empaque | Definir el estándar de una especie (bolsa, peces, Stress Guard); en Costos, cargar litros y costos | La especie queda «por revisar»; el costo del despacho incluye el aditivo y deja de listar faltantes |
 | ☐ | Paso **5 Factura** | Cajas reales y valor del AWB; **Emitir** | Factura n.º 12187 (formato del cliente); la venta y la torre de vuelos se actualizan solas |
 | ☐ | Pasos **6 DOA** y **7 Balance** | Registrar muertos y el anticipo | Nota crédito y balance en PDF; el DOA llega a la torre de vuelos |
 

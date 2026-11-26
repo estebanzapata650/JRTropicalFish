@@ -113,6 +113,30 @@ public interface IAunapRepository
     Task<IReadOnlyList<DespachoAunapFila>> DespachosAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default);
 }
 
+/// <summary>Estándares y costos de empaque (migración FuncionesEmpaque).</summary>
+public interface IEmpaqueRepository
+{
+    Task<IReadOnlyList<EstandarEmpaqueFila>> EstandaresAsync(CancellationToken ct = default);
+
+    Task GuardarEstandarAsync(Guid productoId, GuardarEstandarEmpaqueRequest estandar, DateTime fecha, CancellationToken ct = default);
+
+    Task EliminarEstandarAsync(Guid productoId, CancellationToken ct = default);
+
+    Task<ParametrosEmpaqueFila> ParametrosAsync(CancellationToken ct = default);
+
+    Task GuardarParametrosAsync(GuardarParametrosEmpaqueRequest parametros, DateTime fecha, CancellationToken ct = default);
+
+    Task<IReadOnlyList<EmpaqueBolsaFila>> BolsasAsync(CancellationToken ct = default);
+
+    Task GuardarLitrosBolsaAsync(Guid tipoBolsaId, decimal? litros, DateTime fecha, CancellationToken ct = default);
+
+    Task<IReadOnlyList<AditivoEmpaqueFila>> AditivosAsync(CancellationToken ct = default);
+
+    Task GuardarCostoAditivoAsync(Guid medicamentoId, decimal? costo, DateTime fecha, CancellationToken ct = default);
+
+    Task<IReadOnlyList<DoaEmpaqueFila>> DoaAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default);
+}
+
 /// <summary>Arma el .xlsx del informe mensual en el formato de la AUNAP.</summary>
 public interface IGeneradorInformeAunapExcel
 {

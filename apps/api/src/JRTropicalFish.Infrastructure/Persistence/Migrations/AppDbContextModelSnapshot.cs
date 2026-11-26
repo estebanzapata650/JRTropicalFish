@@ -1947,6 +1947,54 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EmpaqueBolsa", b =>
+                {
+                    b.Property<Guid>("TipoBolsaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tipo_bolsa_id");
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal?>("LitrosAgua")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("litros_agua");
+
+                    b.HasKey("TipoBolsaId")
+                        .HasName("pk_empaque_bolsas");
+
+                    b.ToTable("empaque_bolsas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_empaque_bolsas_litros", "litros_agua IS NULL OR (litros_agua > 0 AND litros_agua <= 50)");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EmpaqueCostoAditivo", b =>
+                {
+                    b.Property<Guid>("MedicamentoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("medicamento_id");
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal?>("CostoCopUnidad")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("numeric(14,4)")
+                        .HasColumnName("costo_cop_unidad");
+
+                    b.HasKey("MedicamentoId")
+                        .HasName("pk_empaque_costos_aditivo");
+
+                    b.ToTable("empaque_costos_aditivo", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_empaque_costos_aditivo", "costo_cop_unidad IS NULL OR costo_cop_unidad >= 0");
+                        });
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EnvioDocumento", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2103,6 +2151,75 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                     b.ToTable("especies_aunap", (string)null);
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EstandarEmpaque", b =>
+                {
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal?>("LitrosAgua")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("litros_agua");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notas");
+
+                    b.Property<int?>("PecesMax")
+                        .HasColumnType("integer")
+                        .HasColumnName("peces_max");
+
+                    b.Property<int?>("PecesMin")
+                        .HasColumnType("integer")
+                        .HasColumnName("peces_min");
+
+                    b.Property<bool>("Revisado")
+                        .HasColumnType("boolean")
+                        .HasColumnName("revisado");
+
+                    b.Property<Guid?>("TipoBolsaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tipo_bolsa_id");
+
+                    b.HasKey("ProductoId")
+                        .HasName("pk_estandares_empaque");
+
+                    b.HasIndex("TipoBolsaId")
+                        .HasDatabaseName("ix_estandares_empaque_tipo_bolsa_id");
+
+                    b.ToTable("estandares_empaque", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_estandares_empaque_litros", "litros_agua IS NULL OR (litros_agua > 0 AND litros_agua <= 50)");
+
+                            t.HasCheckConstraint("ck_estandares_empaque_peces", "(peces_min IS NULL OR peces_min > 0) AND (peces_max IS NULL OR peces_max > 0) AND (peces_min IS NULL OR peces_max IS NULL OR peces_min <= peces_max)");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EstandarEmpaqueAditivo", b =>
+                {
+                    b.Property<Guid>("ProductoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("producto_id");
+
+                    b.Property<Guid>("MedicamentoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("medicamento_id");
+
+                    b.HasKey("ProductoId", "MedicamentoId")
+                        .HasName("pk_estandar_empaque_aditivos");
+
+                    b.HasIndex("MedicamentoId")
+                        .HasDatabaseName("ix_estandar_empaque_aditivos_medicamento_id");
+
+                    b.ToTable("estandar_empaque_aditivos", (string)null);
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.MunicipioAunap", b =>
                 {
                     b.Property<int>("Id")
@@ -2186,6 +2303,37 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                     b.ToTable("parametros_aunap", null, t =>
                         {
                             t.HasCheckConstraint("ck_parametros_aunap_fila_unica", "id = 1");
+                        });
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.ParametrosEmpaque", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<decimal?>("CostoHeatPackCop")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("costo_heat_pack_cop");
+
+                    b.Property<decimal?>("CostoOxigenoBolsaCop")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("costo_oxigeno_bolsa_cop");
+
+                    b.HasKey("Id")
+                        .HasName("pk_parametros_empaque");
+
+                    b.ToTable("parametros_empaque", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_parametros_empaque_costos", "(costo_heat_pack_cop IS NULL OR costo_heat_pack_cop >= 0) AND (costo_oxigeno_bolsa_cop IS NULL OR costo_oxigeno_bolsa_cop >= 0)");
+
+                            t.HasCheckConstraint("ck_parametros_empaque_fila_unica", "id = 1");
                         });
                 });
 
@@ -5233,6 +5381,26 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_embarque_lineas_productos_producto_id");
                 });
 
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EmpaqueBolsa", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.TipoBolsa", null)
+                        .WithOne()
+                        .HasForeignKey("JRTropicalFish.Domain.Exportaciones.EmpaqueBolsa", "TipoBolsaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_empaque_bolsas_tipo_bolsa_tipo_bolsa_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EmpaqueCostoAditivo", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Medicamento", null)
+                        .WithOne()
+                        .HasForeignKey("JRTropicalFish.Domain.Exportaciones.EmpaqueCostoAditivo", "MedicamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_empaque_costos_aditivo_medicamentos_medicamento_id");
+                });
+
             modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EnvioDocumento", b =>
                 {
                     b.HasOne("JRTropicalFish.Domain.Exportaciones.Embarque", null)
@@ -5241,6 +5409,39 @@ namespace JRTropicalFish.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_embarque_envios_embarques_embarque_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EstandarEmpaque", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Catalogos.Producto", null)
+                        .WithOne()
+                        .HasForeignKey("JRTropicalFish.Domain.Exportaciones.EstandarEmpaque", "ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_estandares_empaque_productos_producto_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.TipoBolsa", null)
+                        .WithMany()
+                        .HasForeignKey("TipoBolsaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_estandares_empaque_tipo_bolsa_tipo_bolsa_id");
+                });
+
+            modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.EstandarEmpaqueAditivo", b =>
+                {
+                    b.HasOne("JRTropicalFish.Domain.Sanidad.Medicamento", null)
+                        .WithMany()
+                        .HasForeignKey("MedicamentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_estandar_empaque_aditivos_medicamentos_medicamento_id");
+
+                    b.HasOne("JRTropicalFish.Domain.Exportaciones.EstandarEmpaque", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_estandar_empaque_aditivos_estandares_empaque_producto_id");
                 });
 
             modelBuilder.Entity("JRTropicalFish.Domain.Exportaciones.PermisoAunap", b =>

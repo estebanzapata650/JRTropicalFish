@@ -39,7 +39,6 @@ import {
   EditorLineas,
   aNumero,
   nuevaLinea,
-  precioSugerido,
   type LineaEditable,
 } from "../../inventario/comun";
 import {
@@ -627,17 +626,7 @@ function FormularioPedido({
     clientes.find((c) => c.id === clienteId)?.moneda ??
     null;
 
-  /** Al elegir el cliente se sabe la moneda: entran (o salen) los precios de lista. */
-  const elegirCliente = (id: string) => {
-    setClienteId(id);
-    const nueva = clientes.find((c) => c.id === id)?.moneda ?? null;
-    setLineas((ls) =>
-      ls.map((l) => {
-        const prod = productos.find((x) => x.id === l.productoId);
-        return { ...l, valor: precioSugerido(l, prod, prod, nueva) };
-      }),
-    );
-  };
+  const elegirCliente = (id: string) => setClienteId(id);
 
   return (
     <form
