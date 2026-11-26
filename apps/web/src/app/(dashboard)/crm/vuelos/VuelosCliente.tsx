@@ -13,6 +13,7 @@ import { botonPrimarioClass, botonSecundarioClass, inputClass } from "@/lib/esti
 import { dinero, fecha } from "@/lib/formato";
 import { cambiarFaseAction, guardarTrackingAction } from "../actions";
 import { SelectMapa } from "../comun";
+import { SelectorMaestro } from "@/components/SelectorMaestro";
 
 const pct = (v: number | null) => (v == null ? "—" : `${v.toLocaleString("es-CO", { maximumFractionDigits: 2 })} %`);
 const numero = (texto: string) => (texto.trim() === "" ? 0 : Number(texto.replace(",", ".")));
@@ -302,7 +303,7 @@ function FormularioTracking({
           <input id="awbT" value={f.noAwb} onChange={(e) => set("noAwb")(e.target.value)} maxLength={50} className={`${inputClass} font-mono`} />
         </Campo>
         <Campo label="Aerolínea" htmlFor="aerolinea">
-          <input id="aerolinea" value={f.aerolinea} onChange={(e) => set("aerolinea")(e.target.value)} maxLength={150} className={inputClass} />
+          <SelectorMaestro id="aerolinea" clave="aerolineas" valor={f.aerolinea} onChange={set("aerolinea")} vacio="Sin aerolínea" placeholder="Escribe la aerolínea…" />
         </Campo>
         <Campo label="Fecha de despacho del vuelo" htmlFor="fechaVuelo">
           <input id="fechaVuelo" type="date" value={f.fechaDespachoVuelo} onChange={(e) => set("fechaDespachoVuelo")(e.target.value)} className={inputClass} />

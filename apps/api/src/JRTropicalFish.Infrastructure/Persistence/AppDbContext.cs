@@ -956,6 +956,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigurarCatalogo<TipoContrato>(modelBuilder, "tipos_contrato");
         ConfigurarCatalogo<GrupoProducto>(modelBuilder, "grupos_producto");
         ConfigurarCatalogo<Cuenca>(modelBuilder, "cuencas");
+        ConfigurarCatalogo<Aerolinea>(modelBuilder, "aerolineas");
+        ConfigurarCatalogo<AgenteCarga>(modelBuilder, "agentes_carga");
+        ConfigurarCatalogo<Aeropuerto>(modelBuilder, "aeropuertos");
+        ConfigurarCatalogo<CausaMortalidad>(modelBuilder, "causas_mortalidad");
+        ConfigurarCatalogo<ConceptoCosto>(modelBuilder, "conceptos_costo");
+        ConfigurarCatalogo<TipoDocumento>(modelBuilder, "tipos_documento");
     }
 
     /// <summary>

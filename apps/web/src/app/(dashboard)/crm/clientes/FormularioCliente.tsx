@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Campo, CampoAncho, RejillaCampos } from "@/components/campos";
+import { SelectorMaestro } from "@/components/SelectorMaestro";
 import { ESTADOS_CLIENTE, LICENCIAS, TIPOS_CLIENTE, type Cliente } from "@/lib/crm";
 import { botonPrimarioClass, botonSecundarioClass, inputClass, textareaClass } from "@/lib/estilos";
 import { SelectMapa } from "../comun";
@@ -96,14 +97,15 @@ export function FormularioCliente({
         <Campo label="Ciudad (opcional)" htmlFor="ciudad">
           <input id="ciudad" value={d.ciudad} onChange={(e) => set("ciudad")(e.target.value)} maxLength={100} className={inputClass} />
         </Campo>
-        <Campo label="Aeropuerto IATA (opcional)" htmlFor="aeropuertoIata" hint="3 letras: NRT, BKK, MIA, FRA, BOG">
-          <input
+        <Campo label="Aeropuerto de destino (opcional)" htmlFor="aeropuertoIata" hint="Si no está, agrégalo en Administración → Maestros → Aeropuertos.">
+          <SelectorMaestro
             id="aeropuertoIata"
-            value={d.aeropuertoIata}
-            onChange={(e) => set("aeropuertoIata")(e.target.value.toUpperCase())}
-            maxLength={3}
-            autoCapitalize="characters"
-            className={`${inputClass} uppercase`}
+            clave="aeropuertos"
+            guardar="codigo"
+            valor={d.aeropuertoIata}
+            onChange={set("aeropuertoIata")}
+            vacio="Sin aeropuerto"
+            placeholder="Código o ciudad: HKG, Tokio…"
           />
         </Campo>
         <Campo label="Tipo de cliente" htmlFor="tipoCliente">

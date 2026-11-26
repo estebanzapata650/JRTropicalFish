@@ -23,6 +23,12 @@ public static class RegistroMaestros
     public const string TiposContrato = "tipos-contrato";
     public const string GruposProducto = "grupos-producto";
     public const string Cuencas = "cuencas";
+    public const string Aerolineas = "aerolineas";
+    public const string AgentesCarga = "agentes-carga";
+    public const string Aeropuertos = "aeropuertos";
+    public const string CausasMortalidad = "causas-mortalidad";
+    public const string ConceptosCosto = "conceptos-costo";
+    public const string TiposDocumento = "tipos-documento";
 
     public static readonly IReadOnlyList<DefinicionMaestro> Todos =
     [
@@ -34,6 +40,15 @@ public static class RegistroMaestros
         new(GruposProducto, "grupos_producto", "Grupos de producto", "grupo de producto",
             "Agrupan el catálogo. El código es el prefijo del código de producto (AP, CO, TE…)."),
         new(Cuencas, "cuencas", "Cuencas", "cuenca", "Cuenca de origen de los centros de acopio (Orinoco, Amazonas…)."),
+        new(Aerolineas, "aerolineas", "Aerolíneas", "aerolínea", "Aerolíneas de los despachos. Código IATA de 2 letras (QR, AV, LH…)."),
+        new(AgentesCarga, "agentes_carga", "Agentes de carga", "agente de carga", "Agencias de carga que cotizan y gestionan el flete aéreo."),
+        new(Aeropuertos, "aeropuertos", "Aeropuertos", "aeropuerto", "Aeropuertos de destino u origen. Código IATA de 3 letras (HKG, NRT…)."),
+        new(CausasMortalidad, "causas_mortalidad", "Causas de mortalidad", "causa de mortalidad",
+            "Por qué murieron los peces, en bodega o en el vuelo (DOA)."),
+        new(ConceptosCosto, "conceptos_costo", "Conceptos de costo", "concepto de costo",
+            "Costos de una compra o importación: flete, nacionalización, certificados…"),
+        new(TiposDocumento, "tipos_documento", "Tipos de documento", "tipo de documento",
+            "Documentos de comercio exterior: proforma, VUCE, DEX, CITES, guía aérea…"),
     ];
 
     public static DefinicionMaestro? Buscar(string? clave) =>

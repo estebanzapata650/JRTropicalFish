@@ -1,6 +1,7 @@
 "use client";
 
 import { SelectorBuscable } from "@/components/SelectorBuscable";
+import { SelectorMaestro } from "@/components/SelectorMaestro";
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -186,7 +187,7 @@ export function ExistenciasCliente({
         <EncabezadoTabla>
           <tr className="text-texto-suave">
             <th className="px-4 py-3 font-medium">Especie · lote</th>
-            <th className="px-4 py-3 font-medium">Acuario</th>
+            <th className="hidden px-4 py-3 font-medium sm:table-cell">Acuario</th>
             <th className="px-4 py-3 text-right font-medium">Cantidad</th>
             <th className="hidden px-4 py-3 font-medium lg:table-cell">
               Proveedor · centro
@@ -220,8 +221,16 @@ export function ExistenciasCliente({
                 >
                   {e.loteCodigo}
                 </Link>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:hidden">
+                  {e.acuarioCodigo ? (
+                    <span className="font-mono text-xs text-texto">{e.acuarioCodigo}</span>
+                  ) : (
+                    <Etiqueta texto="Aclimatación" tono="advertencia" />
+                  )}
+                  {e.condicion === "enfermo" ? <Etiqueta texto="Enfermo" tono="peligro" /> : null}
+                </div>
               </td>
-              <td className="px-4 py-3 whitespace-nowrap">
+              <td className="hidden px-4 py-3 whitespace-nowrap sm:table-cell">
                 {e.acuarioCodigo ? (
                   <span className="font-mono text-texto">
                     {e.acuarioCodigo}
@@ -248,8 +257,8 @@ export function ExistenciasCliente({
                 {e.diasEnBodega}
               </td>
               {puedeOperar ? (
-                <td className="px-2 py-2">
-                  <div className="flex flex-wrap justify-end">
+                <td className="px-1 py-2 sm:px-2">
+                  <div className="grid grid-cols-2 justify-items-end sm:flex sm:flex-wrap sm:justify-end">
                     {e.acuarioId === null ? (
                       <BotonIcono
                         accion="otra"
@@ -395,6 +404,7 @@ function FormularioOperacion({
   );
   const [sentido, setSentido] = useState<"suma" | "resta">("resta");
   const [nota, setNota] = useState("");
+  const [causa, setCausa] = useState("");
 
   const pideDestino =
     tipo === "ubicacion" ||
@@ -411,7 +421,9 @@ function FormularioOperacion({
       acuarioOrigenId: e.acuarioId,
       condicionOrigen: e.condicion,
     };
-    const base = { loteId: e.loteId, cantidad: n, nota: nota || null };
+    // La causa de mortalidad (maestro) va al comienzo de la nota del kardex: "Causa: Hongos · nota".
+    const textoNota = tipo === "mortalidad" && causa ? [`Causa: ${causa}`, nota.trim()].filter(Boolean).join(" · ") : nota;
+    const base = { loteId: e.loteId, cantidad: n, nota: textoNota || null };
     const operacion: Record<string, unknown> =
       tipo === "mortalidad"
         ? { tipo, ...base, ...origen }
@@ -509,6 +521,18 @@ function FormularioOperacion({
             />
           </Campo>
         ) : null}
+        {tipo === "mortalidad" ? (
+          <Campo label="Causa" htmlFor="causa" hint="Las causas se administran en Administración → Maestros.">
+            <SelectorMaestro
+              id="causa"
+              clave="causas-mortalidad"
+              valor={causa}
+              onChange={setCausa}
+              vacio="Sin causa identificada"
+              placeholder="Escribe la causa…"
+            />
+          </Campo>
+        ) : null}
         <Campo
           label={tipo === "ajuste" ? "Motivo" : "Nota (opcional)"}
           htmlFor="nota"
@@ -517,7 +541,7 @@ function FormularioOperacion({
             id="nota"
             value={nota}
             onChange={(ev) => setNota(ev.target.value)}
-            maxLength={500}
+            maxLength={tipo === "mortalidad" && causa ? 480 - causa.length : 500}
             className={inputClass}
           />
         </Campo>

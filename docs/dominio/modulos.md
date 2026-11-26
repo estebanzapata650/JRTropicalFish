@@ -101,9 +101,26 @@ Documentos relacionados:
 - **Estado** (2026-11-21): implementados **Productos** (catálogo / stock list), **Listas de precios**
   con reglas y recálculo, **Centros de acopio**, **Proveedores** y los maestros *Grupos de producto* y
   *Cuencas*; importados del Excel «JR MAIN STOCK LIST» y «BASES». Detalle en
-  [`catalogos.md`](catalogos.md). Los acuarios llegaron con Inventario. Pendientes de esta lista:
-  AgenteCarga/Aerolínea, Aeropuerto, CausaMortalidad, ConceptoCosto, TipoDocumento, TipoCaja, y datos
-  extra de Especie (CITES, cuarentena, densidad por talla).
+  [`catalogos.md`](catalogos.md). Los acuarios llegaron con Inventario.
+- **Maestros de logística** (2026-11-26), en Administración → Maestros:
+  - **Aerolíneas** (código IATA de 2 letras; sembrada Qatar Airways, la de las ventas);
+  - **Agentes de carga**;
+  - **Aeropuertos** (IATA de 3 letras; sembrados los 31 que usan los clientes);
+  - **Causas de mortalidad**;
+  - **Conceptos de costo**;
+  - **Tipos de documento** (sembrados los 12 del despacho: preinvoice, proforma, VUCE, DEX, factura, factura DIAN,
+    packing list, AWB, CITES, ICA, zoosanitario y nota crédito).
+
+  Agentes de carga, causas de mortalidad y conceptos de costo los llena el equipo. Los tipos de caja ya existían en
+  Exportaciones → Configuración. Los formularios los usan con `components/SelectorMaestro` (buscador que carga el
+  maestro por el proxy):
+  - la aerolínea del embarque (preinvoice) y de la torre de vuelos guarda el **nombre**;
+  - el aeropuerto del cliente guarda el **código IATA**;
+  - al registrar una mortalidad se elige la **causa**, que queda al comienzo de la nota del kardex
+    («Causa: Hongos · nota»).
+
+  El campo sigue siendo texto: un valor viejo que no está en el maestro se conserva y se marca «no está en el maestro».
+- **Pendiente:** datos extra de especie (CITES, cuarentena, densidad por talla).
 - **Entidades principales**: Familia, Especie (nombre científico, nombres comunes, indicador CITES y
   apéndice, días mínimos de cuarentena, densidad por bolsa por talla), Talla, Bodega, Tanque (tipo,
   capacidad), Proveedor (país, moneda, incoterm, ventana de reclamo), Cliente (país, aeropuerto destino,

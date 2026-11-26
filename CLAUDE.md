@@ -51,6 +51,10 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
   packing list de aeropuerto. Informe mensual en el formato de la DTIV (pantalla + Excel con ClosedXML), **solo desde
   los despachos reales**, por especie × municipio de origen (centro de acopio → `municipios_aunap`); el criadero no se
   reporta. ICA pendiente.
+- **Maestros de logística** (2026-11-26): aerolíneas, agentes de carga, aeropuertos (31 sembrados de los clientes),
+  causas de mortalidad, conceptos de costo y tipos de documento (12 sembrados), con el mecanismo genérico de maestros.
+  Los formularios los eligen con `SelectorMaestro`: aerolínea del embarque y del vuelo, aeropuerto del cliente y causa de
+  mortalidad (va al comienzo de la nota del kardex).
 - **Buscador en los formularios** (`components/SelectorBuscable.tsx`): toda lista de registros (clientes,
   proveedores, productos, acuarios, usuarios…) filtra mientras se escribe, por texto o por iniciales.
 - **Sanidad** (2026-11-22, fase 1): **Mi día** del operario (llegadas con profilaxis sugerida, medicación con
@@ -69,7 +73,7 @@ cada tema está en `docs/`; aquí va lo necesario para no romper nada.
 - Health check con Postgres en `/api/v1/health`. 210 pruebas unitarias en verde.
 - Producción: `docker-compose.prod.yml` (Caddy, web, api, postgres, backup), Dockerfiles, `.env.prod.example`.
 
-**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: resto de Catálogos (aerolíneas…), Inventario (conteos, ajustes con aprobación, PDFs), Sanidad fase 2 (planificador semanal), Importaciones,
+**Pendiente (por fases, ver `docs/dominio/modulos.md`)**: resto de Catálogos (datos extra de especie), Inventario (conteos, ajustes con aprobación, PDFs), Sanidad fase 2 (planificador semanal), Importaciones,
 Exportaciones (documentos AUNAP/aduana pendientes con gerencia), Reportes. Recuperación de contraseña por correo. CI/CD (fase 2).
 
 ## Descripción del proyecto
@@ -286,7 +290,7 @@ Separar "registrar" de "aprobar/cerrar" cuando las responsabilidades difieren (e
 - Subidas por Server Action + `apiUpload` sin fijar `Content-Type`; límite de Server Actions en
   `next.config.ts` (12 MB).
 - Constantes de clases en `lib/estilos.ts`, no en `components/campos.tsx` (`"use client"`).
-- Para elegir un registro (cliente, proveedor, producto, acuario, usuario…) usar `SelectorBuscable`, no `<select>`;
+- Para elegir un registro (cliente, proveedor, producto, acuario, usuario…) usar `SelectorBuscable`, no `<select>` (para un valor de maestro, `SelectorMaestro`);
   el `<select>` queda para listas cortas de valores fijos (estado, moneda). Con FormData: `valorInicial` + `name`.
 - Un Server Component solo pasa a un cliente datos serializables o Server Actions (no funciones normales).
 - React: nada de `setState` durante el render ni en `useEffect` para reaccionar a una acción; usar

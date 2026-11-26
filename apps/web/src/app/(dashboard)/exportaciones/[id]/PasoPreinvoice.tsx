@@ -1,6 +1,7 @@
 "use client";
 
 import { SelectorBuscable } from "@/components/SelectorBuscable";
+import { SelectorMaestro } from "@/components/SelectorMaestro";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
@@ -296,12 +297,13 @@ function DatosGenerales({
             </select>
           </Campo>
           <Campo label="Aerolínea" htmlFor="aerolinea">
-            <input
+            <SelectorMaestro
               id="aerolinea"
-              value={aerolinea}
-              onChange={(ev) => setAerolinea(ev.target.value)}
-              maxLength={150}
-              className={inputClass}
+              clave="aerolineas"
+              valor={aerolinea}
+              onChange={setAerolinea}
+              vacio="Sin aerolínea"
+              placeholder="Escribe la aerolínea…"
             />
           </Campo>
           <Campo label="Ruta" htmlFor="ruta" hint="BOG - MIA - NRT">
